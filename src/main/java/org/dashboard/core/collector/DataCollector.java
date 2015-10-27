@@ -71,8 +71,7 @@ public class DataCollector {
          properties = new PropsManager("dashboard.properties");
          log.info("Logging into ICAT");
          sessionID = loginICAT(properties.getICATUrl(),properties.getReaderUserName(),properties.getReaderPassword(),properties.getAuthenticator());
-         createTimers(properties);
-         
+         createTimers(properties);         
        
         
         try {
