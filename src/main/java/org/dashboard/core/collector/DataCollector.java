@@ -76,7 +76,7 @@ public class DataCollector {
        
         
         try {
-            String testSession = entityManager.login("yqa41233",60,manager);
+            String testSession = entityManager.login("",60,manager);
         } catch (DashboardException ex) {
             java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
         }
