@@ -15,6 +15,8 @@ import javax.persistence.Column;
 import javax.persistence.OneToMany;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
 
@@ -23,7 +25,7 @@ import javax.persistence.UniqueConstraint;
 
 @Table(uniqueConstraints ={ @UniqueConstraint(columnNames ={"USER_ICAT_ID"})})
 @Entity
-public class User extends EntityBaseBean implements Serializable {
+public class ICATUser extends EntityBaseBean implements Serializable {
     
     @Comment("A user can have downloads.")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
@@ -41,15 +43,16 @@ public class User extends EntityBaseBean implements Serializable {
     private Long userICATID;    
     
     @Comment("Name of the user")
-    private String name;
+    private String fullName;
     
      @Comment("Ip address of the user the last time they used the ICAT.")
     private InetAddress ipAddress;
     
      @Comment("When they last logged in")
+     @Temporal(value = TemporalType.TIMESTAMP)
     private Date lastLoggedIn;
     
-    public User(){
+    public ICATUser(){
         
     }
     
@@ -74,7 +77,7 @@ public class User extends EntityBaseBean implements Serializable {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.fullName = name;
     }
 
     public void setLastLoggedIn(Date lastLoggedIn) {
@@ -90,7 +93,7 @@ public class User extends EntityBaseBean implements Serializable {
     }
 
     public String getName() {
-        return name;
+        return fullName;
     }
 
     public Date getLastLoggedIn() {

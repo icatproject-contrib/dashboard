@@ -31,7 +31,7 @@ public class EntityCollection extends EntityBaseBean implements Serializable {
 
        
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "entityCollection")
-    private List<Entity> entites = new ArrayList<>();
+    private List<Item> entites = new ArrayList<>();
     
     public EntityCollection(){
         
@@ -41,7 +41,7 @@ public class EntityCollection extends EntityBaseBean implements Serializable {
         this.download = download;
     }
 
-    public void setEntites(List<Entity> entites) {
+    public void setEntites(List<Item> entites) {
         this.entites = entites;
     }
     
@@ -49,7 +49,7 @@ public class EntityCollection extends EntityBaseBean implements Serializable {
         return download;
     }
 
-    public List<Entity> getEntites() {
+    public List<Item> getEntites() {
         return entites;
     }
     

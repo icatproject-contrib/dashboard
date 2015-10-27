@@ -24,7 +24,7 @@ public class Query extends EntityBaseBean implements Serializable {
     @Comment("The user which performed the query.")
     @JoinColumn(name="USER_ID", nullable = false)
     @ManyToOne(fetch= FetchType.LAZY)
-    private User user;
+    private ICATUser user;
     
     @Comment("The id of the query in ICAT.")
     private Long queryID;
@@ -52,7 +52,7 @@ public class Query extends EntityBaseBean implements Serializable {
         return queryID;
     }
     
-    public void setUser(User user) {
+    public void setUser(ICATUser user) {
         this.user = user;
     }
 
@@ -68,7 +68,7 @@ public class Query extends EntityBaseBean implements Serializable {
         this.query = query;
     }
 
-    public User getUser() {
+    public ICATUser getUser() {
         return user;
     }
 

@@ -66,7 +66,7 @@ public class DataCollector {
      */
     @PostConstruct
     private void init() { 
-        
+        String testSession;
          log.info("Reading properties.");
          properties = new PropsManager("dashboard.properties");
          log.info("Logging into ICAT");
@@ -75,7 +75,7 @@ public class DataCollector {
        
         
         try {
-            String testSession = entityManager.login("",60,manager);
+            testSession = entityManager.login("",60,manager);
         } catch (DashboardException ex) {
             java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
         }

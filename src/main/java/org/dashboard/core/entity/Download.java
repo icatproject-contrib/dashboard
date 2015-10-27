@@ -17,8 +17,11 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-
+@Comment("A download is the process of saving entities from the repositry to the users computer. ")
+@SuppressWarnings("serial")
 @Entity
 @Table(uniqueConstraints= {@UniqueConstraint(columnNames = {"USER_ID,ENTITYCOLLECTION_ID"})})
 public class Download extends EntityBaseBean implements Serializable{
@@ -26,7 +29,7 @@ public class Download extends EntityBaseBean implements Serializable{
     @Comment("A download is associated with a user.")
     @JoinColumn(name = "USER_ICAT_ID")
     @ManyToOne(fetch = FetchType.LAZY)
-    private User user;    
+    private ICATUser user;    
     
     @Comment("A download has a Entity collection")
     @OneToOne(cascade = CascadeType.ALL, mappedBy="download")
@@ -35,6 +38,7 @@ public class Download extends EntityBaseBean implements Serializable{
     @Comment("The preparedID from TopCAT")
     private UUID preparedID;
     
+    @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("The time the download took place.")
     private Date downloadTime;
     
@@ -48,7 +52,7 @@ public class Download extends EntityBaseBean implements Serializable{
         
     }
 
-    public void setUser(User user) {
+    public void setUser(ICATUser user) {
         this.user = user;
     }
 
@@ -72,7 +76,7 @@ public class Download extends EntityBaseBean implements Serializable{
         this.method = method;
     }
 
-    public User getUser() {
+    public ICATUser getUser() {
         return user;
     }
 

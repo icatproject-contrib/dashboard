@@ -13,6 +13,8 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 
 @Comment("This is a item that has been downloaded via the IDS. It belongs to an Entity Collection")
@@ -28,11 +30,12 @@ public class Item extends EntityBaseBean implements Serializable{
     
     
     @Comment("Name of the Item.")
-    private String name;
+    private String entityName;
     
     @Comment("Size of the Item in bytes.")
-    private Long size;
+    private Long entitySize;
     
+    @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("Time of creation of the Item in the ICAT.")
     private Date ICATcreationTime;
     

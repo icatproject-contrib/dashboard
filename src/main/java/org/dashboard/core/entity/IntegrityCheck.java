@@ -8,6 +8,8 @@ package org.dashboard.core.entity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Entity;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 
 @Comment("The overal data intergrity of Entity Count.")
@@ -15,7 +17,8 @@ import javax.persistence.Entity;
 public class IntegrityCheck extends EntityBaseBean implements Serializable {
     
     @Comment("The date the check was checked agaisnt.")
-    private Date date;
+    @Temporal(value = TemporalType.TIMESTAMP)
+    private Date checkDate;
     
     @Comment("The type of collection that was carried out.")
     private CollectionType collectionType;
@@ -28,7 +31,7 @@ public class IntegrityCheck extends EntityBaseBean implements Serializable {
     }
 
     public Date getDate() {
-        return date;
+        return checkDate;
     }
 
     public CollectionType getCollectionType() {
@@ -40,7 +43,7 @@ public class IntegrityCheck extends EntityBaseBean implements Serializable {
     }
 
     public void setDate(Date date) {
-        this.date = date;
+        this.checkDate = date;
     }
 
     public void setCollectionType(CollectionType collectionType) {

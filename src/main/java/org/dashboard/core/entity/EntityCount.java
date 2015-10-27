@@ -8,15 +8,17 @@ package org.dashboard.core.entity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Entity;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 
 
 @Comment("Counts the amount of entites based on their association with an instrument.")
 @Entity
 public class EntityCount extends EntityBaseBean implements Serializable {
-    
+    @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("Date of the Entity Value.")
-    private Date date;
+    private Date countDate;
     
     @Comment("Entity type of the Count e.g. Investigation, Datafile etc...")
     private String entity;
@@ -29,7 +31,7 @@ public class EntityCount extends EntityBaseBean implements Serializable {
     }
 
     public Date getDate() {
-        return date;
+        return countDate;
     }
 
     public String getEntity() {
@@ -41,7 +43,7 @@ public class EntityCount extends EntityBaseBean implements Serializable {
     }
 
     public void setDate(Date date) {
-        this.date = date;
+        this.countDate = date;
     }
 
     public void setEntity(String entity) {

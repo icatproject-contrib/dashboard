@@ -1,6 +1,5 @@
 package org.dashboard.core.manager;
 
-import javax.ejb.DependsOn;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;
@@ -15,7 +14,7 @@ public class SessionManager {
 
 	private static final Logger logger = Logger.getLogger(SessionManager.class);
 
-	@PersistenceContext(unitName = "dashboard")
+	@PersistenceContext(unitName="dashboard")
 	private EntityManager manager;
 
 	// Run every hour
