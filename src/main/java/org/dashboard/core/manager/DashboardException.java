@@ -10,6 +10,10 @@ package org.dashboard.core.manager;
 
 @SuppressWarnings("serial")
 public class DashboardException extends Exception {
+
+    DashboardExceptionType getType() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     public enum DashboardExceptionType{
         /** An input parameter appears to be incorrect */

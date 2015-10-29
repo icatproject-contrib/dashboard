@@ -10,6 +10,10 @@ import org.dashboard.core.manager.DashboardException;
 import org.dashboard.core.manager.EntityBeanManager;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
@@ -26,6 +30,7 @@ import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import org.apache.log4j.Logger;
 import org.icatproject.*;
@@ -47,7 +52,14 @@ public class DataCollector {
     private EntityManager manager;
         
     @EJB
-    private EntityBeanManager entityManager;
+    private EntityBeanManager beanManager;
+    
+    @EJB
+    private EntityCounter counter;
+    
+    @EJB 
+    private UserCollector userCollector;
+    
     
     private static final Logger log = Logger.getLogger(DataCollector.class);
    
@@ -65,26 +77,65 @@ public class DataCollector {
      * collections and login into ICAT. Also initiates initial data collection.
      */
     @PostConstruct
-    private void init() { 
-        String testSession;
+    private void init() {         
+   
          log.info("Reading properties.");
          properties = new PropsManager("dashboard.properties");
          log.info("Logging into ICAT");
          sessionID = loginICAT(properties.getICATUrl(),properties.getReaderUserName(),properties.getReaderPassword(),properties.getAuthenticator());
-         createTimers(properties);         
-       
+         createTimers(properties);  
+         setupUserCollection();
+         //setupEntityCollection();   
         
+        } 
+    
+    
+    private void setupUserCollection(){
         try {
-            testSession = entityManager.login("",60,manager);
-        } catch (DashboardException ex) {
+            userCollector.init(icat,sessionID);
+            List<Object> earliestUser = icat.search(sessionID,"SELECT MIN(u.modTime) FROM User u");
+            if(earliestUser.get(0)!=null){
+                userCollector.collectUsers(dateConversion((XMLGregorianCalendar) earliestUser.get(0)),LocalDate.now());
+            }
+            else{
+                log.info("Empty ICAT no user data to collect");
+            }            
+            
+        } catch (IcatException_Exception ex) {
             java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
         }
-         
-                
         
+    }
+    
+    private LocalDate dateConversion(XMLGregorianCalendar date){
+        return date.toGregorianCalendar().toZonedDateTime().toLocalDate();
         
-        }
+    }
 
+    private void setupEntityCollection(){        
+        counter.init(icat, sessionID);
+        List<Object> earliestICAT = new ArrayList();
+        List<Object> earliestDashboard = new ArrayList();
+        earliestDashboard = beanManager.search("SELECT MIN(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 1", manager);
+        if(earliestDashboard.get(0)==null&&earliestICAT.get(0)!=null){
+            try {
+                earliestICAT = icat.search(sessionID,"SELECT MIN(d.createTime) FROM Datafile d");
+                log.info("Initial collection required.");              
+               
+                counter.countEntities(dateConversion((XMLGregorianCalendar) earliestICAT.get(0)) , LocalDate.now()) ;
+            } catch (IcatException_Exception ex) {
+                java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        else{
+            log.info("Empty ICAT. No metadata to collect");
+        }
+       
+        
+       
+       
+    }
+    
     /**
      * Creates the timers with the TimerService object. Currently creates two.
      * One for the ICAT refresh with is invoked every hour and datacollect which

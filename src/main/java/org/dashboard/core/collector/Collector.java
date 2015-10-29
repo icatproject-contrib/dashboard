@@ -5,13 +5,9 @@
  */
 package org.dashboard.core.collector;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import javax.ejb.EJB;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.dashboard.core.entity.CollectionType;
-import org.dashboard.core.manager.EntityBeanManager;
 import org.icatproject.ICAT;
 
 
@@ -24,7 +20,7 @@ public abstract class Collector {
     
     DateTimeFormatter format;
     
-    public void init(){
+    public void init(ICAT icat, String sessionID){
         format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         this.icat = icat;
         this.sessionID = sessionID;
@@ -38,6 +34,6 @@ public abstract class Collector {
         this.sessionID = sessionID;
     }
     
-    public abstract void integerityUpdate(Date date, boolean passed,CollectionType type);
+    public abstract void integerityUpdate(LocalDate date, boolean passed,CollectionType type);
     
 }

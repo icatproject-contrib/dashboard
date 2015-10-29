@@ -13,9 +13,6 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.transaction.NotSupportedException;
-import javax.transaction.SystemException;
-import javax.transaction.UserTransaction;
 import org.apache.log4j.Logger;
 import org.dashboard.core.entity.EntityBaseBean;
 import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
@@ -135,7 +132,7 @@ public class EntityBeanManager {
 		return object;
     }
     
-    public List<?> search(String queryString, EntityManager manager){
+    public List<Object> search(String queryString, EntityManager manager){
         logger.info("Performing query: "+queryString);
         
         Query query = manager.createQuery(queryString);
