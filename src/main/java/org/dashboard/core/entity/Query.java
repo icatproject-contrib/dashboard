@@ -18,7 +18,7 @@ import javax.persistence.UniqueConstraint;
 @Comment("A Query")
 @SuppressWarnings("serial")
 @Entity
-@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "QUERY_ID","USER_ID" }) })
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "QUERYID","USER_ID" }) })
 public class Query extends EntityBaseBean implements Serializable {
     
     @Comment("The user which performed the query.")

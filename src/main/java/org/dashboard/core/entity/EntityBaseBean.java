@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -18,6 +19,7 @@ import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.log4j.Logger;
+import org.dashboard.core.manager.DashboardException;
 
 
 @SuppressWarnings("serial")
@@ -50,7 +52,8 @@ public abstract class EntityBaseBean implements Serializable {
 	@Column(name = "MOD_TIME", nullable = false)
 	@Temporal(value = TemporalType.TIMESTAMP)
 	protected Date modTime;
-
+        
+       
 	
 	/**
 	 * Gets the createTime of this entity.
@@ -64,16 +67,7 @@ public abstract class EntityBaseBean implements Serializable {
 	public Long getId() {
 		return id;
 	}
-
 	
-	/**
-	 * Gets the modTime of this entity.
-	 * 
-	 * @return the modTime
-	 */
-	public Date getModTime() {
-		return this.modTime;
-	}
 
 
 	private void reportUnexpected(Throwable e) {
@@ -90,13 +84,28 @@ public abstract class EntityBaseBean implements Serializable {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
+	}      
 	
 
 	public void setModTime(Date modTime) {
 		this.modTime = modTime;
 	}
+        
+        public void preparePersist( EntityManager manager,	 boolean allAttributes) throws DashboardException {
+		this.id = null;		
+		
+		Date now = null;
+		if (!allAttributes || createTime == null) {
+			now = new Date();
+			createTime = now;
+		}
+		if (!allAttributes || modTime == null) {
+			if (now == null) {
+				now = new Date();
+			}
+			modTime = now;
+		}
+        }
 
 	
 

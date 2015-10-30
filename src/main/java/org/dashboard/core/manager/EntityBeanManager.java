@@ -82,6 +82,7 @@ public class EntityBeanManager {
     public Long create(EntityBaseBean bean, EntityManager manager) throws DashboardException{
         logger.info("Creating: "+bean.getClass().getSimpleName());
         try{
+            bean.preparePersist(manager,false);
             manager.persist(bean);            
             manager.flush();            
             long beanId = bean.getId();
