@@ -20,7 +20,7 @@ import javax.persistence.TemporalType;
 @Comment("This is a item that has been downloaded via the IDS. It belongs to an Entity Collection")
 @SuppressWarnings("serial")
 @Entity
-@Table(uniqueConstraints ={ @UniqueConstraint(columnNames = {"ENTITYCOLLECTION_ID,ENTITY_TYPE,ENTITY_ID"})})
+@Table(uniqueConstraints ={ @UniqueConstraint(columnNames = {"ENTITYCOLLECTION_ID"})})
 public class Item extends EntityBaseBean implements Serializable{
     
     @Comment("The Collection the Item belongs to.")

@@ -27,7 +27,7 @@ import javax.persistence.TemporalType;
 public class Download extends EntityBaseBean implements Serializable{
     
     @Comment("A download is associated with a user.")
-    @JoinColumn(name = "USER_ICAT_ID")
+    @JoinColumn(name = "USER_ID")
     @ManyToOne(fetch = FetchType.LAZY)
     private ICATUser user;    
     
