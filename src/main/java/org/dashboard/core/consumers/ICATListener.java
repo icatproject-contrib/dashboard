@@ -5,8 +5,6 @@
  */
 package org.dashboard.core.consumers;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,21 +15,11 @@ import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.xml.namespace.QName;
-import org.dashboard.core.collector.DataCollector;
 import org.dashboard.core.collector.UserCollector;
 import org.dashboard.core.entity.ICATUser;
 import org.dashboard.core.entity.Query;
 import org.dashboard.core.manager.DashboardException;
 import org.dashboard.core.manager.EntityBeanManager;
-import org.icatproject.ICAT;
-import org.icatproject.ICATService;
-import org.icatproject.IcatException_Exception;
-import org.icatproject.Login;
-import org.icatproject.User;
-
-
-
    
 
 public class ICATListener implements MessageListener {
@@ -47,8 +35,7 @@ public class ICATListener implements MessageListener {
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;
     
-    private String sessionID;
-    private ICAT icat;
+
     
     /**
      * Interface method that receives messages from the subscribed queue. Pulls of the information it
