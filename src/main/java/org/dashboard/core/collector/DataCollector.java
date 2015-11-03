@@ -33,6 +33,7 @@ import javax.persistence.PersistenceContext;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import org.apache.log4j.Logger;
+import org.dashboard.core.entity.CollectionType;
 import org.icatproject.*;
 import org.icatproject.Login.Credentials;
 import org.icatproject.Login.Credentials.Entry;
@@ -84,8 +85,8 @@ public class DataCollector {
          log.info("Logging into ICAT");
          sessionID = loginICAT(properties.getICATUrl(),properties.getReaderUserName(),properties.getReaderPassword(),properties.getAuthenticator());
          createTimers(properties);  
-         setupUserCollection();
-         //setupEntityCollection();   
+         //setupUserCollection();
+         setupEntityCollection();   
         
         } 
     
@@ -116,16 +117,19 @@ public class DataCollector {
         counter.init(icat, sessionID);
         List<Object> earliestICAT = new ArrayList();
         List<Object> earliestDashboard = new ArrayList();
-        earliestDashboard = beanManager.search("SELECT MIN(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 1", manager);
-        if(earliestDashboard.get(0)==null&&earliestICAT.get(0)!=null){
-            try {
-                earliestICAT = icat.search(sessionID,"SELECT MIN(d.createTime) FROM Datafile d");
-                log.info("Initial collection required.");              
-               
-                counter.countEntities(dateConversion((XMLGregorianCalendar) earliestICAT.get(0)) , LocalDate.now()) ;
-            } catch (IcatException_Exception ex) {
-                java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        
+        try {
+            earliestDashboard = beanManager.search("SELECT MIN(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 1 AND inc.collectionType=" + CollectionType.class.getName() +".EntityCount", manager);
+            earliestICAT = icat.search(sessionID,"SELECT MIN(d.createTime) FROM Datafile d");
+            
+        } catch (IcatException_Exception ex) {
+            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if(earliestDashboard.get(0)==null&&earliestICAT.get(0)!=null){ 
+            
+            log.info("Initial collection required.");       
+            counter.countEntities(dateConversion((XMLGregorianCalendar) earliestICAT.get(0)) , LocalDate.now()) ;
+           
         }
         else{
             log.info("Empty ICAT. No metadata to collect");
@@ -179,11 +183,18 @@ public class DataCollector {
     private void refreshSession() throws IcatException_Exception{
         log.info("Refresshing the Session ID");
         icat.refresh(sessionID);
+        counter.refresh(sessionID);
+        userCollector.refresh(sessionID);
     }
     
-    /*
-    Logins into the ICAT and returns the sessionID.
-    */
+    /**
+     * Logs into the ICAT
+     * @param icatURL The URL of the ICAT
+     * @param userName user name for the ICAT login
+     * @param password password for the ICAT login
+     * @param authenticator type of authenticator
+     * @return 
+     */
     private String loginICAT(String icatURL, String userName, String password, String authenticator){
         
         
@@ -238,6 +249,8 @@ public class DataCollector {
         return credentials;
         
     }    
+    
+    
    
     
 
