@@ -57,7 +57,8 @@ public class UserCollector extends Collector {
                     ICATUser dashBoardUser = new ICATUser();
                     
                     dashBoardUser.setUserICATID(user.getId());
-                    dashBoardUser.setName(user.getFullName());
+                    dashBoardUser.setFullName(user.getFullName());
+                    dashBoardUser.setName(user.getName());
                     
                     //Failed for the day do not wish to continue
                     if(!(complete = insertUser(dashBoardUser))){                        
@@ -66,11 +67,11 @@ public class UserCollector extends Collector {
                 }
                 if(complete){
                     integerityUpdate(start, true,UserUpdate);
-                    start.plusDays(1);
+                    start = start.plusDays(1);
                 }
                 else{
                     integerityUpdate(start, false,UserUpdate);
-                    start.plusDays(1);
+                    start = start.plusDays(1);
                 }
                         
             } catch (IcatException_Exception ex) {
@@ -81,6 +82,30 @@ public class UserCollector extends Collector {
         
     }
     
+    /**
+     * Overloaded insertUser method to allow MDB to inject into this class and add new users that appear.
+     * @param name Unique name of the user in the ICAT.
+     */
+    public ICATUser insertUser(String name){
+        String query = "SELECT u from User u WHERE u.name= '"+name+"'";
+        User u = null;        
+        
+        try {
+            List<Object> user = icat.search(sessionID,query);
+            u=(User)user.get(0);
+        } catch (IcatException_Exception ex) {
+            Logger.getLogger(UserCollector.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        ICATUser dashBoardUser = new ICATUser();
+        
+        dashBoardUser.setUserICATID(u.getId());
+        dashBoardUser.setFullName(u.getFullName());
+        dashBoardUser.setName(u.getName());
+        
+        insertUser(dashBoardUser);
+        
+        return dashBoardUser;
+    }
     /**
      * Inserts a user to the Dashboard database.
      * @param user the ICAT user to insert
@@ -95,6 +120,13 @@ public class UserCollector extends Collector {
         }
         return true;
     }
+    
+     /**
+     * Inserts a integrity value for the Integrity table. 
+     * @param date Date the collection went over.
+     * @param passed If it was successful or not.
+     * @param type the type of collection e.g. User update or entity count.
+     */
 
     @Override
     public void integerityUpdate(LocalDate date, boolean passed, CollectionType type) {
@@ -111,12 +143,7 @@ public class UserCollector extends Collector {
     }
     
     
-    /**
-     * Inserts a integrity value for the Integrity table. 
-     * @param date Date the collection went over.
-     * @param passed If it was successful or not.
-     * @param type the type of collection e.g. User update or entity count.
-     */
+   
     
     
 }
