@@ -45,11 +45,30 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     @Comment("Name of the user")
     private String fullName;
     
-     @Comment("Ip address of the user the last time they used the ICAT.")
+    @Comment("Login name")
+    private String name;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setIpAddress(InetAddress ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public InetAddress getIpAddress() {
+        return ipAddress;
+    }
+    
+    @Comment("Ip address of the user the last time they used the ICAT.")
     private InetAddress ipAddress;
     
-     @Comment("When they last logged in")
-     @Temporal(value = TemporalType.TIMESTAMP)
+    @Comment("When they last logged in")
+    @Temporal(value = TemporalType.TIMESTAMP)
     private Date lastLoggedIn;
     
     public ICATUser(){
@@ -76,7 +95,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
         this.logged = logged;
     }
 
-    public void setName(String name) {
+    public void setFullName(String name) {
         this.fullName = name;
     }
 

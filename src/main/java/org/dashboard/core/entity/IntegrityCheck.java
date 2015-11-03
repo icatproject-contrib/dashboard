@@ -8,6 +8,8 @@ package org.dashboard.core.entity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -20,6 +22,7 @@ public class IntegrityCheck extends EntityBaseBean implements Serializable {
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date checkDate;
     
+    @Enumerated(EnumType.STRING)
     @Comment("The type of collection that was carried out.")
     private CollectionType collectionType;
     

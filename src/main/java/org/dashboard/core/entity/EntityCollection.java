@@ -24,7 +24,7 @@ import javax.persistence.JoinColumn;
 @Entity
 @Table(uniqueConstraints = { @UniqueConstraint(columnNames={"DOWNLOAD_ID"})})
 public class EntityCollection extends EntityBaseBean implements Serializable {
-    
+            
     @JoinColumn(name="DOWNLOAD_ID",nullable=false)
     @OneToOne(fetch = FetchType.LAZY)
     private Download download;
