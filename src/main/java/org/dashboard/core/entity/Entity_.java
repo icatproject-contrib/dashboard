@@ -45,6 +45,46 @@ public class Entity_ extends EntityBaseBean implements Serializable{
     public Entity_(){
         
     }
+
+    public EntityCollection getEntityCollection() {
+        return entityCollection;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public Long getEntitySize() {
+        return entitySize;
+    }
+
+    public Date getICATcreationTime() {
+        return ICATcreationTime;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setEntityCollection(EntityCollection entityCollection) {
+        this.entityCollection = entityCollection;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public void setEntitySize(Long entitySize) {
+        this.entitySize = entitySize;
+    }
+
+    public void setICATcreationTime(Date ICATcreationTime) {
+        this.ICATcreationTime = ICATcreationTime;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
     
     
     
