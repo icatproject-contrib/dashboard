@@ -8,20 +8,24 @@ package org.dashboard.core.consumers;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Resource;
 import javax.ejb.EJB;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.UserTransaction;
 import org.dashboard.core.collector.UserCollector;
 import org.dashboard.core.entity.ICATUser;
 import org.dashboard.core.entity.Query;
 import org.dashboard.core.manager.DashboardException;
 import org.dashboard.core.manager.EntityBeanManager;
    
-
+@TransactionManagement(TransactionManagementType.BEAN)
 public class ICATListener implements MessageListener {
     
     @EJB
@@ -29,6 +33,10 @@ public class ICATListener implements MessageListener {
     
     @EJB
     private UserCollector userCollector;
+    
+    @Resource
+    private UserTransaction userTransaction;
+
     
     private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ICATListener.class);
     
@@ -68,7 +76,7 @@ public class ICATListener implements MessageListener {
      */
     public void createQuery(Query q){
         try {
-            beanManager.create(q, manager);
+            beanManager.create(q, manager,userTransaction);
         } catch (DashboardException ex) {
             Logger.getLogger(ICATListener.class.getName()).log(Level.SEVERE, null, ex);
         }
