@@ -17,6 +17,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -25,7 +26,10 @@ import javax.jms.TextMessage;
 import javax.net.ssl.HttpsURLConnection;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import org.dashboard.core.collector.PropsManager;
+import javax.xml.namespace.QName;
+import org.dashboard.core.collector.DataCollector;
+import org.dashboard.core.collector.EntityCounter;
+import org.dashboard.core.manager.PropsManager;
 import org.dashboard.core.collector.UserCollector;
 import org.dashboard.core.entity.Download;
 import org.dashboard.core.entity.EntityCollection;
@@ -35,6 +39,13 @@ import org.dashboard.core.entity.Query;
 import org.dashboard.core.manager.DashboardException;
 
 import org.dashboard.core.manager.EntityBeanManager;
+import org.dashboard.core.manager.ICATSessionManager;
+import org.icatproject.Datafile;
+import org.icatproject.Dataset;
+import org.icatproject.ICAT;
+import org.icatproject.ICATService;
+import org.icatproject.IcatException_Exception;
+import org.icatproject.Investigation;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,13 +55,24 @@ import org.json.simple.parser.ParseException;
 public class DownloadListener implements MessageListener {
     
     @EJB
+    private PropsManager prop;
+ 
+    @EJB
+    private ICATSessionManager session;
+     
+    protected ICAT icat;
+    protected String sessionID; 
+    
+    @EJB
     private EntityBeanManager beanManager;
     
     @EJB
     private UserCollector userCollector;
     
-    @EJB
-    private PropsManager properties;
+    
+    
+    @EJB 
+    private EntityCounter entityCounter;
     
     private final String api = "/api/v1/admin/downloads/facility/isis?preparedId=";
     
@@ -59,6 +81,10 @@ public class DownloadListener implements MessageListener {
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;
     
+    @PostConstruct
+    private void init(){
+        sessionID = session.getSessionID();
+    }
    
     @Override
     public void onMessage(Message message) {
@@ -88,7 +114,7 @@ public class DownloadListener implements MessageListener {
             JSONObject json = (JSONObject) obj;
             
             if(json.containsKey("investigationIds")){
-                JSONArray dfIDs = (JSONArray) json.get("dataFileIds");
+                JSONArray dfIDs = (JSONArray) json.get("investigationIds");
                 for(int i=0;i<dfIDs.size();i++){
                     int id = Integer.parseInt(dfIDs.get(i).toString());
                     ent = createEntity(id,"investigation");
@@ -96,7 +122,7 @@ public class DownloadListener implements MessageListener {
                 }               
             }
             if(json.containsKey("datasetIds")){
-                JSONArray dfIDs = (JSONArray) json.get("dataFileIds");
+                JSONArray dfIDs = (JSONArray) json.get("datasetIds");
                 for(int i=0;i<dfIDs.size();i++){
                     int id = Integer.parseInt(dfIDs.get(i).toString());
                     ent = createEntity(id,"dataset");
@@ -126,6 +152,44 @@ public class DownloadListener implements MessageListener {
     private Entity_ createEntity(int id,String EntityType){
         Entity_ entity = new Entity_();
         
+        switch (EntityType) {
+            case "investigation":
+                Investigation inv = getInvestigation(id);
+                entity.setEntityName(inv.getName());
+                entity.setICATcreationTime(inv.getCreateTime().toGregorianCalendar().getTime());
+                entity.setEntitySize(new Long(0));
+                entity.setType("investigation");         
+                break;
+                
+            case "dataset":
+                Dataset ds = getDataset(id); 
+                entity.setEntityName(ds.getName());
+                entity.setICATcreationTime(ds.getCreateTime().toGregorianCalendar().getTime());
+                entity.setEntitySize(Long.MIN_VALUE);
+                entity.setType("dataset");
+                break;
+                
+            case "datafile":
+                Datafile df = getDatafile(id);
+                entity.setEntityName(df.getName());
+                entity.setICATcreationTime(df.getCreateTime().toGregorianCalendar().getTime());
+                entity.setEntitySize(df.getFileSize());
+                entity.setType("datafile");                
+                break;
+    }
+        return entity;
+    }
+    
+    private Long getEntitySize(String type, String ID){
+        
+        switch(type){
+            case "investigation":
+                break;
+            case "dataset":
+                break;
+        }
+        
+        return new Long(0);
         
     }
     /**
@@ -138,7 +202,7 @@ public class DownloadListener implements MessageListener {
     private String getMethod(String preparedID){
         String method = null;
         try {
-            URL topCatURL = new URL(properties.getTopCatURL()+api+preparedID);
+            URL topCatURL = new URL(prop.getTopCatURL()+api+preparedID);
             
             preparedID = "dog";
             HttpsURLConnection httpsConnection = (HttpsURLConnection) topCatURL.openConnection();
@@ -182,8 +246,8 @@ public class DownloadListener implements MessageListener {
      * @return Base64 topcat credentials
      */
     private String getCredentials() {
-        String rawUser = properties.getTopCatUser();
-        String rawPass = properties.getTopCatPass();
+        String rawUser = prop.getTopCatUser();
+        String rawPass = prop.getTopCatPass();
         String rawCred = rawUser+":"+rawPass;   
         byte[] authEncBytes = Base64.getEncoder().encode(rawCred.getBytes());
         String authStringEnc = new String(authEncBytes);
@@ -217,4 +281,83 @@ public class DownloadListener implements MessageListener {
         return dashBoardUser;        
     }
     
+     public Investigation getInvestigation(int id){
+        Investigation inv = null;
+        
+        try {
+             inv = (Investigation) icat.get(sessionID, "investigation", id);
+        } catch (IcatException_Exception ex) {
+            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return inv;
+    }
+    
+    public Dataset getDataset(int id){
+        Dataset ds = null;
+        
+        try {
+             ds = (Dataset) icat.get(sessionID, "dataset", id);
+        } catch (IcatException_Exception ex) {
+            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return ds;
+    }
+    
+    public Datafile getDatafile(int id){
+        Datafile df = null;
+        
+        try{
+            df = (Datafile) icat.get(sessionID, "datafile",id);
+        }catch (IcatException_Exception ex) {
+            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return df;
+        
+            
+    }
+    
+    public Long getInvSize(int id){
+        List<Object> s = null;
+        try {
+            s = icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds JOIN ds.investigation i WHERE i.id="+id);
+        } catch (IcatException_Exception ex) {
+            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Long size = (Long) s.get(0);
+        
+        return size;
+    }
+    
+    public Long getDatasetSize(int id){
+        List<Object> s = null;
+        try {
+            s = icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds WHERE ds.id="+id);
+        } catch (IcatException_Exception ex) {
+            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Long size = (Long) s.get(0);
+        
+        return size;
+    }
+    
+     public ICAT createICATLink(){
+        ICAT icat = null;
+         try {
+            URL hostUrl;
+            
+            hostUrl = new URL("https://"+prop.getICATUrl());
+            URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
+            QName qName = new QName("http://icatproject.org", "ICATService");
+            ICATService service = new ICATService(icatUrl, qName);
+            icat = service.getICATPort();            
+                                        
+                    
+        } catch (MalformedURLException ex) {
+            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+       
+        return icat;
+        
+    }
 }
