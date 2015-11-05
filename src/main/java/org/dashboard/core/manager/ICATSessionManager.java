@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
@@ -47,7 +48,16 @@ public class ICATSessionManager {
     @Resource
     private TimerService timerService;
     
-    
+   
+   
+    /**
+     * Initialises the timers and the ICAT login.
+     */
+    @PostConstruct
+    public void init(){
+        createTimers(properties);
+        loginICAT(properties);
+    }
      /**
      * Creates the timers with the TimerService object. Currently creates two.
      * One for the ICAT refresh with is invoked every hour and datacollect which
@@ -59,10 +69,8 @@ public class ICATSessionManager {
     private void createTimers(PropsManager properties){
         
         TimerConfig refreshSession = new TimerConfig("refreshSession", false);
-        timerService.createIntervalTimer(3600000,3600000,refreshSession); 
-        
-        TimerConfig dataCollect = new TimerConfig("dataCollect",false);
-        timerService.createCalendarTimer(new ScheduleExpression().hour(properties.getCollectTime()),dataCollect);
+        timerService.createIntervalTimer(3600000,3600000,refreshSession);         
+       
         
     }
    /**
@@ -73,13 +81,13 @@ public class ICATSessionManager {
      * @param authenticator type of authenticator
      * @return 
      */
-    private String loginICAT(String icatURL, String userName, String password, String authenticator){
+    private String loginICAT(PropsManager properties){
         
         
         try {
             URL hostUrl;
             
-            hostUrl = new URL("https://"+icatURL);
+            hostUrl = new URL("https://"+properties.getICATUrl());
             URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
             QName qName = new QName("http://icatproject.org", "ICATService");
             ICATService service = new ICATService(icatUrl, qName);
@@ -93,7 +101,7 @@ public class ICATSessionManager {
        
         
         try {
-            sessionID = icat.login(authenticator, getCredentials(userName,password));
+            sessionID = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
             log.info("Successfully Logged into ICAT");
         } catch (IcatException_Exception ex) {
             java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
