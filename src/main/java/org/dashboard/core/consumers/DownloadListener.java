@@ -202,9 +202,8 @@ public class DownloadListener implements MessageListener {
     private String getMethod(String preparedID){
         String method = null;
         try {
-            URL topCatURL = new URL(prop.getTopCatURL()+api+preparedID);
+            URL topCatURL = new URL(prop.getTopCatURL()+api+preparedID);            
             
-            preparedID = "dog";
             HttpsURLConnection httpsConnection = (HttpsURLConnection) topCatURL.openConnection();
             httpsConnection.setRequestMethod("GET");
             httpsConnection.setRequestProperty("Accept", "application/json");
