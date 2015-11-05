@@ -6,13 +6,18 @@
 package org.dashboard.core.manager;
 
 import java.util.List;
+import java.util.logging.Level;
 import org.dashboard.core.entity.Session;
-import javax.ejb.LocalBean;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.transaction.NotSupportedException;
+import javax.transaction.SystemException;
+import javax.transaction.UserTransaction;
 import org.apache.log4j.Logger;
 import org.dashboard.core.entity.EntityBaseBean;
 import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
@@ -20,7 +25,7 @@ import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
 
 
 @Stateless(name="EntityBeanManager", mappedName="ejb/EntityBeanManager")
-@LocalBean
+@TransactionManagement(TransactionManagementType.BEAN)
 public class EntityBeanManager {
        
     private boolean log;
@@ -79,12 +84,15 @@ public class EntityBeanManager {
 		}
 	}
     
-    public Long create(EntityBaseBean bean, EntityManager manager) throws DashboardException{
+    
+    public Long create(EntityBaseBean bean, EntityManager manager,UserTransaction userTransaction ) throws DashboardException{
         logger.info("Creating: "+bean.getClass().getSimpleName());
         try{
+            userTransaction.begin();
             bean.preparePersist(manager,false);
             manager.persist(bean);            
-            manager.flush();            
+            manager.flush();      
+            userTransaction.commit();
             long beanId = bean.getId();
             logger.info("Created :"+bean.getClass().getSimpleName()+" with id: "+beanId);            
             
@@ -92,8 +100,25 @@ public class EntityBeanManager {
         }
         catch (EntityExistsException e) {				
             throw new DashboardException(DashboardException.DashboardExceptionType.OBJECT_ALREADY_EXISTS, e.getMessage());
+        } catch (NotSupportedException ex) {
+            java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SystemException ex) {
+            java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
+        }  catch (Throwable e) {
+            logger.trace("Transaction rolled back for creation of " + bean + " because of " + e.getClass() + " "
+						+ e.getMessage());
         }
-            
+            try {
+                userTransaction.rollback();
+            } catch (IllegalStateException ex) {
+                java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SecurityException ex) {
+                java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SystemException ex) {
+                java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+				
+          return new Long(0);  
     }
     
     public Boolean delete(EntityBaseBean bean, EntityManager manager) throws DashboardException{
@@ -133,6 +158,7 @@ public class EntityBeanManager {
 		return object;
     }
     
+    
     public List<Object> search(String queryString, EntityManager manager){
         logger.info("Performing query: "+queryString);
         
@@ -142,6 +168,8 @@ public class EntityBeanManager {
         
              
     }
+    
+    
     
     public void refresh(String sessionId, int lifetimeMinutes, EntityManager manager) throws DashboardException{
             logger.info("Refreshing session: "+sessionId);
