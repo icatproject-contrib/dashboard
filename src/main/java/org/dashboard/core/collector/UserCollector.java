@@ -5,28 +5,52 @@
  */
 package org.dashboard.core.collector;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.UserTransaction;
+import javax.xml.namespace.QName;
 import org.dashboard.core.entity.CollectionType;
 import static org.dashboard.core.entity.CollectionType.UserUpdate;
 import org.dashboard.core.entity.ICATUser;
 import org.dashboard.core.entity.IntegrityCheck;
 import org.dashboard.core.manager.DashboardException;
 import org.dashboard.core.manager.EntityBeanManager;
+import org.dashboard.core.manager.ICATSessionManager;
+import org.dashboard.core.manager.PropsManager;
+import org.icatproject.ICAT;
+import org.icatproject.ICATService;
 import org.icatproject.IcatException_Exception;
 import org.icatproject.User;
 
 
 
-@Singleton
-public class UserCollector extends Collector {
+@Stateless
+@TransactionManagement(TransactionManagementType.BEAN)
+public class UserCollector  {
+    
+    @EJB
+    private PropsManager prop;
+ 
+    @EJB
+    private ICATSessionManager session;
+     
+    protected ICAT icat;
+    protected String sessionID; 
     
     @EJB
     private EntityBeanManager beanManager;
@@ -34,6 +58,17 @@ public class UserCollector extends Collector {
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;
        
+    DateTimeFormatter format;
+    
+    @Resource
+    private UserTransaction userTransaction;
+    
+    @PostConstruct
+    public void init(){
+        format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        icat = createICATLink();
+        sessionID = session.getSessionID();
+    }
     
     /**
      * Goes through the set of dates provided and collects the users for each day from ICAT.
@@ -82,6 +117,26 @@ public class UserCollector extends Collector {
         
     }
     
+     public ICAT createICATLink(){
+        ICAT icat = null;
+         try {
+            URL hostUrl;
+            
+            hostUrl = new URL("https://"+prop.getICATUrl());
+            URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
+            QName qName = new QName("http://icatproject.org", "ICATService");
+            ICATService service = new ICATService(icatUrl, qName);
+            icat = service.getICATPort();            
+                                        
+                    
+        } catch (MalformedURLException ex) {
+            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+       
+        return icat;
+        
+    }
     /**
      * Overloaded insertUser method to allow MDB to inject into this class and add new users that appear.
      * @param name Unique name of the user in the ICAT.
@@ -113,7 +168,7 @@ public class UserCollector extends Collector {
      */
     public boolean insertUser(ICATUser user){
         try {
-            beanManager.create(user, manager);
+            beanManager.create(user, manager, userTransaction);
         } catch (DashboardException ex) {
             Logger.getLogger(UserCollector.class.getName()).log(Level.SEVERE, null, ex);
             return false;
@@ -128,7 +183,7 @@ public class UserCollector extends Collector {
      * @param type the type of collection e.g. User update or entity count.
      */
 
-    @Override
+   
     public void integerityUpdate(LocalDate date, boolean passed, CollectionType type) {
         IntegrityCheck ic = new IntegrityCheck();
         ic.setCollectionType(type);
@@ -136,7 +191,7 @@ public class UserCollector extends Collector {
         ic.setPassed(passed);
         
         try {
-            beanManager.create(ic, manager);
+            beanManager.create(ic, manager, userTransaction);
         } catch (DashboardException ex) {
             Logger.getLogger(UserCollector.class.getName()).log(Level.SEVERE, null, ex);
         }
