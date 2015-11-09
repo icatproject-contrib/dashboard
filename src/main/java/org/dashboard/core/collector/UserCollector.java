@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
-import javax.ejb.Singleton;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
@@ -79,7 +78,7 @@ public class UserCollector  {
     public void collectUsers(LocalDate start, LocalDate end){
         List<Object> users = new ArrayList();
         
-         while(start.isBefore(end) ){
+         while(!start.equals(end) ){
             try {
                 boolean complete = true;
                         
