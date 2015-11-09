@@ -9,7 +9,9 @@ import java.io.ByteArrayInputStream;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -66,7 +68,8 @@ public class DashboardREST {
             }
             String queryBuilder = "SELECT u FROM ICATUser u";
             beanManager.search("SELECT ", manager);
-		
+	
+            return "null";
 	}
 	
 	
@@ -91,6 +94,7 @@ public class DashboardREST {
             Map<String, String> credentials = new HashMap<>();
             String plugin = null;
             String userName = null;
+            String sessionID = null;
             try (JsonParser parser = Json.createParser(new ByteArrayInputStream(loginString.getBytes()))) {
                 String key = null;
 			boolean inCredentials = false;
@@ -118,25 +122,35 @@ public class DashboardREST {
             Session session = icat.login(plugin, credentials);
             
             userName = session.getUserName();
+            String auth = session.search("Select u FROM Users Join u.userGroup ug JOIN ug.grouping g WHERE g.name'Dashboard' AND u.name='"+ userName+"'");
+            session.logout();
+            if(auth!=null){
+                sessionID = beanManager.login(userName, 120, manager);
+                        }
+            return sessionID;
             
-            
-        return null;
+        
 
         }
 
 
         @DELETE
         @Path("session/logout")
-        public String logut(){
+        public String logut(@QueryParam("sessionID")String sessionID){
+        try {
+            beanManager.logout(sessionID, manager);
+        } catch (DashboardException ex) {
+            java.util.logging.Logger.getLogger(DashboardREST.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
             return null;
-
-            }
+        }
 
 
         @GET
         @Path("entity/count")
         @Produces("MediaType.Application_JSON")
-        public String getEntityCount(@QueryParam("sessionID")String sessionID,@QueryParam("EntityType")Entity type,@QueryParam("startDate")LocalDate startDate,@QueryParam("endDate")LocalDate endDate){
+        public String getEntityCount(@QueryParam("sessionID")String sessionID,@QueryParam("EntityType")String type,@QueryParam("startDate")LocalDate startDate,@QueryParam("endDate")LocalDate endDate){
             return null;
 
         }
@@ -152,7 +166,7 @@ public class DashboardREST {
         @GET
         @Path("download/age")
         @Produces("MediaType.Application_JSON")
-        public String getFileAge(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")DateTime startDate,@QueryParam("endDate")DateTime endDate){
+        public String getFileAge(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")LocalDate startDate,@QueryParam("endDate")LocalDate endDate){
             return null;
 
         }
@@ -174,4 +188,4 @@ public class DashboardREST {
 
 
     }	
-}
+
