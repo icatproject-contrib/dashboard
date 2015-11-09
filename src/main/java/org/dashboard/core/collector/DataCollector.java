@@ -10,9 +10,14 @@ import org.dashboard.core.manager.PropsManager;
 import org.dashboard.core.manager.EntityBeanManager;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
@@ -92,7 +97,7 @@ public class DataCollector  {
    
     public void collectData(){
         setupUserCollection();         
-        setupEntityCollection();   
+  //      setupEntityCollection();   
         
     }
      private void createTimers(PropsManager properties){       
@@ -137,29 +142,39 @@ public class DataCollector  {
     private void setupUserCollection(){       
             
         List<Object> earliestUser =null;
-        List<Object> earliestDashboard = null;
-        
+        LocalDate earliestDashboard = getEarliestDashboard();        
         try{
             earliestUser = icat.search(sessionID,"SELECT MIN(u.modTime) FROM User u");
             if(earliestUser.get(0)!=null){
-                earliestDashboard = beanManager.search("SELECT MIN(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 1 AND inc.collectionType=" + CollectionType.class.getName() +".UserUpdate", manager);
+                
                  
-                if(earliestDashboard.get(0)==null){
+                if(earliestDashboard==null){
                     log.info("Initial Entity Collection Required.");
                     userCollector.collectUsers(dateConversion((XMLGregorianCalendar) earliestUser.get(0)) , LocalDate.now());
                 }
                 else{
                     log.info("Top up initiated");
-                    userCollector.collectUsers(dateConversion((XMLGregorianCalendar) earliestDashboard.get(0)) , LocalDate.now());
+                    userCollector.collectUsers((LocalDate)earliestDashboard , LocalDate.now());
                 }
             }
         } catch (IcatException_Exception ex) {
         java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
     }
-           
-    
+          
+          
+   
     }
     
+    private LocalDate getEarliestDashboard(){
+        List<Object> date =  beanManager.search("SELECT MIN(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 0 AND inc.collectionType=" + CollectionType.class.getName() +".UserUpdate", manager);
+        LocalDate earliest;
+        if(date.get(0)==null){
+            date = beanManager.search("SELECT MAX(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 1 AND inc.collectionType=" + CollectionType.class.getName() +".UserUpdate", manager);
+           
+        }
+        earliest = LocalDate.parse( new SimpleDateFormat("yyyy-MM-dd").format(date.get(0)) );
+        return earliest;
+    }
     private LocalDate dateConversion(XMLGregorianCalendar date){
         return date.toGregorianCalendar().toZonedDateTime().toLocalDate();        
     }
