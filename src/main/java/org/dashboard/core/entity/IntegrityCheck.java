@@ -8,6 +8,7 @@ package org.dashboard.core.entity;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Date;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -20,6 +21,7 @@ import javax.persistence.TemporalType;
 public class IntegrityCheck extends EntityBaseBean implements Serializable {
     
     @Comment("The date the check was checked agaisnt.")
+    @Column(unique=true)
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date checkDate;
     
