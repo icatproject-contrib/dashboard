@@ -24,34 +24,42 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Comment("A download is the process of saving entities from the repositry to the users computer. ")
 @SuppressWarnings("serial")
 @Entity
-@Table(uniqueConstraints= {@UniqueConstraint(columnNames = {"USER_ID"})})
+@Table(uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"USER_ID"})})
 @XmlRootElement
-public class Download extends EntityBaseBean implements Serializable{
-    
+public class Download extends EntityBaseBean implements Serializable {
+
     @Comment("A download is associated with a user.")
     @JoinColumn(name = "USER_ID")
     @ManyToOne(fetch = FetchType.LAZY)
-    private ICATUser user;    
-    
+    private ICATUser user;
+
     @Comment("A download has a Entity collection")
-    @OneToOne(cascade = CascadeType.ALL, mappedBy="download")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "download")
     private EntityCollection entityCollection;
-    
+
     @Comment("The preparedID from TopCAT")
     private UUID preparedID;
-    
+
     @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("The time the download took place.")
     private Date downloadTime;
-    
+
     @Comment("Ip address of where the download took place.")
     private InetAddress ipAddress;
-    
+
     @Comment("The method of download.")
     private String method;
-    
-    public Download(){
-        
+
+    @Comment("The size of the download.")
+    private Long size;
+
+    public Download() {
+
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
     }
 
     public void setUser(ICATUser user) {
@@ -78,6 +86,10 @@ public class Download extends EntityBaseBean implements Serializable{
         this.method = method;
     }
 
+    public Long getSize() {
+        return size;
+    }
+
     public ICATUser getUser() {
         return user;
     }
@@ -101,5 +113,5 @@ public class Download extends EntityBaseBean implements Serializable{
     public String getMethod() {
         return method;
     }
-    
+
 }
