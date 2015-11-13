@@ -59,8 +59,7 @@ public class UserCollector  {
        
     DateTimeFormatter format;
     
-    @Resource
-    private UserTransaction userTransaction;
+  
     
     @PostConstruct
     public void init(){
@@ -78,7 +77,7 @@ public class UserCollector  {
     public void collectUsers(LocalDate start, LocalDate end){
         List<Object> users = new ArrayList();
         
-         while(!start.equals(end) ){
+         while(!start.isAfter(end)){
             try {
                 boolean complete = true;
                         
@@ -121,7 +120,7 @@ public class UserCollector  {
          try {
             URL hostUrl;
             
-            hostUrl = new URL("https://"+prop.getICATUrl());
+            hostUrl = new URL(prop.getICATUrl());
             URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
             QName qName = new QName("http://icatproject.org", "ICATService");
             ICATService service = new ICATService(icatUrl, qName);
@@ -167,7 +166,7 @@ public class UserCollector  {
      */
     public boolean insertUser(ICATUser user){
         try {
-            beanManager.create(user, manager, userTransaction);
+            beanManager.create(user, manager);
         } catch (DashboardException ex) {
             Logger.getLogger(UserCollector.class.getName()).log(Level.SEVERE, null, ex);
             return false;
@@ -190,7 +189,7 @@ public class UserCollector  {
         ic.setPassed(passed);
         
         try {
-            beanManager.create(ic, manager, userTransaction);
+            beanManager.create(ic, manager);
         } catch (DashboardException ex) {
             Logger.getLogger(UserCollector.class.getName()).log(Level.SEVERE, null, ex);
         }
