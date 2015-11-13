@@ -7,6 +7,7 @@ package org.dashboard.core.manager;
 
 import java.util.List;
 import java.util.logging.Level;
+import javax.annotation.Resource;
 import org.dashboard.core.entity.Session;
 
 import javax.ejb.Stateless;
@@ -15,7 +16,10 @@ import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.UserTransaction;
 import org.apache.log4j.Logger;
@@ -25,23 +29,25 @@ import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
 
 
 @Stateless(name="EntityBeanManager", mappedName="ejb/EntityBeanManager")
-@TransactionManagement(TransactionManagementType.BEAN)
 public class EntityBeanManager {
        
     private boolean log;
     
     private static final Logger logger = Logger.getLogger(EntityBeanManager.class);
+ 
     
     public String login(String userName, int lifetimeMinutes, EntityManager manager) throws DashboardException {
         Session session = new Session(userName, lifetimeMinutes);
         try {
 			
 			try {
+                                
 				long time = log ? System.currentTimeMillis() : 0;
 				manager.persist(session);
 				manager.flush();				
 				String result = session.getId();
-                            logger.debug("Session " + result + " persisted.");				
+                            logger.debug("Session " + result + " persisted.");	
+                                
 				return result;
 			} catch (Throwable e) {				
 				logger.trace("Transaction rolled back for login because of " + e.getClass() + " " + e.getMessage());
@@ -56,12 +62,11 @@ public class EntityBeanManager {
     }
     public void logout(String sessionId, EntityManager manager) throws DashboardException {
 		logger.debug("logout for sessionId " + sessionId);
-		try {			
-			try {				
+		try {						try {		
+                                
 				Session session = getSession(sessionId, manager);
 				manager.remove(session);
-				manager.flush();
-				
+				manager.flush();				
 				logger.debug("Session " + session.getId() + " removed.");
 				
 			} catch (DashboardException e) {
@@ -85,14 +90,14 @@ public class EntityBeanManager {
 	}
     
     
-    public Long create(EntityBaseBean bean, EntityManager manager,UserTransaction userTransaction ) throws DashboardException{
+    public Long create(EntityBaseBean bean, EntityManager manager ) throws DashboardException{
         logger.info("Creating: "+bean.getClass().getSimpleName());
         try{
-            userTransaction.begin();
+           
             bean.preparePersist(manager,false);
             manager.persist(bean);            
             manager.flush();      
-            userTransaction.commit();
+            
             long beanId = bean.getId();
             logger.info("Created :"+bean.getClass().getSimpleName()+" with id: "+beanId);            
             
@@ -100,24 +105,12 @@ public class EntityBeanManager {
         }
         catch (EntityExistsException e) {				
             throw new DashboardException(DashboardException.DashboardExceptionType.OBJECT_ALREADY_EXISTS, e.getMessage());
-        } catch (NotSupportedException ex) {
-            java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SystemException ex) {
-            java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
+        
         }  catch (Throwable e) {
             logger.trace("Transaction rolled back for creation of " + bean + " because of " + e.getClass() + " "
 						+ e.getMessage());
         }
-            try {
-                userTransaction.rollback();
-            } catch (IllegalStateException ex) {
-                java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SecurityException ex) {
-                java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SystemException ex) {
-                java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-				
+           		
           return new Long(0);  
     }
     
@@ -161,8 +154,17 @@ public class EntityBeanManager {
     
     public List<Object> search(String queryString, EntityManager manager){
         logger.info("Performing query: "+queryString);
+        Query query = null;
+        try {
+            
+            query = manager.createQuery(queryString);           
+       
+        } catch (SecurityException ex) {
+            java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalStateException ex) {
+            java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
-        Query query = manager.createQuery(queryString);
         
         return query.getResultList();          
         
