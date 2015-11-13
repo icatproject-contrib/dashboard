@@ -13,12 +13,14 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 @Comment("A Query")
 @SuppressWarnings("serial")
 @Entity
 @Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "QUERYID","USER_ID" }) })
+@XmlRootElement
 public class Query extends EntityBaseBean implements Serializable {
     
     @Comment("The user which performed the query.")

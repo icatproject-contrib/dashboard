@@ -19,11 +19,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @Comment("A download is the process of saving entities from the repositry to the users computer. ")
 @SuppressWarnings("serial")
 @Entity
 @Table(uniqueConstraints= {@UniqueConstraint(columnNames = {"USER_ID"})})
+@XmlRootElement
 public class Download extends EntityBaseBean implements Serializable{
     
     @Comment("A download is associated with a user.")

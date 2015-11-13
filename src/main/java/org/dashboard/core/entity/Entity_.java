@@ -15,12 +15,14 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 @Comment("This is a item that has been downloaded via the IDS. It belongs to an Entity Collection")
 @SuppressWarnings("serial")
 @Entity
 @Table(uniqueConstraints ={ @UniqueConstraint(columnNames = {"ENTITYCOLLECTION_ID"})})
+@XmlRootElement
 public class Entity_ extends EntityBaseBean implements Serializable{
     
     @Comment("The Collection the Item belongs to.")

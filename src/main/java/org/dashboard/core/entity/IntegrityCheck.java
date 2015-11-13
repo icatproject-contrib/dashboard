@@ -14,10 +14,12 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 @Comment("The overal data intergrity of Entity Count.")
 @Entity
+@XmlRootElement
 public class IntegrityCheck extends EntityBaseBean implements Serializable {
     
     @Comment("The date the check was checked agaisnt.")

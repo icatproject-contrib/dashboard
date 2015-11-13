@@ -10,11 +10,13 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 
 @Comment("Counts the amount of entites based on their association with an instrument.")
 @Entity
+@XmlRootElement
 public class EntityCount extends EntityBaseBean implements Serializable {
     @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("Date of the Entity Value.")

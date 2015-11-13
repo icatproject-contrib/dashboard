@@ -16,6 +16,8 @@ import javax.persistence.UniqueConstraint;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 
 
@@ -23,6 +25,7 @@ import javax.persistence.JoinColumn;
 @SuppressWarnings("serial")
 @Entity
 @Table(uniqueConstraints = { @UniqueConstraint(columnNames={"DOWNLOAD_ID"})})
+@XmlRootElement
 public class EntityCollection extends EntityBaseBean implements Serializable {
             
     @JoinColumn(name="DOWNLOAD_ID",nullable=false)
@@ -49,6 +52,7 @@ public class EntityCollection extends EntityBaseBean implements Serializable {
         return download;
     }
 
+    @XmlTransient
     public List<Entity_> getEntites() {
         return entites;
     }

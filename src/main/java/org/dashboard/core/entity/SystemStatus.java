@@ -8,12 +8,14 @@ package org.dashboard.core.entity;
 import java.io.Serializable;
 import java.sql.Time;
 import javax.persistence.Entity;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 
 
 @Comment("The status of the ICAT family products.")
 @Entity
+@XmlRootElement
 public class SystemStatus extends EntityBaseBean implements Serializable{
     
     @Comment("The System that has had the check.")
