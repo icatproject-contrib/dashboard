@@ -5,45 +5,51 @@
  */
 package org.dashboard.core.exposed;
 
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.URISyntaxException;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.json.Json;
-import javax.json.stream.JsonParser;
+import javax.json.stream.JsonGenerator;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.UserTransaction;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import org.dashboard.core.manager.DashboardException;
 import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
 import org.dashboard.core.manager.EntityBeanManager;
 import org.dashboard.core.manager.PropsManager;
+import org.dashboard.core.entity.ICATUser;
 import org.icatproject.icat.client.ICAT;
 import org.icatproject.icat.client.IcatException;
 import org.icatproject.icat.client.Session;
+import org.json.JSONWriter;
+import org.json.simple.JSONObject;
 
-@Path("/")
+
 @Stateless
-@TransactionManagement(TransactionManagementType.BEAN)
+@Path("/")
 public class DashboardREST {
     
+    private String icatURL;
+        
     @EJB
     EntityBeanManager beanManager;
     
@@ -53,81 +59,109 @@ public class DashboardREST {
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
     
-    @Resource
-    private UserTransaction userTransaction;
-   
+     
     private static Logger logger = Logger.getLogger(DashboardREST.class);
     
+    
+        @PostConstruct
+        public void init(){
+            icatURL=properties.getICATUrl();
+        }
    
 	@GET
 	@Path("userInfo/login/{loggedIn}")
-	@Produces("MediaType.Application_JSON")
-	public String getUsersLogInfo(@PathParam("loggedIn")String loggedIn,@QueryParam("sessionID")String sessionID, @QueryParam("userName")String userName,@QueryParam("startDate")LocalDate startDate,@QueryParam("endDate")LocalDate endDate) throws DashboardException{
+	@Produces(MediaType.APPLICATION_JSON)
+	public String getUsersLogInfo(@PathParam("loggedIn")String loggedIn,
+                                      @QueryParam("sessionID")String sessionID) throws DashboardException{
+            
             if(sessionID == null){
                 throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "sessionID must be provided");
             }
-            String queryBuilder = "SELECT u FROM ICATUser u";
-            beanManager.search("SELECT ", manager);
-	
-            return "null";
+            List<String> users = null;
+            JSONObject obj = new JSONObject();
+            String loginMessage = null;
+           
+            if(loggedIn.equals("1")){
+                users = manager.createNamedQuery("Users.LoggedIn").getResultList();
+                loginMessage = "Logged in";
+            }
+            else if(loggedIn.equals("0")){
+                users = manager.createNamedQuery("Users.LoggedOut").getResultList();
+                loginMessage = "Logged out";
+            }
+            
+            if(users.size()>0){
+                for(int i=0;i<users.size();i++){
+                    obj.put(users.get(i), loginMessage);                
+                }
+                return obj.toString();
+            }          
+             
+            obj.put("Users ", "0");
+           
+            return obj.toString();
 	}
 	
 	
 	@GET
-	@Path("userInfo/location")
-	@Produces("MediaType.Application_JSON")
-	public String getLocation(@QueryParam("sessionID")String sessionID,@QueryParam("userName")String userName){
-            return null;
-		
+	@Path("userInfo/location/{userName}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String getLocation(@PathParam("userName")String userName, @QueryParam("sessionID")String sessionID){
+            
+		return null;
 	
 	
         }
    
+        @GET
+        @Path("test")
+        public String test(){
+            return "ok";
+        }
+       
+        
         @POST
         @Path("session/login")
-        public String login(@FormParam("json") String loginString) throws DashboardException, URISyntaxException, IcatException{
-            if (loginString == null) {
-			throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "json must not be null");
-		}
+        @Consumes(MediaType.APPLICATION_JSON)
+        public String login(Login login) throws DashboardException, URISyntaxException, IcatException{
             
-            ICAT icat = new ICAT(properties.getICATUrl());
+            if(login.getAuthenticator() ==null){
+                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "authenticator type must be provided");
+            }
+            if(login.getUsername() == null){
+                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "username must be provided");
+            }
+            if(login.getPassword() == null){
+                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "password must be provided");
+            }
+            
+            ICAT icat = new ICAT(icatURL);
             Map<String, String> credentials = new HashMap<>();
-            String plugin = null;
-            String userName = null;
+            
+            String user;
             String sessionID = null;
-            try (JsonParser parser = Json.createParser(new ByteArrayInputStream(loginString.getBytes()))) {
-                String key = null;
-			boolean inCredentials = false;
-
-			while (parser.hasNext()) {
-				JsonParser.Event event = parser.next();
-				if (event == JsonParser.Event.KEY_NAME) {
-					key = parser.getString();
-				} else if (event == JsonParser.Event.VALUE_STRING) {
-					if (inCredentials) {
-						credentials.put(key, parser.getString());
-					} else {
-						if (key.equals("plugin")) {
-							plugin = parser.getString();
-						}
-					}
-				} else if (event == JsonParser.Event.START_ARRAY && key.equals("credentials")) {
-					inCredentials = true;
-				} else if (event == JsonParser.Event.END_ARRAY) {
-					inCredentials = false;
-				}
-			}
-            }            
+            JSONObject obj = new JSONObject();
+            String authenticator;
             
-            Session session = icat.login(plugin, credentials);
+            credentials.put("username",login.getUsername());
+            credentials.put("password",login.getPassword());
+            authenticator=login.getAuthenticator();
             
-            userName = session.getUserName();
-            String auth = session.search("Select u FROM Users Join u.userGroup ug JOIN ug.grouping g WHERE g.name'Dashboard' AND u.name='"+ userName+"'");
+            Session session = icat.login(authenticator, credentials);
+            
+            user = session.getUserName();
+            String auth = session.search("SELECT u FROM User u JOIN u.userGroups ug JOIN ug.grouping g WHERE u.name='"+user+"' AND g.name='Dashboard'");
             session.logout();
             if(auth!=null){
-                sessionID = beanManager.login(userName, 120, manager);
-                        }
-            return sessionID;
+                sessionID = beanManager.login(user, 120, manager);
+                
+                obj.put("sessionID ", sessionID);
+                return obj.toString();
+            }
+            
+            obj.put("Failed Login","Access Denied");
+           
+            return obj.toString();
             
         
 
@@ -149,15 +183,15 @@ public class DashboardREST {
 
         @GET
         @Path("entity/count")
-        @Produces("MediaType.Application_JSON")
-        public String getEntityCount(@QueryParam("sessionID")String sessionID,@QueryParam("EntityType")String type,@QueryParam("startDate")LocalDate startDate,@QueryParam("endDate")LocalDate endDate){
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getEntityCount(@QueryParam("sessionID")String sessionID,@QueryParam("EntityType")String type,@QueryParam("startDate")String startDate,@QueryParam("endDate")String endDate){
             return null;
 
         }
 
         @GET
         @Path("download/route")
-        @Produces("MediaType.Application_JSON")
+        @Produces(MediaType.APPLICATION_JSON)
         public String getRoutes(){
             return null;
 
@@ -165,24 +199,27 @@ public class DashboardREST {
 
         @GET
         @Path("download/age")
-        @Produces("MediaType.Application_JSON")
-        public String getFileAge(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")LocalDate startDate,@QueryParam("endDate")LocalDate endDate){
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getFileAge(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")String startDate,@QueryParam("endDate")String endDate){
             return null;
 
         }
 
         @GET
         @Path("download/frequency")
-        @Produces("MediaType.Application_JSON")
-        public String getFrequent(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")LocalDate startDate,@QueryParam("endDate")LocalDate endDate){return null;
-}
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getFrequent(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")String startDate,@QueryParam("endDate")String endDate){return null;
+      
+        }
 
 
         @GET 
         @Path("download/size")
-        @Produces("MediaType.Application_JSON")
-        public String getSize(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")LocalDate startDate,@QueryParam("endDate")LocalDate endDate){
-            return null;
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getSize(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")String startDate,@QueryParam("endDate")String endDate){
+            JSONObject obj = new JSONObject();
+            obj.put("Test","OK");
+            return obj.toString();
 
         }
 
