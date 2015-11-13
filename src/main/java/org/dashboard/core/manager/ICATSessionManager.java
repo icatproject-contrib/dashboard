@@ -87,7 +87,7 @@ public class ICATSessionManager {
         try {
             URL hostUrl;
             
-            hostUrl = new URL("https://"+properties.getICATUrl());
+            hostUrl = new URL(properties.getICATUrl());
             URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
             QName qName = new QName("http://icatproject.org", "ICATService");
             ICATService service = new ICATService(icatUrl, qName);
