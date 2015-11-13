@@ -33,9 +33,7 @@ public class ICATListener implements MessageListener {
     
     @EJB
     private UserCollector userCollector;
-    
-    @Resource
-    private UserTransaction userTransaction;
+     
 
     
     private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ICATListener.class);
@@ -76,7 +74,7 @@ public class ICATListener implements MessageListener {
      */
     public void createQuery(Query q){
         try {
-            beanManager.create(q, manager,userTransaction);
+            beanManager.create(q, manager);
         } catch (DashboardException ex) {
             Logger.getLogger(ICATListener.class.getName()).log(Level.SEVERE, null, ex);
         }
