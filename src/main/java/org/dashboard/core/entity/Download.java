@@ -52,14 +52,14 @@ public class Download extends EntityBaseBean implements Serializable {
     private String method;
 
     @Comment("The size of the download.")
-    private Long size;
+    private Long downloadSize;
 
     public Download() {
 
     }
 
-    public void setSize(Long size) {
-        this.size = size;
+    public void setSize(Long downloadSize) {
+        this.downloadSize = downloadSize;
     }
 
     public void setUser(ICATUser user) {
@@ -87,7 +87,7 @@ public class Download extends EntityBaseBean implements Serializable {
     }
 
     public Long getSize() {
-        return size;
+        return downloadSize;
     }
 
     public ICATUser getUser() {
