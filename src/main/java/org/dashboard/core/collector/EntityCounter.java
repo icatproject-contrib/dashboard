@@ -75,7 +75,7 @@ public class EntityCounter  {
          try {
             URL hostUrl;
             
-            hostUrl = new URL("https://"+prop.getICATUrl());
+            hostUrl = new URL(prop.getICATUrl());
             URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
             QName qName = new QName("http://icatproject.org", "ICATService");
             ICATService service = new ICATService(icatUrl, qName);
