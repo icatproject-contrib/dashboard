@@ -74,7 +74,7 @@ public class DataCollector {
 
     @Resource
     private TimerService timerService;
-
+        
     /**
      * Init method is called once the EJB has been loaded. Does the initial
      * property collections and login into ICAT. Also initiates initial data
