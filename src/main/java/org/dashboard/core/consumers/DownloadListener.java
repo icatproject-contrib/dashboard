@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -26,6 +27,7 @@ import javax.jms.TextMessage;
 import javax.net.ssl.HttpsURLConnection;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.UserTransaction;
 import javax.xml.namespace.QName;
 import org.dashboard.core.collector.DataCollector;
 import org.dashboard.core.collector.EntityCounter;
@@ -58,10 +60,7 @@ public class DownloadListener implements MessageListener {
     private PropsManager prop;
  
     @EJB
-    private ICATSessionManager session;
-     
-    protected ICAT icat;
-    protected String sessionID; 
+    private ICATSessionManager session;  
     
     @EJB
     private EntityBeanManager beanManager;
@@ -69,10 +68,15 @@ public class DownloadListener implements MessageListener {
     @EJB
     private UserCollector userCollector;
     
-    
-    
     @EJB 
     private EntityCounter entityCounter;
+    
+    @Resource
+    private UserTransaction userTransaction;
+    
+    protected ICAT icat;
+    
+    protected String sessionID; 
     
     private final String api = "/api/v1/admin/downloads/facility/isis?preparedId=";
     
@@ -165,7 +169,7 @@ public class DownloadListener implements MessageListener {
                 Dataset ds = getDataset(id); 
                 entity.setEntityName(ds.getName());
                 entity.setICATcreationTime(ds.getCreateTime().toGregorianCalendar().getTime());
-                entity.setEntitySize(Long.MIN_VALUE);
+                entity.setEntitySize(getEntitySize("dataset",id));
                 entity.setType("dataset");
                 break;
                 
@@ -180,11 +184,11 @@ public class DownloadListener implements MessageListener {
         return entity;
     }
     
-    private Long getEntitySize(String type, String ID){
+    private Long getEntitySize(String type, int ID){
         
         switch(type){
             case "investigation":
-                break;
+                return getInvSize(ID);                
             case "dataset":
                 break;
         }
@@ -344,7 +348,7 @@ public class DownloadListener implements MessageListener {
          try {
             URL hostUrl;
             
-            hostUrl = new URL("https://"+prop.getICATUrl());
+            hostUrl = new URL(prop.getICATUrl());
             URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
             QName qName = new QName("http://icatproject.org", "ICATService");
             ICATService service = new ICATService(icatUrl, qName);
