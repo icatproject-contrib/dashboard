@@ -14,11 +14,14 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.OneToMany;
 import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 
 @Comment("A user that operates within the ICAT family. They can have downloads or be part of queries.")
@@ -26,6 +29,16 @@ import javax.persistence.UniqueConstraint;
 
 @Table(uniqueConstraints ={ @UniqueConstraint(columnNames ={"USER_ICAT_ID"})})
 @Entity
+
+@NamedQueries({
+    @NamedQuery(name="Users.LoggedIn",
+                query="SELECT u.fullName FROM ICATUser u WHERE u.logged=1"),
+    @NamedQuery(name="Users.LoggedOut",
+                query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"),    
+    
+})
+
+@XmlRootElement
 public class ICATUser extends EntityBaseBean implements Serializable {
     
     @Comment("A user can have downloads.")
@@ -104,6 +117,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
         this.lastLoggedIn = lastLoggedIn;
     }
 
+    @XmlTransient
     public List<Query> getQueries() {
         return queries;
     }
@@ -120,6 +134,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
         return lastLoggedIn;
     } 
       
+    @XmlTransient
     public List<Download> getDownloads(){
         return downloads;
     }
