@@ -5,23 +5,16 @@
  */
 package org.dashboard.core.exposed;
 
-import java.io.ByteArrayOutputStream;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.json.Json;
-import javax.json.stream.JsonGenerator;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.UserTransaction;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -36,11 +29,9 @@ import org.dashboard.core.manager.DashboardException;
 import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
 import org.dashboard.core.manager.EntityBeanManager;
 import org.dashboard.core.manager.PropsManager;
-import org.dashboard.core.entity.ICATUser;
 import org.icatproject.icat.client.ICAT;
 import org.icatproject.icat.client.IcatException;
 import org.icatproject.icat.client.Session;
-import org.json.JSONWriter;
 import org.json.simple.JSONObject;
 
 
