@@ -91,15 +91,15 @@ public abstract class EntityBaseBean implements Serializable {
 		this.modTime = modTime;
 	}
         
-        public void preparePersist( EntityManager manager,	 boolean allAttributes) throws DashboardException {
+        public void preparePersist() throws DashboardException {
 		this.id = null;		
 		
 		Date now = null;
-		if (!allAttributes || createTime == null) {
+		if (createTime == null) {
 			now = new Date();
 			createTime = now;
 		}
-		if (!allAttributes || modTime == null) {
+		if (modTime == null) {
 			if (now == null) {
 				now = new Date();
 			}
