@@ -7,12 +7,15 @@ package org.dashboard.core.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -20,16 +23,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Comment("This is a item that has been downloaded via the IDS. It belongs to an Entity Collection")
 @SuppressWarnings("serial")
+@Table(uniqueConstraints={@UniqueConstraint(columnNames={"type","ICATID"})})
 @Entity
-@Table(uniqueConstraints ={ @UniqueConstraint(columnNames = {"ENTITYCOLLECTION_ID"})})
 @XmlRootElement
 public class Entity_ extends EntityBaseBean implements Serializable{
     
-    @Comment("The Collection the Item belongs to.")
-    @JoinColumn(name="ENTITYCOLLECTION_ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private EntityCollection entityCollection;
+    @Comment("The Download mapping.")    
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "entity")
+    private List<DownloadEntity> downloadEntities;
     
+    @Comment("ID of the entity in the ICAT")
+    private Long ICATID;
     
     @Comment("Name of the Entity.")
     private String entityName;
@@ -48,9 +52,14 @@ public class Entity_ extends EntityBaseBean implements Serializable{
         
     }
 
-    public EntityCollection getEntityCollection() {
-        return entityCollection;
+    public Long getICATID() {
+        return ICATID;
     }
+    
+    public List<DownloadEntity> getDownloadEntities() {
+        return downloadEntities;
+    }
+   
 
     public String getEntityName() {
         return entityName;
@@ -68,9 +77,15 @@ public class Entity_ extends EntityBaseBean implements Serializable{
         return type;
     }
 
-    public void setEntityCollection(EntityCollection entityCollection) {
-        this.entityCollection = entityCollection;
+    public void setICATID(Long ICATID) {
+        this.ICATID = ICATID;
     }
+
+    
+    public void setDownloadEntities(List<DownloadEntity> downloadEntities) {
+        this.downloadEntities = downloadEntities;
+    }
+   
 
     public void setEntityName(String entityName) {
         this.entityName = entityName;
