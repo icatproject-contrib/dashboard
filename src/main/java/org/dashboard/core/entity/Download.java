@@ -8,6 +8,7 @@ package org.dashboard.core.entity;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.OneToOne;
@@ -17,6 +18,8 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -24,8 +27,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Comment("A download is the process of saving entities from the repositry to the users computer. ")
 @SuppressWarnings("serial")
 @Entity
-@Table(uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"USER_ID"})})
 @XmlRootElement
 public class Download extends EntityBaseBean implements Serializable {
 
@@ -35,8 +36,8 @@ public class Download extends EntityBaseBean implements Serializable {
     private ICATUser user;
 
     @Comment("A download has a Entity collection")
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "download")
-    private EntityCollection entityCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "download")    
+    private List<DownloadEntity> downloadEntities;
 
     @Comment("The preparedID from TopCAT")
     private UUID preparedID;
@@ -66,8 +67,8 @@ public class Download extends EntityBaseBean implements Serializable {
         this.user = user;
     }
 
-    public void setEntityCollection(EntityCollection entityCollection) {
-        this.entityCollection = entityCollection;
+    public void setDownloadEnties(List<DownloadEntity> downloadEntities) {
+        this.downloadEntities = downloadEntities;
     }
 
     public void setPreparedID(UUID preparedID) {
@@ -94,8 +95,8 @@ public class Download extends EntityBaseBean implements Serializable {
         return user;
     }
 
-    public EntityCollection getEntityCollection() {
-        return entityCollection;
+    public List<DownloadEntity> getDownloadEntities() {
+        return downloadEntities;
     }
 
     public UUID getPreparedID() {
