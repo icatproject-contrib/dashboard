@@ -48,7 +48,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 @Singleton
-@Startup
 @DependsOn("ICATSessionManager")
 public class DownloadGenerator {
 
