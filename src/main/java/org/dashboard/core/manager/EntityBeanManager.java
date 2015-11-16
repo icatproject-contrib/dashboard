@@ -7,21 +7,12 @@ package org.dashboard.core.manager;
 
 import java.util.List;
 import java.util.logging.Level;
-import javax.annotation.Resource;
 import org.dashboard.core.entity.Session;
 
 import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
-import javax.transaction.UserTransaction;
 import org.apache.log4j.Logger;
 import org.dashboard.core.entity.EntityBaseBean;
 import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
@@ -60,6 +51,12 @@ public class EntityBeanManager {
 			throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "SecurityException " + e.getMessage());
 		}
     }
+    /***
+     * Logs the user out of the dashboard. Deletes the session ID from the database.
+     * @param sessionId The sessionID to be removed
+     * @param manager EntityManager is passed through to prevent threading issues
+     * @throws DashboardException The session cannot be found.
+     */
     public void logout(String sessionId, EntityManager manager) throws DashboardException {
 		logger.debug("logout for sessionId " + sessionId);
 		try {						try {		
@@ -89,12 +86,16 @@ public class EntityBeanManager {
 		}
 	}
     
-    
+    /**
+     * Persist then flushes the Entity object to the database connected to it.
+     * @param bean The entity object that is to be created.
+     * @param manager EntityManager object to stop threading problems.
+     * @return The ID of the bean
+     * @throws DashboardException If the entity exists. 
+     */
     public Long create(EntityBaseBean bean, EntityManager manager ) throws DashboardException{
         logger.info("Creating: "+bean.getClass().getSimpleName());
-        try{
-           
-            bean.preparePersist(manager,false);
+        try{              
             manager.persist(bean);            
             manager.flush();      
             
