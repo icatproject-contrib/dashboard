@@ -159,11 +159,18 @@ public class DataCollector {
 
     }
 
+    /**
+     * Get the earliest date the integrity check took place for that set collection.
+     * @return The earliest date plus one (Don't want to check a already completed day).
+     */
     private LocalDate getEarliestDashboard() {
         List<Object> date;
         LocalDate earliest;
 
         date = beanManager.search("SELECT MAX(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 1 AND inc.collectionType=" + CollectionType.class.getName() + ".UserUpdate", manager);
+        if(date.get(0)==null){
+            return null;
+        }
         earliest = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd").format(date.get(0)));
 
         return earliest.plusDays(1);
