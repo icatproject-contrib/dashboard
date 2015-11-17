@@ -9,15 +9,10 @@ import org.dashboard.core.manager.EntityBeanManager;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -32,13 +27,10 @@ import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.UserTransaction;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import org.apache.log4j.Logger;
 import org.dashboard.core.entity.CollectionType;
-import org.dashboard.core.entity.Download;
-import org.dashboard.core.entity.ICATUser;
 import org.dashboard.core.manager.ICATSessionManager;
 import org.icatproject.*;
 
@@ -148,9 +140,13 @@ public class DataCollector {
                 if (earliestDashboard == null) {
                     log.info("Initial Entity Collection Required.");
                     userCollector.collectUsers(dateConversion((XMLGregorianCalendar) earliestUser.get(0)), LocalDate.now());
-                } else {
+                } 
+                else if(earliestDashboard.isBefore(LocalDate.now())){
                     log.info("Top up initiated");
                     userCollector.collectUsers(earliestDashboard, LocalDate.now());
+                }
+                else{
+                    log.info("No data collection required.");
                 }
             }
         } catch (IcatException_Exception ex) {
