@@ -30,11 +30,13 @@ import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import org.dashboard.core.manager.DashboardException;
 import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
+import org.dashboard.core.manager.DashboardSessionManager;
 import org.dashboard.core.manager.EntityBeanManager;
 import org.dashboard.core.manager.PropsManager;
 import org.icatproject.icat.client.ICAT;
 import org.icatproject.icat.client.IcatException;
 import org.icatproject.icat.client.Session;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 
@@ -191,12 +193,23 @@ public class DashboardREST {
             if(sessionID==null){
                 throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "A SessionID must be provided");
             }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new DashboardException(DashboardExceptionType.SESSION, "An invalid sessionID has been provided");
+            }
+            JSONObject obj = new JSONObject();
+            JSONArray ary = new JSONArray();
             
             List<Object> methods = new ArrayList();
             Map methodCount = new HashMap();
             
-            methods = beanManager.search("SELECT ", manager);
-            
+            methods = beanManager.search("SELECT d.method, count(d.method) FROM Download d", manager);
+            if(methods.get(0)==null){
+                obj.put("Status:", "There are currently no methods of downloads.");
+                return obj.toString();
+            }
+            for(int i=0;i<methods.size();i++){
+                
+            }
             
             return null;
 
