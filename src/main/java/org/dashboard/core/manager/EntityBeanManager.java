@@ -16,7 +16,7 @@ import javax.persistence.Query;
 import org.apache.log4j.Logger;
 import org.dashboard.core.entity.EntityBaseBean;
 import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
-
+import org.dashboard.core.manager.DashboardSessionManager;
 
 
 @Stateless(name="EntityBeanManager", mappedName="ejb/EntityBeanManager")
@@ -26,7 +26,16 @@ public class EntityBeanManager {
     
     private static final Logger logger = Logger.getLogger(EntityBeanManager.class);
  
-    
+    public boolean checkSessionID(String sessionID,EntityManager manager) {
+        boolean valid = false;
+        Session session = null;
+        session = (Session)manager.find(Session.class, sessionID);
+        
+        if(session==null){
+            return false;
+        }
+        return true;
+    }
     public String login(String userName, int lifetimeMinutes, EntityManager manager) throws DashboardException {
         Session session = new Session(userName, lifetimeMinutes);
         try {
