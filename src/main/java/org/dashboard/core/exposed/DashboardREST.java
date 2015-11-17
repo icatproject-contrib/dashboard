@@ -6,6 +6,7 @@
 package org.dashboard.core.exposed;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -23,6 +25,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import org.dashboard.core.manager.DashboardException;
@@ -33,6 +36,7 @@ import org.icatproject.icat.client.ICAT;
 import org.icatproject.icat.client.IcatException;
 import org.icatproject.icat.client.Session;
 import org.json.simple.JSONObject;
+
 
 
 @Stateless
@@ -183,7 +187,17 @@ public class DashboardREST {
         @GET
         @Path("download/route")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getRoutes(){
+        public String getRoutes(@QueryParam("sessionID")String sessionID) throws DashboardException{
+            if(sessionID==null){
+                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "A SessionID must be provided");
+            }
+            
+            List<Object> methods = new ArrayList();
+            Map methodCount = new HashMap();
+            
+            methods = beanManager.search("SELECT ", manager);
+            
+            
             return null;
 
         }
