@@ -5,7 +5,6 @@
  */
 package org.dashboard.test;
 
-import org.dashboard.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDate;
@@ -19,7 +18,6 @@ import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.xml.namespace.QName;
@@ -28,7 +26,6 @@ import org.dashboard.core.collector.EntityCounter;
 
 import org.dashboard.core.entity.Download;
 import org.dashboard.core.entity.DownloadEntity;
-import org.dashboard.core.entity.EntityBaseBean;
 
 import org.dashboard.core.entity.Entity_;
 import org.dashboard.core.entity.ICATUser;
