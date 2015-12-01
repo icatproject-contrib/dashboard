@@ -34,7 +34,16 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name="Users.LoggedIn",
                 query="SELECT u.fullName FROM ICATUser u WHERE u.logged=1"),
     @NamedQuery(name="Users.LoggedOut",
-                query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"),    
+                query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"), 
+    @NamedQuery(name="Users.DownloadCount",
+                query="SELECT u.fullName, count(d) FROM ICATUser u JOIN u.downloads d "
+                        + "WHERE d.downloadTime > :startDate AND d.downloadTime< :endDate"
+                        + " GROUP BY u.fullName"),
+    @NamedQuery(name="Users.DownloadCount.User",
+                query="SELECT u.fullName, count(u.downloads) FROM ICATUser u "
+                        + "Join u.downloads ud WHERE ud.downloadTime"
+                        + "> :startDate AND ud.downloadTime< :endDate AND"
+                        + " u.fullName=:name")
     
 })
 
