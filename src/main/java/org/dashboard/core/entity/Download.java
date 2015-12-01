@@ -11,15 +11,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.CascadeType;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -27,6 +25,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Comment("A download is the process of saving entities from the repositry to the users computer. ")
 @SuppressWarnings("serial")
 @Entity
+@NamedQueries({
+    @NamedQuery(name="Download.methods",
+                query="SELECT d.method, count(d.method) FROM Download d GROUP BY d.method"),
+      
+    
+})
 @XmlRootElement
 public class Download extends EntityBaseBean implements Serializable {
 
