@@ -6,7 +6,10 @@
 package org.dashboard.core.exposed;
 
 import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,21 +19,20 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.ws.rs.ApplicationPath;
+import javax.persistence.TemporalType;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import org.dashboard.core.manager.DashboardException;
 import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
-import org.dashboard.core.manager.DashboardSessionManager;
 import org.dashboard.core.manager.EntityBeanManager;
 import org.dashboard.core.manager.PropsManager;
 import org.icatproject.icat.client.ICAT;
@@ -56,6 +58,8 @@ public class DashboardREST {
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
     
+    private SimpleDateFormat format = new SimpleDateFormat("yyyymmdd");
+    
      
     private static Logger logger = Logger.getLogger(DashboardREST.class);
     
@@ -66,13 +70,16 @@ public class DashboardREST {
         }
    
 	@GET
-	@Path("userInfo/login/{loggedIn}")
+	@Path("user/login/{loggedIn}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getUsersLogInfo(@PathParam("loggedIn")String loggedIn,
                                       @QueryParam("sessionID")String sessionID) throws DashboardException{
             
             if(sessionID == null){
                 throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "sessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new DashboardException(DashboardExceptionType.SESSION, "An invalid sessionID has been provided");
             }
             List<String> users = null;
             JSONObject obj = new JSONObject();
@@ -101,7 +108,7 @@ public class DashboardREST {
 	
 	
 	@GET
-	@Path("userInfo/location/{userName}")
+	@Path("user/location/{userName}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getLocation(@PathParam("userName")String userName, @QueryParam("sessionID")String sessionID){
             
@@ -109,6 +116,41 @@ public class DashboardREST {
 	
 	
         }
+        
+        @GET
+        @Path("user/download/frequency")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getFrequent(@QueryParam("sessionID")String sessionID,
+                                  @QueryParam("Username")String userName,
+                                  @DefaultValue("19500101") @QueryParam("startDate")String startDate,
+                                  @DefaultValue("21000101") @QueryParam("endDate")String endDate) throws DashboardException, ParseException{
+            if(sessionID==null){
+                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new DashboardException(DashboardExceptionType.SESSION, "An invalid sessionID has been provided");
+            }
+            
+            Date sDate = format.parse(startDate);
+            Date eDate = format.parse(endDate);
+            
+            List<Object[]> downloads = new ArrayList();
+            if(userName==null){
+                 downloads =  manager.createNamedQuery("Users.DownloadCount").setParameter("startDate", sDate)
+                                                                             .setParameter("endDate", eDate)
+                                                                              .getResultList();  
+                 String dog = "test";
+            }
+            else{
+                downloads = manager.createNamedQuery("Users.DownloadCount.User").setParameter("startDate", sDate)
+                                                                                .setParameter("endDate", eDate)
+                                                                                .setParameter("name", userName)
+                                                                                .getResultList(); 
+                String dog = "test";
+            }
+            return null;
+        }
+        
    
         @GET
         @Path("test")
@@ -174,7 +216,9 @@ public class DashboardREST {
             java.util.logging.Logger.getLogger(DashboardREST.class.getName()).log(Level.SEVERE, null, ex);
             
         }
-            return null;
+            JSONObject obj = new JSONObject();
+            obj.put("Logout","Successful");
+            return obj.toString();
         }
 
 
@@ -199,19 +243,23 @@ public class DashboardREST {
             JSONObject obj = new JSONObject();
             JSONArray ary = new JSONArray();
             
-            List<Object> methods = new ArrayList();
+            List<Object[]> methods = new ArrayList();
             Map methodCount = new HashMap();
             
-            methods = beanManager.search("SELECT d.method, count(d.method) FROM Download d", manager);
+            methods = manager.createNamedQuery("Download.methods").getResultList();
             if(methods.get(0)==null){
                 obj.put("Status:", "There are currently no methods of downloads.");
                 return obj.toString();
             }
+                        
             for(int i=0;i<methods.size();i++){
-                
+               String method = methods.get(i)[0].toString();
+               String amount = methods.get(i)[1].toString();
+               obj.put(method,amount);
             }
+                     
             
-            return null;
+            return obj.toString();
 
         }
 
@@ -223,12 +271,7 @@ public class DashboardREST {
 
         }
 
-        @GET
-        @Path("download/frequency")
-        @Produces(MediaType.APPLICATION_JSON)
-        public String getFrequent(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")String startDate,@QueryParam("endDate")String endDate){return null;
-      
-        }
+        
 
 
         @GET 
