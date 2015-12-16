@@ -18,6 +18,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -27,8 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @NamedQueries({
     @NamedQuery(name="Download.methods",
-                query="SELECT d.method, count(d.method) FROM Download d GROUP BY d.method"),
-      
+                query="SELECT d.method, count(d.method) FROM Download d GROUP BY d.method"),      
     
 })
 @XmlRootElement
@@ -42,13 +42,22 @@ public class Download extends EntityBaseBean implements Serializable {
     @Comment("A download has a Entity collection")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "download")    
     private List<DownloadEntity> downloadEntities;
+    
+    @Comment("A download is associated with a geolocation")
+    @JoinColumn(name="DOWNLOADLOCATION_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DownloadLocation location;
 
     @Comment("The preparedID from TopCAT")
     private UUID preparedID;
 
     @Temporal(value = TemporalType.TIMESTAMP)
-    @Comment("The time the download took place.")
-    private Date downloadTime;
+    @Comment("The time the download started.")
+    private Date downloadStart;
+    
+    @Temporal(value = TemporalType.TIMESTAMP)
+    @Comment("The time the download ended")
+    private Date downloadEnd;
 
     @Comment("Ip address of where the download took place.")
     private InetAddress ipAddress;
@@ -63,10 +72,7 @@ public class Download extends EntityBaseBean implements Serializable {
 
     }
 
-    public void setSize(Long downloadSize) {
-        this.downloadSize = downloadSize;
-    }
-
+   
     public void setUser(ICATUser user) {
         this.user = user;
     }
@@ -78,10 +84,22 @@ public class Download extends EntityBaseBean implements Serializable {
     public void setPreparedID(UUID preparedID) {
         this.preparedID = preparedID;
     }
+  
 
-    public void setDownloadTime(Date downloadTime) {
-        this.downloadTime = downloadTime;
+    public void setDownloadStart(Date downloadStart) {
+        this.downloadStart = downloadStart;
     }
+
+    public void setDownloadEnd(Date downloadEnd) {
+        this.downloadEnd = downloadEnd;
+    }
+
+    public void setDownloadSize(Long downloadSize) {
+        this.downloadSize = downloadSize;
+    }
+    
+    
+   
 
     public void setIpAddress(InetAddress ipAddress) {
         this.ipAddress = ipAddress;
@@ -89,10 +107,6 @@ public class Download extends EntityBaseBean implements Serializable {
 
     public void setMethod(String method) {
         this.method = method;
-    }
-
-    public Long getSize() {
-        return downloadSize;
     }
 
     public ICATUser getUser() {
@@ -107,10 +121,19 @@ public class Download extends EntityBaseBean implements Serializable {
         return preparedID;
     }
 
-    public Date getDownloadTime() {
-        return downloadTime;
+    public Date getDownloadStart() {
+        return downloadStart;
     }
 
+    public Date getDownloadEnd() {
+        return downloadEnd;
+    }
+
+    public Long getDownloadSize() {
+        return downloadSize;
+    }
+    
+    
     public InetAddress getIpAddress() {
         return ipAddress;
     }
