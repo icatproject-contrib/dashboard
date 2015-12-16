@@ -14,6 +14,9 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.OneToMany;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -35,15 +38,7 @@ import javax.xml.bind.annotation.XmlTransient;
                 query="SELECT u.fullName FROM ICATUser u WHERE u.logged=1"),
     @NamedQuery(name="Users.LoggedOut",
                 query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"), 
-    @NamedQuery(name="Users.DownloadCount",
-                query="SELECT u.fullName, count(d) FROM ICATUser u JOIN u.downloads d "
-                        + "WHERE d.downloadTime > :startDate AND d.downloadTime< :endDate"
-                        + " GROUP BY u.fullName"),
-    @NamedQuery(name="Users.DownloadCount.User",
-                query="SELECT u.fullName, count(u.downloads) FROM ICATUser u "
-                        + "Join u.downloads ud WHERE ud.downloadTime"
-                        + "> :startDate AND ud.downloadTime< :endDate AND"
-                        + " u.fullName=:name")
+    
     
 })
 
@@ -58,6 +53,11 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private List<Query> queries = new ArrayList<Query>();
     
+    @Comment("A user can have a location")
+    @JoinColumn(name="USERLOCATION_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private UserLocation location;
+    
     @Comment("A user can either be logged in or out.")
     private boolean logged;
     
@@ -70,6 +70,8 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     
     @Comment("Login name")
     private String name;
+    
+    
 
     public void setName(String name) {
         this.name = name;
