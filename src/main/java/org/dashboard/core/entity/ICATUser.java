@@ -71,24 +71,6 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     @Comment("Login name")
     private String name;
     
-    
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setIpAddress(InetAddress ipAddress) {
-        this.ipAddress = ipAddress;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public InetAddress getIpAddress() {
-        return ipAddress;
-    }
-    
     @Comment("Ip address of the user the last time they used the ICAT.")
     private InetAddress ipAddress;
     
@@ -126,8 +108,16 @@ public class ICATUser extends EntityBaseBean implements Serializable {
 
     public void setLastLoggedIn(Date lastLoggedIn) {
         this.lastLoggedIn = lastLoggedIn;
+    }   
+    
+    public void setName(String name) {
+        this.name = name;
     }
 
+    public void setIpAddress(InetAddress ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+    
     @XmlTransient
     public List<Query> getQueries() {
         return queries;
@@ -137,8 +127,17 @@ public class ICATUser extends EntityBaseBean implements Serializable {
         return logged;
     }
 
-    public String getName() {
+    public String getFullName() {
         return fullName;
+    }
+
+    public InetAddress getIpAddress() {
+        return ipAddress;
+    }
+
+   
+    public String getName() {
+        return name;
     }
 
     public Date getLastLoggedIn() {
