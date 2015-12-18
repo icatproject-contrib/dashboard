@@ -29,11 +29,19 @@ public class DownloadLocation extends EntityBaseBean {
     
     @Comment("The hostmachine of the download")
     private String hostMachineName;
+    
+    @Comment("The ipAddress of location.")
+    private String ipAddress;
 
     public List<Download> getDownloads() {
         return downloads;
     }
 
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    
     public double getLongitude() {
         return longitude;
     }
@@ -54,6 +62,11 @@ public class DownloadLocation extends EntityBaseBean {
         this.longitude = longitude;
     }
 
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    
     public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
