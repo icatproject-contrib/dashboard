@@ -19,7 +19,7 @@ import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.log4j.Logger;
-import org.dashboard.core.manager.DashboardException;
+import org.dashboard.core.exceptions.DashboardException;
 
 
 @SuppressWarnings("serial")
