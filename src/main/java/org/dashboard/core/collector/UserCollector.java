@@ -14,20 +14,18 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.UserTransaction;
 import javax.xml.namespace.QName;
 import org.dashboard.core.entity.CollectionType;
 import static org.dashboard.core.entity.CollectionType.UserUpdate;
 import org.dashboard.core.entity.ICATUser;
 import org.dashboard.core.entity.IntegrityCheck;
-import org.dashboard.core.manager.DashboardException;
+import org.dashboard.core.exceptions.DashboardException;
 import org.dashboard.core.manager.EntityBeanManager;
 import org.dashboard.core.manager.ICATSessionManager;
 import org.dashboard.core.manager.PropsManager;
@@ -114,7 +112,10 @@ public class UserCollector  {
         }
         
     }
-    
+    /**
+     * Creates an ICATservice object which can be used to communicate with an ICAT.
+     * @return An ICAT object.
+     */
      public ICAT createICATLink(){
         ICAT icat = null;
          try {

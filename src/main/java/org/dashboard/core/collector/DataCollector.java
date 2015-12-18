@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import org.apache.log4j.Logger;
 import org.dashboard.core.entity.CollectionType;
+import org.dashboard.core.exceptions.InternalException;
 import org.dashboard.core.manager.ICATSessionManager;
 import org.icatproject.*;
 
@@ -79,11 +80,15 @@ public class DataCollector {
         createTimers(prop);
         icat = createICATLink();
         sessionID = session.getSessionID();        
-        collectData();
+        try {
+            collectData();
+        } catch (InternalException ex) {
+            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }
 
-    public void collectData() {
+    public void collectData() throws InternalException {
         setupUserCollection();
         // setupEntityCollection();   
 
@@ -101,13 +106,17 @@ public class DataCollector {
      * what method should be invoked to deal with that timer. Currently only
      * refresh session and collection of data.
      *
-     * @param timer is the object that is invoked when the timerservice is
+     * @param timer is the object that is invoked when the timer service is
      * invoked.
      */
     @Timeout
     public void timeout(Timer timer) {
 
-        collectData();
+        try {
+            collectData();
+        } catch (InternalException ex) {
+            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }
 
@@ -129,7 +138,7 @@ public class DataCollector {
         return icat;
     }
 
-    private void setupUserCollection() {
+    private void setupUserCollection() throws InternalException {
 
         List<Object> earliestUser = null;
         LocalDate earliestDashboard = getEarliestDashboard();
@@ -145,21 +154,25 @@ public class DataCollector {
                     log.info("Top up initiated");
                     userCollector.collectUsers(earliestDashboard, LocalDate.now());
                 }
-                else{
-                    log.info("No data collection required.");
-                }
             }
+            else{
+                log.info("No data collection required.");
+            }
+                    
         } catch (IcatException_Exception ex) {
             java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
+
+    
+    
     /**
      * Get the earliest date the integrity check took place for that set collection.
-     * @return The earliest date plus one (Don't want to check a already completed day).
+     * @return The earliest date.
      */
-    private LocalDate getEarliestDashboard() {
+    private LocalDate getEarliestDashboard() throws InternalException {
         List<Object> date;
         LocalDate earliest;
 
@@ -169,14 +182,14 @@ public class DataCollector {
         }
         earliest = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd").format(date.get(0)));
 
-        return earliest.plusDays(1);
+        return earliest;
     }
 
     private LocalDate dateConversion(XMLGregorianCalendar date) {
         return date.toGregorianCalendar().toZonedDateTime().toLocalDate();
     }
 
-    private void setupEntityCollection() {
+    private void setupEntityCollection() throws InternalException {
 
         List<Object> earliestICAT = new ArrayList();
         List<Object> earliestDashboard = new ArrayList();
