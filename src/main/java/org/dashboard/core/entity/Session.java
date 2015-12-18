@@ -5,7 +5,7 @@
  */
 package org.dashboard.core.entity;
 
-import org.dashboard.core.manager.DashboardException;
+import org.dashboard.core.exceptions.DashboardException;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
@@ -52,7 +52,7 @@ public class Session implements Serializable {
 
 	public String getUserName() throws DashboardException {
 		if (expireDateTime.before(new Date()))
-			throw new DashboardException(DashboardException.DashboardExceptionType.SESSION, "Session id:" + id
+			throw new DashboardException(404, "Session id:" + id
 					+ " has expired");
 		return userName;
 	}
@@ -64,8 +64,7 @@ public class Session implements Serializable {
 	public double getRemainingMinutes() throws DashboardException{
 		long millis = expireDateTime.getTime() - java.lang.System.currentTimeMillis();
 		if (millis < 0) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.SESSION, "Session id:" + id
-					+ " has expired");
+			throw new DashboardException(404, "Session id:" + id+ " has expired");
 		}
 		return millis / 60000.0;
 	}
