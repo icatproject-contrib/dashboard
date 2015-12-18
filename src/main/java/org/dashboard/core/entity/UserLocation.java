@@ -25,9 +25,16 @@ public class UserLocation  extends EntityBaseBean {
     
     @Comment("The hostmachine of the download")
     private String hostMachineName;   
+    
+     @Comment("The ipAddress of location.")
+    private String ipAddress;
 
     public double getLongitude() {
         return longitude;
+    }
+    
+    public String getIpAddress() {
+        return ipAddress;
     }
 
     public double getLatitude() {
@@ -40,6 +47,10 @@ public class UserLocation  extends EntityBaseBean {
 
     public List<ICATUser> getUsers() {
         return users;
+    }
+    
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
     }
     
     
