@@ -18,7 +18,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -49,7 +48,7 @@ public class Download extends EntityBaseBean implements Serializable {
     private DownloadLocation location;
 
     @Comment("The preparedID from TopCAT")
-    private UUID preparedID;
+    private String preparedID;
 
     @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("The time the download started.")
@@ -58,30 +57,36 @@ public class Download extends EntityBaseBean implements Serializable {
     @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("The time the download ended")
     private Date downloadEnd;
-
-    @Comment("Ip address of where the download took place.")
-    private InetAddress ipAddress;
-
     @Comment("The method of download.")
     private String method;
 
     @Comment("The size of the download.")
     private Long downloadSize;
+    
+    @Comment("The bandwidth of a download. Bytes per second")
+    private double bandwidth;
 
     public Download() {
 
     }
 
+    public void setLocation(DownloadLocation location) {
+        this.location = location;
+    }
+
+    public void setBandwidth(double bandwidth) {
+        this.bandwidth = bandwidth;
+    }    
    
     public void setUser(ICATUser user) {
         this.user = user;
     }
 
-    public void setDownloadEnties(List<DownloadEntity> downloadEntities) {
+    public void setDownloadEntities(List<DownloadEntity> downloadEntities) {
         this.downloadEntities = downloadEntities;
     }
 
-    public void setPreparedID(UUID preparedID) {
+    public void setPreparedID(String preparedID) {
         this.preparedID = preparedID;
     }
   
@@ -96,14 +101,8 @@ public class Download extends EntityBaseBean implements Serializable {
 
     public void setDownloadSize(Long downloadSize) {
         this.downloadSize = downloadSize;
-    }
+    }    
     
-    
-   
-
-    public void setIpAddress(InetAddress ipAddress) {
-        this.ipAddress = ipAddress;
-    }
 
     public void setMethod(String method) {
         this.method = method;
@@ -117,7 +116,7 @@ public class Download extends EntityBaseBean implements Serializable {
         return downloadEntities;
     }
 
-    public UUID getPreparedID() {
+    public String getPreparedID() {
         return preparedID;
     }
 
@@ -132,11 +131,17 @@ public class Download extends EntityBaseBean implements Serializable {
     public Long getDownloadSize() {
         return downloadSize;
     }
-    
-    
-    public InetAddress getIpAddress() {
-        return ipAddress;
+
+    public DownloadLocation getLocation() {
+        return location;
     }
+
+    public double getBandwidth() {
+        return bandwidth;
+    }
+    
+    
+    
 
     public String getMethod() {
         return method;
