@@ -19,7 +19,6 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TemporalType;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -31,8 +30,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
-import org.dashboard.core.manager.DashboardException;
-import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
+import org.dashboard.core.exceptions.AuthenticationException;
+import org.dashboard.core.exceptions.BadRequestException;
+import org.dashboard.core.exceptions.DashboardException;
 import org.dashboard.core.manager.EntityBeanManager;
 import org.dashboard.core.manager.PropsManager;
 import org.icatproject.icat.client.ICAT;
@@ -70,29 +70,23 @@ public class DashboardREST {
         }
    
 	@GET
-	@Path("user/login/{loggedIn}")
+	@Path("user/login")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getUsersLogInfo(@PathParam("loggedIn")String loggedIn,
-                                      @QueryParam("sessionID")String sessionID) throws DashboardException{
+	public String getUsersLogInfo(@QueryParam("sessionID")String sessionID) throws DashboardException{
             
             if(sessionID == null){
-                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "sessionID must be provided");
+                throw new BadRequestException("sessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
-                throw new DashboardException(DashboardExceptionType.SESSION, "An invalid sessionID has been provided");
+                throw new AuthenticationException("An invalid sessionID has been provided");
             }
             List<String> users = null;
             JSONObject obj = new JSONObject();
-            String loginMessage = null;
+            String loginMessage = null;           
+
+            users = manager.createNamedQuery("Users.LoggedIn").getResultList();
+            loginMessage = "Logged in";
            
-            if(loggedIn.equals("1")){
-                users = manager.createNamedQuery("Users.LoggedIn").getResultList();
-                loginMessage = "Logged in";
-            }
-            else if(loggedIn.equals("0")){
-                users = manager.createNamedQuery("Users.LoggedOut").getResultList();
-                loginMessage = "Logged out";
-            }
             
             if(users.size()>0){
                 for(int i=0;i<users.size();i++){
@@ -125,10 +119,10 @@ public class DashboardREST {
                                   @DefaultValue("19500101") @QueryParam("startDate")String startDate,
                                   @DefaultValue("21000101") @QueryParam("endDate")String endDate) throws DashboardException, ParseException{
             if(sessionID==null){
-                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "A SessionID must be provided");
+                throw new BadRequestException("A SessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
-                throw new DashboardException(DashboardExceptionType.SESSION, "An invalid sessionID has been provided");
+                throw new AuthenticationException("An invalid sessionID has been provided");
             }
             
             Date sDate = format.parse(startDate);
@@ -151,27 +145,30 @@ public class DashboardREST {
             return null;
         }
         
-   
-        @GET
-        @Path("test")
-        public String test(){
-            return "ok";
-        }
+         
        
-        
+        /**
+         * 
+         * @param login
+         * @return
+         * @throws DashboardException
+         * @throws URISyntaxException
+         * @throws IcatException 
+         */
         @POST
         @Path("session/login")
         @Consumes(MediaType.APPLICATION_JSON)
-        public String login(Login login) throws DashboardException, URISyntaxException, IcatException{
+        public String login(Login login) throws DashboardException, URISyntaxException {
             
+        try {
             if(login.getAuthenticator() ==null){
-                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "authenticator type must be provided");
+                throw new BadRequestException(" authenticator type must be provided");
             }
             if(login.getUsername() == null){
-                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "username must be provided");
+                throw new BadRequestException(" username must be provided");
             }
             if(login.getPassword() == null){
-                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "password must be provided");
+                throw new BadRequestException(" password must be provided");
             }
             
             ICAT icat = new ICAT(icatURL);
@@ -194,14 +191,16 @@ public class DashboardREST {
             if(auth!=null){
                 sessionID = beanManager.login(user, 120, manager);
                 
-                obj.put("sessionID ", sessionID);
+                obj.put("sessionID", sessionID);
                 return obj.toString();
             }
             
             obj.put("Failed Login","Access Denied");
            
             return obj.toString();
-            
+        } catch (IcatException ex) {
+            throw new org.dashboard.core.exceptions.IcatException(ex.getMessage());
+        }            
         
 
         }
@@ -209,15 +208,12 @@ public class DashboardREST {
 
         @DELETE
         @Path("session/logout")
-        public String logut(@QueryParam("sessionID")String sessionID){
-        try {
-            beanManager.logout(sessionID, manager);
-        } catch (DashboardException ex) {
-            java.util.logging.Logger.getLogger(DashboardREST.class.getName()).log(Level.SEVERE, null, ex);
-            
-        }
+        public String logut(@QueryParam("sessionID")String sessionID) throws DashboardException{
+       
+            beanManager.logout(sessionID, manager);        
             JSONObject obj = new JSONObject();
             obj.put("Logout","Successful");
+            
             return obj.toString();
         }
 
@@ -235,10 +231,10 @@ public class DashboardREST {
         @Produces(MediaType.APPLICATION_JSON)
         public String getRoutes(@QueryParam("sessionID")String sessionID) throws DashboardException{
             if(sessionID==null){
-                throw new DashboardException(DashboardExceptionType.BAD_PARAMETER, "A SessionID must be provided");
+                throw new BadRequestException("A SessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
-                throw new DashboardException(DashboardExceptionType.SESSION, "An invalid sessionID has been provided");
+                throw new AuthenticationException("An invalid sessionID has been provided");
             }
             JSONObject obj = new JSONObject();
             JSONArray ary = new JSONArray();
@@ -253,13 +249,17 @@ public class DashboardREST {
             }
                         
             for(int i=0;i<methods.size();i++){
+               JSONObject o = new JSONObject();
                String method = methods.get(i)[0].toString();
-               String amount = methods.get(i)[1].toString();
-               obj.put(method,amount);
+               long amount = (long)methods.get(i)[1];  
+               o.put("amount", amount);
+               o.put("method",method);
+              
+               ary.add(o);
             }
                      
             
-            return obj.toString();
+            return ary.toString();
 
         }
 
@@ -277,7 +277,19 @@ public class DashboardREST {
         @GET 
         @Path("download/size")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getSize(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")String startDate,@QueryParam("endDate")String endDate){
+        public String getSize(@QueryParam("sessionID")String sessionID,
+                              @QueryParam("Username")String userName,
+                              @DefaultValue("19500101") @QueryParam("startDate")String startDate,
+                              @DefaultValue("21000101") @QueryParam("endDate")String endDate) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }
+            if(userName==null){
+                beanManager.search("SELECT d FROM Download d   ", manager);
+            }
             JSONObject obj = new JSONObject();
             obj.put("Test","OK");
             return obj.toString();
