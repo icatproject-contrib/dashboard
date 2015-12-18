@@ -22,7 +22,8 @@ import javax.transaction.UserTransaction;
 import org.dashboard.core.collector.UserCollector;
 import org.dashboard.core.entity.ICATUser;
 import org.dashboard.core.entity.Query;
-import org.dashboard.core.manager.DashboardException;
+import org.dashboard.core.exceptions.DashboardException;
+import org.dashboard.core.exceptions.InternalException;
 import org.dashboard.core.manager.EntityBeanManager;
    
 @TransactionManagement(TransactionManagementType.BEAN)
@@ -65,6 +66,8 @@ public class ICATListener implements MessageListener {
             
         } catch (JMSException ex) {
             Logger.getLogger(ICATListener.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InternalException ex) {
+            Logger.getLogger(ICATListener.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -86,7 +89,7 @@ public class ICATListener implements MessageListener {
      * @param name Unique name of the user in the ICAT
      * @return a dashboard User object.
      */
-    public ICATUser getUser(String name){
+    public ICATUser getUser(String name) throws InternalException{
         ICATUser dashBoardUser = new ICATUser();
         log.info("Searching for user: "+name+" in dashboard.");
         List<Object> user = beanManager.search("SELECT u FROM USER u WHERE u.name= "+name+"'", manager);        
