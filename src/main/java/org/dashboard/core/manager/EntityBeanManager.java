@@ -5,6 +5,8 @@
  */
 package org.dashboard.core.manager;
 
+import org.dashboard.core.exceptions.DashboardException;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import org.dashboard.core.entity.Session;
@@ -15,206 +17,227 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import org.apache.log4j.Logger;
 import org.dashboard.core.entity.EntityBaseBean;
-import org.dashboard.core.manager.DashboardException.DashboardExceptionType;
-import org.dashboard.core.manager.DashboardSessionManager;
+import org.dashboard.core.exceptions.AuthenticationException;
+import org.dashboard.core.exceptions.BadRequestException;
+import org.dashboard.core.exceptions.InternalException;
+import org.dashboard.core.exceptions.NotFoundException;
 
 
-@Stateless(name="EntityBeanManager", mappedName="ejb/EntityBeanManager")
+@Stateless(name = "EntityBeanManager", mappedName = "ejb/EntityBeanManager")
 public class EntityBeanManager {
-       
+
     private boolean log;
-    
+
     private static final Logger logger = Logger.getLogger(EntityBeanManager.class);
- 
-    public boolean checkSessionID(String sessionID,EntityManager manager) {
-        boolean valid = false;
-        Session session = null;
-        session = (Session)manager.find(Session.class, sessionID);
-        
-        if(session==null){
-            return false;
-        }
-        return true;
+    
+    
+    /**
+     * Checks to see if the sessionID provided is valid.
+     * @param sessionID The sessionID to be checked.
+     * @param manager EntityManager to prevent threading issues.
+     * @return If the sessionID is valid.
+     */
+    public boolean checkSessionID(String sessionID, EntityManager manager) {       
+        Session session = (Session) manager.find(Session.class, sessionID);        
+        return session!=null;
     }
+    
+    
+    /**
+     * Logs the user into the dashboard. Creates a new session object and adds it to the database.
+     * @param userName The name of the user.
+     * @param lifetimeMinutes The length of time they are to be added for.
+     * @param manager To prevent threading problems the EntityManager is passed a long.
+     * @return The sessionID.
+     * @throws DashboardException if it is unable to talk to the database. 
+     */
     public String login(String userName, int lifetimeMinutes, EntityManager manager) throws DashboardException {
         Session session = new Session(userName, lifetimeMinutes);
         try {
-			
-			try {
-                                
-				long time = log ? System.currentTimeMillis() : 0;
-				manager.persist(session);
-				manager.flush();				
-				String result = session.getId();
-                            logger.debug("Session " + result + " persisted.");	
-                                
-				return result;
-			} catch (Throwable e) {				
-				logger.trace("Transaction rolled back for login because of " + e.getClass() + " " + e.getMessage());
-				throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "Unexpected DB response "
-						+ e.getClass() + " " + e.getMessage());
-			}
-		} catch (IllegalStateException e) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "IllegalStateException " + e.getMessage());
-		} catch (SecurityException e) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "SecurityException " + e.getMessage());
-		}
+
+            try {
+
+                long time = log ? System.currentTimeMillis() : 0;
+                manager.persist(session);
+                manager.flush();
+                String result = session.getId();
+                logger.debug("Session " + result + " persisted.");
+
+                return result;
+            } catch (Throwable e) {
+                logger.trace("Transaction rolled back for login because of " + e.getClass() + " " + e.getMessage());
+                throw new InternalException(e.getMessage());
+            }
+        } catch (IllegalStateException e) {
+            throw new InternalException(e.getMessage());
+        } catch (SecurityException e) {
+            throw new InternalException(e.getMessage());
+        }
     }
-    /***
-     * Logs the user out of the dashboard. Deletes the session ID from the database.
+
+    /**
+     * *
+     * Logs the user out of the dashboard. Deletes the session ID from the
+     * database.
+     *
      * @param sessionId The sessionID to be removed
-     * @param manager EntityManager is passed through to prevent threading issues
+     * @param manager EntityManager is passed through to prevent threading
+     * issues
      * @throws DashboardException The session cannot be found.
      */
     public void logout(String sessionId, EntityManager manager) throws DashboardException {
-		logger.debug("logout for sessionId " + sessionId);
-		try {						try {		
-                                
-				Session session = getSession(sessionId, manager);
-				manager.remove(session);
-				manager.flush();				
-				logger.debug("Session " + session.getId() + " removed.");
-				
-			} catch (DashboardException e) {
-				
-				if (e.getType() == DashboardExceptionType.SESSION) {
-					throw e;
-				} else {
-					throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, e.getClass() + " "
-							+ e.getMessage());
-				}
-			} catch (Exception e) {
-				throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, e.getClass() + " " + e.getMessage());
-			}
-		} catch (IllegalStateException e) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "IllegalStateException" + e.getMessage());
-		} catch (SecurityException e) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "SecurityException" + e.getMessage());		
-		} catch (RuntimeException e) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, e.getClass() + " " + e.getMessage());
-		}
-	}
-    
+        logger.debug("logout for sessionId " + sessionId);       
+        Session session = getSession(sessionId, manager);
+        manager.remove(session);
+        manager.flush();
+        logger.debug("Session " + session.getId() + " removed.");
+
+           
+    }
+
     /**
      * Persist then flushes the Entity object to the database connected to it.
+     *
      * @param bean The entity object that is to be created.
      * @param manager EntityManager object to stop threading problems.
      * @return The ID of the bean
-     * @throws DashboardException If the entity exists. 
+     * @throws DashboardException If the entity exists.
      */
-    public Long create(EntityBaseBean bean, EntityManager manager ) throws DashboardException{
-        logger.info("Creating: "+bean.getClass().getSimpleName());
-        try{              
-            manager.persist(bean);            
-            manager.flush();      
-            
+    public Long create(EntityBaseBean bean, EntityManager manager) throws DashboardException {
+        logger.info("Creating: " + bean.getClass().getSimpleName());
+        try {
+            bean.preparePersist();
+            manager.persist(bean);
+            manager.flush();
+
             long beanId = bean.getId();
-            logger.info("Created :"+bean.getClass().getSimpleName()+" with id: "+beanId);            
-            
+            logger.info("Created :" + bean.getClass().getSimpleName() + " with id: " + beanId);
+
             return beanId;
-        }
-        catch (EntityExistsException e) {				
-            throw new DashboardException(DashboardException.DashboardExceptionType.OBJECT_ALREADY_EXISTS, e.getMessage());
-        
-        }  catch (Throwable e) {
+        } catch (EntityExistsException e) {
+            throw new InternalException(e.getMessage());
+
+        } catch (Throwable e) {
             logger.trace("Transaction rolled back for creation of " + bean + " because of " + e.getClass() + " "
-						+ e.getMessage());
+                    + e.getMessage());
         }
-           		
-          return new Long(0);  
+
+        return new Long(0);
     }
-    
-    public Boolean delete(EntityBaseBean bean, EntityManager manager) throws DashboardException{
-        logger.info("Deleting: "+bean.getClass().getSimpleName());
-        try{
+
+    /**
+     * Updates the bean provided in the dashboard database.
+     * @param bean The bean to be updated.
+     * @param manager EntityManager to prevent threading issues.
+     */
+    public void update(EntityBaseBean bean, EntityManager manager) {
+        logger.info("Updating: "+bean.getClass().getSimpleName());
+        
+        bean.setModTime(new Date());
+        manager.merge(bean);
+        manager.flush();
+        
+        
+    }
+    /**
+     * Gets the entity from the database and deletes.
+     * @param bean The bean to be deleted.
+     * @param manager EntityManager is provided to prevent threading issues.
+     * @return If it was successful or not in deleting the entity.
+     * @throws DashboardException If it is unable to delete the entity.
+     */
+    public Boolean delete(EntityBaseBean bean, EntityManager manager) throws DashboardException {
+        logger.info("Deleting: " + bean.getClass().getSimpleName());
+        try {
             EntityBaseBean beanManaged = find(bean, manager);
             manager.remove(beanManaged);
-	    manager.flush();
-            logger.info("Deleted: "+bean.getClass().getSimpleName());
+            manager.flush();
+            logger.info("Deleted: " + bean.getClass().getSimpleName());
             return true;
-        }catch (IllegalStateException e) {
-                throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "IllegalStateException" + e.getMessage());
-        }catch (SecurityException e) {
-                throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "SecurityException" + e.getMessage());
-        }
-        
-    }
-    
-    private EntityBaseBean find(EntityBaseBean bean, EntityManager manager) throws DashboardException {
-		Long primaryKey = bean.getId();
-		Class<? extends EntityBaseBean> entityClass = bean.getClass();
-		if (primaryKey == null) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.NO_SUCH_OBJECT_FOUND, entityClass.getSimpleName()
-					+ " has null primary key.");
-		}
-		EntityBaseBean object = null;
-		try {
-			object = manager.find(entityClass, primaryKey);
-		} catch (Throwable e) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, "Unexpected DB response " + e);
-		}
+        } catch (IllegalStateException e) {
+            throw new InternalException(e.getMessage());
+        } 
 
-		if (object == null) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.NO_SUCH_OBJECT_FOUND, entityClass.getSimpleName()
-					+ "[id:" + primaryKey + "] not found.");
-		}
-		return object;
     }
-    
-    
-    public List<Object> search(String queryString, EntityManager manager){
-        logger.info("Performing query: "+queryString);
+
+    /**
+     * Finds the bean inside the dashboard database.
+     * @param bean The bean to be found in the database.
+     * @param manager Entitymanager to prevent threading issues.
+     * @return The EntityBaseBean that was found.
+     * @throws DashboardException If it is unable to find the bean.
+     */
+    private EntityBaseBean find(EntityBaseBean bean, EntityManager manager) throws DashboardException {
+        Long primaryKey = bean.getId();
+        Class<? extends EntityBaseBean> entityClass = bean.getClass();
+        if (primaryKey == null) {
+            throw new BadRequestException("No Primary Key Found.");
+        }
+        EntityBaseBean object = null;
+        try {
+            object = manager.find(entityClass, primaryKey);
+        } catch (Throwable e) {
+            throw new InternalException(e.getMessage());
+        }
+
+        if (object == null) {
+            throw new NotFoundException(bean.getClass().toString()+" cannot be found.");
+        }
+        return object;
+    }
+
+    /**
+     * Provides a search function to go over the data in the dashboard.
+     * @param queryString The query it's self.     
+     * @param manager EntityManager to prevent threading issues.
+     * @return A list of objects found.
+     */
+    public List<Object> search(String queryString, EntityManager manager) throws InternalException {
+        logger.info("Performing query: " + queryString);
         Query query = null;
         try {
-            
-            query = manager.createQuery(queryString);           
+
+            query = manager.createQuery(queryString);
+
+        } catch (SecurityException ex ) {
+            throw new InternalException(ex.getMessage());
+        } 
+
+        return query.getResultList();
+
+    }
+
+    /***
+     * Refreshes the sessionID for the user.
+     * @param sessionId The sessionID to be refreshed.
+     * @param lifetimeMinutes How long the sessionID should be refreshed for.
+     * @param manager EntityManager to be prevent threading issues.
+     * @throws DashboardException If it is unable to refresh the sessionID
+     */
+    public void refresh(String sessionId, int lifetimeMinutes, EntityManager manager) throws DashboardException {
+        logger.info("Refreshing session: " + sessionId);
+        Session session = getSession(sessionId, manager);
+        session.refresh(lifetimeMinutes);
        
-        } catch (SecurityException ex) {
-            java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalStateException ex) {
-            java.util.logging.Logger.getLogger(EntityBeanManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        
-        return query.getResultList();          
-        
-             
     }
-    
-    
-    
-    public void refresh(String sessionId, int lifetimeMinutes, EntityManager manager) throws DashboardException{
-            logger.info("Refreshing session: "+sessionId);
-            try{
-                Session session = getSession(sessionId, manager);
-                session.refresh(lifetimeMinutes);
-            }
-            catch (DashboardException e) {			
-				
-                if (e.getType() == DashboardExceptionType.SESSION) {
-                        throw e;
-                } else {
-                        throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, e.getClass() + " "
-                                        + e.getMessage());
-                }
-        } catch (Exception e) {
-                throw new DashboardException(DashboardException.DashboardExceptionType.INTERNAL, e.getClass() + " " + e.getMessage());
-        }
-    }
-				
-    
+
+    /**
+     * Returns the session object associated with a sessionID.
+     * @param sessionId associated with the session Object.
+     * @param manager EntityManager to prevent threading issues.
+     * @return A session Object.
+     * @throws DashboardException If it is unable to find the session. 
+     */
     private Session getSession(String sessionId, EntityManager manager) throws DashboardException {
-		Session session = null;
-		if (sessionId == null || sessionId.equals("")) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.SESSION, "Session Id cannot be null or empty.");
-		}
-		session = (Session) manager.find(Session.class, sessionId);
-		if (session == null) {
-			throw new DashboardException(DashboardException.DashboardExceptionType.SESSION, "Unable to find user by sessionid: "
-					+ sessionId);
-		}
-		return session;
-	}
-   
+        Session session = null;
+        if (sessionId == null || sessionId.equals("")) {
+            throw new BadRequestException("Session Id cannot be null or empty.");
+        }
+        session = (Session) manager.find(Session.class, sessionId);
+        if (session == null) {
+            throw new AuthenticationException("Unable to find sessionID");
+        }
+        return session;
+    }
+
 }
- 
