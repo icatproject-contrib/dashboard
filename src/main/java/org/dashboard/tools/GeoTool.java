@@ -61,6 +61,7 @@ public class GeoTool {
                          
             dl.setLatitude(latitude);
             dl.setLongitude(longitude);
+            dl.setIpAddress(ipAddress);
             
             
         } catch (MalformedURLException ex) {
