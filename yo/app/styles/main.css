@@ -1,0 +1,164 @@
+  .browsehappy {
+  margin: 0.2em 0;
+  background: #ccc;
+  color: #000;
+  padding: 0.2em 0;
+}
+
+
+
+html,body, .cotainer-fluid,.row  { 
+  font-family:'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif; 
+  width:100%;
+
+
+}
+
+
+
+/*Angular-Loading-Bar*/
+#loading-bar .bar {
+  background-color: #fff;
+  }
+
+
+/* Make the masthead heading the same height as the navigation */
+
+/*Header */
+#header {
+   
+   width:100%;
+   color:#ECECEC;
+   background-color:#CF000F;
+}
+
+
+#header a {
+  color:#ECECEC;
+  float:right;
+}
+/* Side bar*/
+
+#sidebar{
+ 
+  padding-left: 0;
+  padding-right: 0;
+
+
+  
+}
+
+.sidebar-wrapper {  
+   background-color:#32323a; 
+  
+}
+.sidebar-wrapper a{  
+  display: block;  
+  color:#ECECEC; 
+  font-size: 19px; 
+  padding:15px;
+  padding-right:10px;
+  padding-left: 10px;
+
+}
+
+.sidebar-wrapper a:hover{
+    color:#2b2b2b;
+    background-color: #FFF;
+    text-decoration: none;
+}
+
+
+/* Main Container */
+
+.container-fluid {
+  
+  padding-left: 0px;
+  padding-right: 0px;  
+  background-color: #32323a;
+
+
+}
+
+.row {
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+
+#main-box{
+  
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-bottom: 90px;
+  background-color: #eee;
+
+
+  
+}
+#box{
+  background-color: #fff;  
+  margin-top: 20px;  
+  padding: 10px 10px 10px 10px;   
+  border: 1px solid #d4d4d4;
+
+
+}
+
+
+/* datepicker / export button */
+
+
+
+.date-picker {
+  padding-left:0;
+  padding-right: 0;
+  text-align:left;
+  width:300px; 
+ 
+}
+
+.dropdown {
+  float:right;
+
+}
+
+.dropdown .btn {
+  background-color: #32323a;
+}
+
+.calendar , .user, .lock {
+    float: right;
+    margin-right: 8px;
+    margin-top: -23px;
+    position: relative;
+    z-index: 2;
+   
+}
+
+/*Specific pages CSS */
+
+
+
+/* Login page CSS */
+
+.login-form {
+  max-width: 300px;
+  margin-top: 10%;
+  
+ 
+}
+
+
+
+
+
+
+/* Download CSS */
+
+
+
+
+
+
+

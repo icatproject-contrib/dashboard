@@ -1,0 +1,24 @@
+   <div class="row" id ="login">
+      <div id="box" class="col-lg-2 col-lg-offset-5 col-xs-3 col-xs-offset-4">
+
+        <form class="login-form" ng-submit="login.login()">
+          
+          <label for="inputUsername" class="sr-only"></label>
+
+          <input type="text" id="inputUsername" class="form-control" placeholder="Username" required autofocus ng-model="login.username"/>
+          <span class="fa fa-user user"></span>
+          <br>
+          <label for="inputPassword" class="sr-only">Password</label>
+
+          <input type="password" id="inputPassword" class="form-control" placeholder="Password" required ng-model="login.password"/>
+          <span class="fa fa-lock lock"></span>
+          <br>
+          <button class="btn btn-lg btn=primary btn-block" type="submit">Login</button>
+          <br>
+        </form>
+      </div>
+    </div>
+
+
+
+

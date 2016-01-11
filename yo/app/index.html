@@ -1,0 +1,136 @@
+    <!doctype html>
+    <html>
+    <head >
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker.css"/>
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/c3/c3.css" />
+    <link rel="stylesheet" href="bower_components/angular-inform/dist/angular-inform.css" />
+    <link rel="stylesheet" href="bower_components/angular-loading-bar/build/loading-bar.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
+    </head>
+    <body ng-app="dashboardApp" ng-controller="IndexController as ic">
+    <!--[if lte IE 8]>
+    <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+    <!-- Add your site or application content here -->          
+
+
+    <div id="inform" inform class="inform-fixed inform-shadow"></div>
+
+    <div class="container-fluid ">
+    <div id="header" class="row">
+        <div class="col-lg-8"> 
+          <p class="navbar-brand"><span class="fa fa-bar-chart lg"></span> Dashboard</p>                 
+        </div>
+        <div ng-if="! ic.isLoggedIn()" class="col-lg-4">
+          <a class="navbar-brand" ui-sref="login"><li class="fa fa-lock"></li> Login</a>             
+        </div>
+        <div ng-if="ic.isLoggedIn()" class="col-lg-4">
+         <a class="navbar-brand" ui-sref="logout"><li class="fa fa-unlock"></li> Logout</a>
+        </div>
+    </div> 
+    <div id="main-row" class="row">            
+        <div id= "sidebar" class="col-lg-1" ng-show="ic.isLoggedIn()">
+            <div class="sidebar-wrapper" >                          
+              <ul class="nav nav-pills nav-stacked">                
+                <a ui-sref="users"><li class="fa fa-users"></li> Users</a>          
+                <a ui-sref="entities"><li class="fa fa-archive" ui-sref="entity"></li> Entities</a>
+                <a ui-sref="downloads"><li class="fa fa-download" us-sref-download></li> Downloads</a>
+              </ul>  
+
+            </div>
+        </div>
+        <div id="main-box" ng-class="{'col-lg-12 login': !ic.isLoggedIn(),'col-lg-11':ic.isLoggedIn()}" >
+            <div class="row">  
+                <div id="box" class="col-lg-10 col-lg-offset-1 col-xs-12 " ng-show="ic.isLoggedIn()">               
+                        <div class="col-lg-6 col-xs-6">
+                            <div class="date-picker">
+                                <input date-range-picker class="form-control date-picker" type="text" ng-model="datePicker.date" />
+                                <span class="fa fa-calendar calendar"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-xs-6">
+                            <div class="dropdown">
+                                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                 <b class="caret"></b>
+                                 Export Data
+                                 </button>
+                                <ul class="dropdown-menu">
+                                    <li><a>JSON</a></li>
+                                    <li><a>CSV</a></li>                
+                                </ul>
+                            </div>
+                        </div>
+                    </div>                        
+                </div>  
+                <div ui-view=""></div>   
+            </div>                
+        </div>
+    </div>      
+
+
+
+
+    <!-- build:js(.) scripts/vendor.js -->
+    <!-- bower:js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="bower_components/angular-animate/angular-animate.js"></script>
+    <script src="bower_components/angular-cookies/angular-cookies.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.js"></script>
+    <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="bower_components/ngstorage/ngStorage.js"></script>
+    <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+    <script src="bower_components/angular-loading-bar/build/loading-bar.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->    
+    <script src="//localhost:35729/livereload.js"></script>
+    <!-- build:js({.tmp,app}) scripts/scripts.js -->
+    <script src="scripts/app.js"></script> 
+    <!-- Services -->       
+    <script src="scripts/services/loginService.js"></script>
+    <script src="scripts/services/downloadService.js"></script>
+    <script src="scripts/services/httpInterceptorService.js"></script>
+    <script src="scripts/services/authenticateService.js"></script>
+    <!-- Controllers -->
+    <script src="scripts/controllers/loginCtrl.js"></script>
+    <script src="scripts/controllers/downloadCtrl.js"></script>
+    <script src="scripts/controllers/entityCtrl.js"></script>
+    <script src="scripts/controllers/userCtrl.js"></script>
+    <script src="scripts/controllers/indexCtrl.js"></script>
+    <script src="scripts/controllers/logoutCtrl.js"></script>
+    <!-- Directives -->
+    <script src="scripts/directives/donutChart.js"></script>
+    <script src="scripts/directives/timeseries.js"></script>
+    <!--Bower Components-->
+    <script src="bower_components/d3/d3.js"></script>
+    <script src="bower_components/c3/c3.js"></script>
+    <script src="bower_components/lodash/lodash.js"></script>
+    <script src="bower_components/angular-inform/dist/angular-inform.js"></script>
+    <script src="bower_components/moment/moment.js"></script>
+    <script src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <script src="bower_components/angular-daterangepicker/js/angular-daterangepicker.js"></script>
+
+
+
+
+
+
+    <!-- endbuild -->
+    </body>
+    </html>
