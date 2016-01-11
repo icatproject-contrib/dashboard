@@ -27,10 +27,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @NamedQueries({
     @NamedQuery(name="Download.methods",
-                query="SELECT d.method, count(d.method) FROM Download d GROUP BY d.method"),      
+                query="SELECT d.method, count(d.method) FROM Download d WHERE d.downloadStart > :startDate AND d.downloadEnd <=:endDate GROUP BY d.method "),      
     
 })
-@XmlRootElement
 public class Download extends EntityBaseBean implements Serializable {
 
     @Comment("A download is associated with a user.")
@@ -65,9 +64,16 @@ public class Download extends EntityBaseBean implements Serializable {
     
     @Comment("The bandwidth of a download. Bytes per second")
     private double bandwidth;
+    
+    @Comment("The duration of the download in milliseconds")
+    private long duriation;
 
     public Download() {
 
+    }
+
+    public void setDuriation(long duriation) {
+        this.duriation = duriation;
     }
 
     public void setLocation(DownloadLocation location) {
@@ -114,6 +120,10 @@ public class Download extends EntityBaseBean implements Serializable {
 
     public List<DownloadEntity> getDownloadEntities() {
         return downloadEntities;
+    }
+
+    public long getDuriation() {
+        return duriation;
     }
 
     public String getPreparedID() {
