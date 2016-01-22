@@ -7,7 +7,11 @@
  */
 package org.icatproject.dashboard.consumers;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,6 +32,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
+import javax.net.ssl.HttpsURLConnection;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.HeuristicMixedException;
@@ -65,13 +70,16 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
 
 
-/*
+
 @MessageDriven(activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-    @ActivationConfigProperty(propertyName = "destination", propertyValue = "java:/jms/queue/test"),
-    @ActivationConfigProperty( propertyName = "maxSession", propertyValue = "1")
+    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
+    @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/IDS/log"),
+    @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
+    @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),    
+    @ActivationConfigProperty(propertyName="addressList", propertyValue="mq://idsdev2.isis.cclrc.ac.uk:7676"),
+    @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "10")
 })
- */
+ 
 @TransactionManagement(TransactionManagementType.BEAN)
 public class DownloadListener implements MessageListener {
 
@@ -98,7 +106,7 @@ public class DownloadListener implements MessageListener {
 
     protected String sessionID;
 
-    private final String api = "/api/v1/admin/downloads/facility/isis?preparedId=";
+    private final String api = "/api/v1/admin/downloads?preparedId=";
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ICATListener.class);
 
@@ -119,6 +127,10 @@ public class DownloadListener implements MessageListener {
         icat = createICATLink();
         sessionID = sessionManager.getSessionID();
     }
+    
+    private void ejbCreate(){
+        
+    }
 
     /**
      * The implemented method for message listener. Will send the message to the
@@ -135,18 +147,18 @@ public class DownloadListener implements MessageListener {
             String operation = text.getStringProperty("operation");
             switch (operation) {
                 case "prepareData":
-                    prepareDownload(text);
+                    prepareDataHandler(text);
                     break;
                 case "getData":
-                    modifyDownload(text);
+                    getDataHandler(text);
                     break;
             }
 
-        } catch (JMSException ex) {
+        } catch (JMSException | ParseException ex) {
             Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InternalException ex) {
             Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
+        } catch (DashboardException ex) {
             Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -154,11 +166,11 @@ public class DownloadListener implements MessageListener {
     /**
      * *
      * Method to deal with prepareDownload messages. Will create the majority of
-     * the download information.
+     * the download information. Creates the download.
      *
      * @param message The message from JMS.
      */
-    private void prepareDownload(TextMessage message) throws InternalException, ParseException {
+    private void prepareDataHandler(TextMessage message) throws InternalException, ParseException {
         try {
             ut.begin();
             String preparedId = getPreparedId(message.getText());
@@ -183,7 +195,7 @@ public class DownloadListener implements MessageListener {
      *
      * @param message The JMS message that contains the required information.
      */
-    private void modifyDownload(TextMessage message) throws InternalException {
+    private void getDataHandler(TextMessage message) throws InternalException, DashboardException {
         try {
             ut.begin();
             
@@ -192,7 +204,7 @@ public class DownloadListener implements MessageListener {
             JSONObject json = (JSONObject) obj;
             
             if(json.containsKey("preparedId")){
-                updateDownload(message);                
+                checkDownload(message);                
             }else{
                 createDownload(message);
             }            
@@ -205,26 +217,41 @@ public class DownloadListener implements MessageListener {
     }
     
     /**
-     * Updates the download for a getData call that contains a preparedID body.
-     * @param messageBody The JMS message that contains the getData call.
+     * Deals with the use case of a user downloading the same download order 
+     * from TopCat multiple times. If it is a new download then it will update the
+     * prepare data download.
+     * @param message The JMS Message
+     * @throws InternalException
+     * @throws JMSException If there is an issue with the JMS message.
+     * @throws ParseException Pulling JSON data from the message.
      */
-    private void updateDownload(TextMessage message) throws ParseException, JMSException, InternalException {
+    private void checkDownload(TextMessage message) throws InternalException, JMSException, ParseException, DashboardException {
+        
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(message.getText());
         JSONObject json = (JSONObject) obj;
          
-        Download download = getDownload((String) json.get("preparedId"));
-        long duration = message.getLongProperty("millis");
+        download = getDownload((String) json.get("preparedId"));
+        long duration = message.getLongProperty("millis");   
+        long startMilli = message.getLongProperty("start");
         
-        download.setDownloadEnd(new Date());
-        download.setDownloadStart(new Date(download.getDownloadEnd().getTime()-duration));
-        download.setDuriation(duration);
-        
-        beanManager.update(download, manager);
-        
-        
+        //Has happened before so requires a new download.
+        if(download.getDownloadEnd()!=null){
+            String ipAddress = message.getStringProperty("ip");
+            createDownload(download, ipAddress,duration, startMilli);          
+        }
+        else {
+            //Update the prepareData download
+                 
+            download.setDownloadEnd(new Date(startMilli+duration));
+            download.setDownloadStart(new Date(startMilli));
+            download.setDuriation(duration);
+
+            beanManager.update(download, manager);
+        }
         
     }
+
     /**
      * Creates the download for a getData call.
      * @param messageBody The JMS message that contains the getData call.
@@ -232,6 +259,8 @@ public class DownloadListener implements MessageListener {
     private void createDownload(TextMessage message) throws InternalException{
         try {            
             long duration = message.getLongProperty("millis");
+            long startMilli = message.getLongProperty("start");
+            
             
             download = new Download();
             download.setUser(getUser(message.getText()));
@@ -240,8 +269,8 @@ public class DownloadListener implements MessageListener {
             download.setLocation(createLocation(message.getStringProperty("ip")));
             download.setMethod("https");
             download.setDuriation(duration);
-            download.setDownloadEnd(new Date());
-            download.setDownloadStart(new Date(download.getDownloadEnd().getTime()-duration));
+            download.setDownloadEnd(new Date(startMilli+duration));
+            download.setDownloadStart(new Date(startMilli));
             download.setBandwidth(calculateBandwidth(download.getDuriation(),download.getDownloadSize()));
             beanManager.create(download, manager);
         } catch (DashboardException ex) {
@@ -253,6 +282,28 @@ public class DownloadListener implements MessageListener {
         }
         
                 
+    }
+    /**
+     * Overloaded method to handle a user downloading the same download order multiple
+     * times
+     * @param oldDownload 
+     */
+    private void createDownload(Download oldDownload, String ipAddress, long duration, long startMilli) throws DashboardException{
+        
+        download = new Download();        
+        download.setUser(oldDownload.getUser());
+        download.setPreparedID(oldDownload.getPreparedID());
+        download.setDownloadEntities(createDownloadEntities(getEntities(oldDownload.getId())));
+        download.setDownloadSize(oldDownload.getDownloadSize());            
+        download.setLocation(createLocation(ipAddress));
+        download.setMethod(oldDownload.getMethod());
+        download.setDuriation(duration);
+        download.setDownloadEnd(new Date(startMilli+duration));
+        download.setDownloadStart(new Date(startMilli));
+        download.setBandwidth(calculateBandwidth(oldDownload.getDuriation(),oldDownload.getDownloadSize()));
+        beanManager.create(download, manager);
+        
+        
     }
 
     /**
@@ -298,13 +349,14 @@ public class DownloadListener implements MessageListener {
     /**
      * Calculates the bandwidth in bytes per second
      *
-     * @param startDate
-     * @param endDate
-     * @param size
-     * @return
+     * @param duration The length of time the download took. 
+     * @param size The size of the download.
+     * @return bandwidth in bytes per second
      */
-    private double calculateBandwidth(long duration, long size) {      
-        double bandwidth = (double) size / (double) duration;
+    private double calculateBandwidth(long duration, long size) { 
+        //Conversion from milliseconds to seconds hence *1000
+        double bandwidth = (double) size / ((double) duration*1000);
+        
         return bandwidth;
     }
 
@@ -335,6 +387,18 @@ public class DownloadListener implements MessageListener {
         return null;
 
     }
+    private List<Entity_> getEntities(long downloadID) throws InternalException{
+        List<Object> entityQuery = new ArrayList();
+        List<Entity_> entities = new ArrayList();
+        
+        entityQuery = beanManager.search("SELECT e FROM Entity_ e JOIN e.downloadEntities ed JOIN ed.download d WHERE d.id='"+ downloadID +"'", manager);        
+        
+        for(Object e : entityQuery){
+            entities.add((Entity_)e);
+        }
+        
+        return entities;
+    }
 
     /**
      * Gets the download method from the UUID provided from the topcat.
@@ -343,10 +407,9 @@ public class DownloadListener implements MessageListener {
      * @return
      */
     private String getMethod(String preparedID) {
-        //TO BE REMOVED. TESTING PURPOSES ONLY.
-        String method = randomMethod();
-        return method;
-        /*
+       
+        String method = null;
+        
         try {
             URL topCatURL = new URL(prop.getTopCatURL() + api + preparedID);
             HttpsURLConnection httpsConnection = (HttpsURLConnection) topCatURL.openConnection();
@@ -374,41 +437,15 @@ public class DownloadListener implements MessageListener {
             Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ProtocolException ex) {
             Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
+        } catch (IOException | ParseException ex) {
             Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return method;
-         */
+         
     }
 
-    /**
-     *
-     * TO BE REMOVED. HERE FOR TESTING PURPOSES
-     */
-    public int randomGen(int min, int max) {
-        Random rand = new Random();
-
-        int randomNum = min + rand.nextInt((max - min) + 1);
-
-        return randomNum;
-    }
-
-    /**
-     *
-     * TO BE REMOVED. HERE FOR TESTING PURPOSES
-     */
-    public String randomMethod() {
-        ArrayList<String> methods = new ArrayList();
-        methods.add("https");
-        methods.add("http");
-        methods.add("Globus");
-        int ran = randomGen(0, 2);
-        return methods.get(ran);
-    }
-
+   
     /**
      * Gets the user from the dashboard database. If the user isn't found then
      * they are inserted into the dashboard.
@@ -439,6 +476,27 @@ public class DownloadListener implements MessageListener {
         return dashBoardUser;
     }
 
+    /**
+     * Overloaded method that deals with the use case of a user downloading the 
+     * same download order from topCat. This will take existing entities and 
+     * create new download entities for the new download.
+     * @param entities List of entities to be added to the download.
+     * @return List of download entities
+     * @throws DashboardException Caused by prepare persist.
+     */
+    private List<DownloadEntity> createDownloadEntities(List<Entity_> entities) throws DashboardException{
+        List<DownloadEntity> collection = new ArrayList();
+        
+        for(Entity_ e: entities){
+            DownloadEntity de = new DownloadEntity();            
+            de.setDownload(download);
+            de.setEntity(e);
+            de.preparePersist();
+            collection.add(de);
+        }
+        
+        return collection;
+    }
     /**
      * The main method that creates the download entities. Will prepare persist
      * each entity. Global variable download is assigned to each download
@@ -517,11 +575,11 @@ public class DownloadListener implements MessageListener {
      * @throws DashboardException If there has been problems inserting the data
      * into the dashboard database.
      */
-    private Entity_ createEntity(Long id, String EntityType) throws DashboardException {
+    private Entity_ createEntity(Long id, String entityType) throws DashboardException {
         Entity_ entity = new Entity_();
-        switch (EntityType) {
+        switch (entityType) {
             case "investigation":
-                entity = checkEntity(id, "investigation");
+                entity = checkEntity(id, entityType);
                 if (entity.getId() == null) {
                     Investigation inv = getInvestigation(id);
                     entity.setICATID(id);
@@ -529,14 +587,14 @@ public class DownloadListener implements MessageListener {
                     entity.setICATcreationTime(inv.getCreateTime().toGregorianCalendar().getTime());
                     entity.setEntitySize(getInvSize(id));
                     downloadSize += entity.getEntitySize();
-                    entity.setType("investigation");
+                    entity.setType(entityType);
                     entity.preparePersist();
                     beanManager.create(entity, manager);
                 }
                 break;
 
             case "dataset":
-                entity = checkEntity(id, "dataset");
+                entity = checkEntity(id, entityType);
                 if (entity.getId() == null) {
                     Dataset ds = getDataset(id);
                     entity.setICATID(id);
@@ -544,14 +602,14 @@ public class DownloadListener implements MessageListener {
                     entity.setICATcreationTime(ds.getCreateTime().toGregorianCalendar().getTime());
                     entity.setEntitySize(getDatasetSize(id));
                     downloadSize += entity.getEntitySize();
-                    entity.setType("dataset");
+                    entity.setType(entityType);
                     entity.preparePersist();
                     beanManager.create(entity, manager);
                 }
                 break;
 
             case "datafile":
-                entity = checkEntity(id, "datafile");
+                entity = checkEntity(id, entityType);
                 if (entity.getId() == null) {
                     Datafile df = getDatafile(id);
                     entity.setICATID(id);
@@ -559,12 +617,13 @@ public class DownloadListener implements MessageListener {
                     entity.setICATcreationTime(df.getCreateTime().toGregorianCalendar().getTime());
                     entity.setEntitySize(df.getFileSize());
                     downloadSize += entity.getEntitySize();
-                    entity.setType("datafile");
+                    entity.setType(entityType);
                     entity.preparePersist();
                     beanManager.create(entity, manager);
                 }
                 break;
         }
+        downloadSize += entity.getEntitySize();
         return entity;
     }
 
