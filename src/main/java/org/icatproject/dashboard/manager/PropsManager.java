@@ -38,6 +38,8 @@ public class PropsManager {
     private String topCatURL;    
     private String topCatUser;
     private String topCatPass;
+    
+    private String idsAddress;
 
    
     public PropsManager() {
@@ -70,16 +72,27 @@ public class PropsManager {
            functionalAccounts = Arrays.asList(props.getProperty("functional_accounts").split("\\s+"));
            ICATUrl = props.getProperty("ICAT");
            loginAuth = props.getProperty("authenticator");
+           
            userName = props.getProperty("userName");
            password = props.getProperty("password");
            collectTime = Integer.parseInt(props.getProperty("collect_Time"));
+           
            topCatURL = props.getProperty("topCatURL");
-           topCatUser = props.getProperty("topCatUser");
-           topCatPass = props.getProperty("topCatPass");
+           //Requires Trim incase of escaping white characters.
+           topCatUser = (props.getProperty("topCatUser")).trim();
+           topCatPass = (props.getProperty("topCatPass")).trim();
+           
+           idsAddress = props.getProperty("idsAddress");
+           
+           
     }
     
     //Getters for the methods.
     
+    public String getIdsAddress() {
+        return idsAddress;
+    }
+
     public String getTopCatURL() {
         return topCatURL;
     }
