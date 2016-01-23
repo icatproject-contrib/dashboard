@@ -2,16 +2,13 @@ angular.module('dashboardApp').directive('donutChart',function(){
 
 		function link(scope,element,attr){		
 			
-			
-			scope.$watch(function() {
+			scope.$watch('data', function(){
 				
-        		return scope.data;
-   			 },
-	    		function() {	    			
+				    			
 	    			if(scope.data !== undefined){						
 
 						var chart  = c3.generate({
-							bindto: 'donut-chart',
+							bindto:element[0],
 							data:{
 								columns : scope.data,							
 								type: 'donut'
