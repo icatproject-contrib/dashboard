@@ -8,11 +8,17 @@ package org.icatproject.dashboard.exposed;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import static java.time.temporal.TemporalQueries.zone;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -60,7 +66,7 @@ public class DashboardREST {
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
     
-    private SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
     
      
     private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);
@@ -253,6 +259,80 @@ public class DashboardREST {
 
         }
         
+        @GET
+        @Path("download/frequency")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getDownloadFrequency(@QueryParam("sessionID")String sessionID,
+                                @QueryParam("startDate")String startUnixEpoch,
+                                @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }            
+           
+           
+            //Convert to milliseconds for the date constructor.
+            Date start = new Date(Long.valueOf(startUnixEpoch)*1000);
+            Date end = new Date(Long.valueOf(endUnixEpoch)*1000);
+            
+            
+            LocalDate startRange = Instant.ofEpochSecond(Long.valueOf(startUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate endRange = Instant.ofEpochSecond(Long.valueOf(endUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();   
+            
+            TreeMap<LocalDate,Long> downloadDates = new TreeMap<LocalDate,Long>();
+            
+            while(!startRange.isAfter(endRange)){
+                downloadDates.put(startRange,new Long(0));
+                startRange = startRange.plusDays(1);
+            }
+
+            List<Object[]> downloads = new ArrayList();            
+            
+            downloads = manager.createNamedQuery("Download.frequency").setParameter("startDate", start).setParameter("endDate", end).getResultList();
+            
+            for(Object[] download: downloads){
+                
+                Date begP = (Date) download[0];
+                Date endP = (Date) download[1];
+                
+                Instant instantBeg = Instant.ofEpochMilli(begP.getTime());
+                Instant instantEnd = Instant.ofEpochMilli(endP.getTime());
+                
+                LocalDate beginningPoint = LocalDateTime.ofInstant(instantBeg, ZoneId.systemDefault()).toLocalDate();
+                LocalDate endPoint = LocalDateTime.ofInstant(instantEnd, ZoneId.systemDefault()).toLocalDate();
+                
+                while(!beginningPoint.isAfter(endPoint)){
+                    Long currentTotal = downloadDates.get(beginningPoint);
+                    downloadDates.put(beginningPoint,currentTotal+=1);
+                    beginningPoint = beginningPoint.plusDays(1);
+                }
+            }
+            
+            JSONObject obj = new JSONObject();
+            JSONArray ary = new JSONArray();
+            
+            for(Map.Entry<LocalDate,Long> entry : downloadDates.entrySet()) {
+                obj = new JSONObject();
+                
+                LocalDate key = entry.getKey();
+                Long value = entry.getValue();
+                
+                obj.put("date",key.toString());
+                obj.put("amount",value);
+                    
+                ary.add(obj);
+                
+              }
+
+            
+                     
+            
+            return ary.toJSONString();
+
+        }
+        
         /**
          * Gets the routes used by downloads e.g. Globus. 
          * @param sessionID SessionID for authentication.
@@ -265,27 +345,23 @@ public class DashboardREST {
         @Path("download/route")
         @Produces(MediaType.APPLICATION_JSON)
         public String getRoutes(@QueryParam("sessionID")String sessionID,
-                                @DefaultValue("19500101") @QueryParam("startDate")String startDate,
-                                @DefaultValue("21000101") @QueryParam("endDate")String endDate) throws DashboardException{
+                                @QueryParam("startDate")String startUnixEpoch,
+                                @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
-            }
-            
-            Date start;
-            Date end;
-            
-            try {
-                start = format.parse(startDate);
-                end = format.parse(endDate);
-            } catch (ParseException ex) {
-                throw new BadRequestException("Invalid date format should be ddMMyyyy");
-            }
+            }            
+           
+           
+            //Convert to milliseconds for the date constructor.
+            Date start = new Date(Long.valueOf(startUnixEpoch)*1000);
+            Date end = new Date(Long.valueOf(endUnixEpoch)*1000);
 
             JSONObject obj = new JSONObject();
             JSONArray ary = new JSONArray();
+            
             
             List<Object[]> methods = new ArrayList();
             Map methodCount = new HashMap();
@@ -300,7 +376,8 @@ public class DashboardREST {
                return ary.toString();
             }
                         
-            for(int i=0;i<methods.size();i++){              
+            for(int i=0;i<methods.size();i++){   
+               obj = new JSONObject();
                String method = methods.get(i)[0].toString();
                long amount = (long)methods.get(i)[1];  
                obj.put("amount", amount);
@@ -326,26 +403,54 @@ public class DashboardREST {
         @Path("download/bandwidth")
         @Produces(MediaType.APPLICATION_JSON)
         public String getBandwidth(@QueryParam("sessionID")String sessionID,
-                                    @QueryParam("Username")String userName,
-                                    @DefaultValue("19500101") @QueryParam("startDate")String startDate,
-                                    @DefaultValue("21000101") @QueryParam("endDate")String endDate) throws DashboardException{
+                                   @QueryParam("startDate")String startUnixEpoch,
+                                   @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
+            }            
+           
+           
+            //Convert to milliseconds for the date constructor.
+            Date start = new Date(Long.valueOf(startUnixEpoch)*1000);
+            Date end = new Date(Long.valueOf(endUnixEpoch)*1000);
+            
+            
+            LocalDate startRange = Instant.ofEpochSecond(Long.valueOf(startUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate endRange = Instant.ofEpochSecond(Long.valueOf(endUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();   
+            
+            TreeMap<LocalDate,Long> downloadDates = new TreeMap<LocalDate,Long>();
+            
+            while(!startRange.isAfter(endRange)){
+                downloadDates.put(startRange,new Long(0));
+                startRange = startRange.plusDays(1);
+            }
+
+            List<Object[]> downloads = new ArrayList();            
+            
+            downloads = manager.createNamedQuery("Download.bandwidth").setParameter("startDate", start).setParameter("endDate", end).getResultList();
+            
+            for(Object[] download: downloads){
+                
+                Date begP = (Date) download[0];
+                Date endP = (Date) download[1];
+                
+                Instant instantBeg = Instant.ofEpochMilli(begP.getTime());
+                Instant instantEnd = Instant.ofEpochMilli(endP.getTime());
+                
+                LocalDate beginningPoint = LocalDateTime.ofInstant(instantBeg, ZoneId.systemDefault()).toLocalDate();
+                LocalDate endPoint = LocalDateTime.ofInstant(instantEnd, ZoneId.systemDefault()).toLocalDate();
+                
+                while(!beginningPoint.isAfter(endPoint)){
+                    Long currentTotal = downloadDates.get(beginningPoint);
+                    downloadDates.put(beginningPoint,currentTotal+=1);
+                    beginningPoint = beginningPoint.plusDays(1);
+                }
             }
             
-            Date start;
-            Date end;
-            
-            try {
-                start = format.parse(startDate);
-                end = format.parse(endDate);
-            } catch (ParseException ex) {
-                throw new BadRequestException("Invalid date format should be ddMMyyyy");
-            }
-            return new String("0");
+            return "PLACEHOLDER";
         }
         
 
@@ -370,6 +475,41 @@ public class DashboardREST {
             obj.put("Test","OK");
             return obj.toString();
 
+        }
+        /**
+         * Gets the most frequently downloaded entities in order of the most frequent.
+         * @param sessionID For authentication
+         * @param limit How many entities (descending) to be returned. Default (All are returned)
+         * @return The name of the entity and how many times it has been downloaded up to the limit desired.
+         * @throws DashboardException Error collecting the data from the database.
+         */
+        @GET
+        @Path("download/entities/frequency")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getFrequencyOfEntites(@QueryParam("sessionID")String sessionID,
+                                            @QueryParam("limit")long limit) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }                        
+
+            JSONObject obj = new JSONObject();
+            JSONArray ary = new JSONArray();
+            
+            List<Object[]> entityCount = new ArrayList();
+           
+            
+            entityCount  = manager.createNamedQuery("DownloadEntity.frequency").getResultList();
+            
+            for(int i=0;i<entityCount.size();i++){
+                
+            }
+            
+            
+            
+            return "PLACEHOLDER";
         }
         
         @GET
