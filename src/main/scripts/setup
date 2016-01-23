@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+from setup_utils import *
+import os
+
+# Dashboard Setup Script
+
+def uninstall():
+    if not actions.isInstalled(): return
+    app = actions.getAppName("dashboard")
+    if app: actions.asadmin("undeploy " + app)
+
+    actions.asadmin("delete-jdbc-resource jdbc/dashboard", tolerant=True)
+    actions.asadmin("delete-jdbc-connection-pool dashboard", tolerant=True)
+
+    
+
+actions, options, arg = getActions()
+props = actions.getGlassfish("dashboard-setup.properties", ["dbProperties", "glassfish", "driver", "port"])
+
+prop_name = "dashboard.properties"
+
+if arg == "INSTALL":
+    actions.installFile(prop_name)
+
+    try:
+        uninstall()        
+
+        
+        actions.asadmin("delete-jdbc-resource jdbc/dashboard", tolerant=True)
+        actions.asadmin("delete-jdbc-connection-pool dashboard", tolerant=True)
+
+        actions.asadmin('create-jdbc-connection-pool --datasourceclassname ' + props["driver"] +
+                ' --restype javax.sql.DataSource --failconnection=true --steadypoolsize 2' +
+                ' --ping --property ' + props["dbProperties"] + ' dashboard', printOutput=True)
+
+        actions.asadmin("create-jdbc-resource --connectionpoolid dashboard jdbc/dashboard")      
+
+        actions.deploy("Dashboard-*.war",  deploymentorder=140)
+
+        
+        
+
+    except Exception, e:
+        abort(str(e))
+
+else:  # UNINSTALL
+    actions.removeFile(prop_name)
+
+    try:
+        uninstall();
+
+    except Exception, e:
+        abort(str(e))
