@@ -7,8 +7,8 @@ package DownloadTests;
 
 import static junit.framework.Assert.assertTrue;
 import org.junit.Test;
-import org.dashboard.core.entity.DownloadLocation;
-import org.dashboard.tools.GeoTool;
+import org.icatproject.dashboard.entity.DownloadLocation;
+import org.icatproject.dashboard.tools.GeoTool;
 
 
 public class GeoTest {
