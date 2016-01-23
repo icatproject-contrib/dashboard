@@ -10,6 +10,8 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -18,7 +20,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @Comment("The mapping between a entity that can be associated with a download.")
 @SuppressWarnings("serial")
 @Entity
-@XmlRootElement
+
 public class DownloadEntity extends EntityBaseBean implements Serializable {
             
     @JoinColumn(name="DOWNLOAD_ID",nullable=false)    
