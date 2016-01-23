@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker.css"/>
+    
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css(.) styles/vendor.css -->
     <!-- bower:css -->
@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="bower_components/c3/c3.css" />
     <link rel="stylesheet" href="bower_components/angular-inform/dist/angular-inform.css" />
     <link rel="stylesheet" href="bower_components/angular-loading-bar/build/loading-bar.css" />
+    <link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker-bs3.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
@@ -21,6 +22,7 @@
     <!-- endbuild -->
     </head>
     <body ng-app="dashboardApp" ng-controller="IndexController as ic">
+     <!-- Begin page content -->
     <!--[if lte IE 8]>
     <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
@@ -58,14 +60,14 @@
                 <div id="box" class="col-lg-10 col-lg-offset-1 col-xs-12 " ng-show="ic.isLoggedIn()">               
                         <div class="col-lg-6 col-xs-6">
                             <div class="date-picker">
-                                <input date-range-picker class="form-control date-picker" type="text" ng-model="datePicker.date" />
+                                <input type="daterange" class="date-picker" ng-model="myDateRange" />
                                 <span class="fa fa-calendar calendar"></span>
                             </div>
                         </div>
                         <div class="col-lg-6 col-xs-6">
                             <div class="dropdown">
                                 <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
-                                 <b class="caret"></b>
+                                 
                                  Export Data
                                  </button>
                                 <ul class="dropdown-menu">
@@ -79,6 +81,7 @@
                 <div ui-view=""></div>   
             </div>                
         </div>
+        
     </div>      
 
 
@@ -96,11 +99,23 @@
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/ngstorage/ngStorage.js"></script>
     <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+    <script src="bower_components/d3/d3.js"></script>
+    <script src="bower_components/c3/c3.js"></script>
+    <script src="bower_components/lodash/lodash.js"></script>
+    <script src="bower_components/angular-inform/dist/angular-inform.js"></script>
     <script src="bower_components/angular-loading-bar/build/loading-bar.js"></script>
+    <script src="bower_components/moment/moment.js"></script>
+    <script src="bower_components/topojson/topojson.js"></script>
+    <script src="bower_components/datamaps/dist/datamaps.all.js"></script>
+    <script src="bower_components/angular-datamaps/dist/angular-datamaps.min.js"></script>
+    <script src="bower_components/momentjs/moment.js"></script>
+    <script src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <script src="bower_components/ng-bs-daterangepicker/src/ng-bs-daterangepicker.js"></script>
     <!-- endbower -->
-    <!-- endbuild -->    
-    <script src="//localhost:35729/livereload.js"></script>
+    <!-- endbuild -->
+    
     <!-- build:js({.tmp,app}) scripts/scripts.js -->
+    <script src="//localhost:35729/livereload.js"></script>
     <script src="scripts/app.js"></script> 
     <!-- Services -->       
     <script src="scripts/services/loginService.js"></script>
@@ -116,21 +131,8 @@
     <script src="scripts/controllers/logoutCtrl.js"></script>
     <!-- Directives -->
     <script src="scripts/directives/donutChart.js"></script>
-    <script src="scripts/directives/timeseries.js"></script>
-    <!--Bower Components-->
-    <script src="bower_components/d3/d3.js"></script>
-    <script src="bower_components/c3/c3.js"></script>
-    <script src="bower_components/lodash/lodash.js"></script>
-    <script src="bower_components/angular-inform/dist/angular-inform.js"></script>
-    <script src="bower_components/moment/moment.js"></script>
-    <script src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
-    <script src="bower_components/angular-daterangepicker/js/angular-daterangepicker.js"></script>
-
-
-
-
-
-
-    <!-- endbuild -->
+    <script src="scripts/directives/timeSeries.js"></script>   
+    <script src="scripts/directives/statsMap.js"></script>
+     <!-- endbuild -->
     </body>
     </html>
