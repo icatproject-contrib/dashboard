@@ -111,10 +111,11 @@ html,body, .cotainer-fluid,.row  {
 
 
 .date-picker {
-  padding-left:0;
+  padding-left:4px;
   padding-right: 0;
-  text-align:left;
+  
   width:300px; 
+  padding-top: 4px;
  
 }
 
@@ -156,8 +157,16 @@ html,body, .cotainer-fluid,.row  {
 
 /* Download CSS */
 
+.bandwith-timeSeries{
+  max-width: 98%;
+}
+time-series{
+  position:static !important;
+}
 
-
+stats-map{
+  margin-left:100px; 
+}
 
 
 
