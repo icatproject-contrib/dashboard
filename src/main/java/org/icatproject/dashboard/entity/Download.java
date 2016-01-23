@@ -20,15 +20,19 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.xml.bind.annotation.XmlRootElement;
 
 @Comment("A download is the process of saving entities from the repositry to the users computer. ")
 @SuppressWarnings("serial")
 @Entity
 @NamedQueries({
     @NamedQuery(name="Download.methods",
-                query="SELECT d.method, count(d.method) FROM Download d WHERE d.downloadStart > :startDate AND d.downloadEnd <=:endDate GROUP BY d.method "),      
-    
+                query="SELECT d.method, count(d.method) FROM Download d WHERE d.downloadStart > :startDate AND d.downloadEnd <=:endDate GROUP BY d.method "),  
+    @NamedQuery(name="Download.frequency",
+                query="SELECT d.downloadStart, d.downloadEnd FROM Download d "
+                    + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd)"),
+    @NamedQuery(name="Download.bandwidth",
+                query="SELECT d.downloadStart, d.downloadEnd, d.bandwidth FROM Download d "
+                    + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd)"),
 })
 public class Download extends EntityBaseBean implements Serializable {
 
@@ -56,6 +60,7 @@ public class Download extends EntityBaseBean implements Serializable {
     @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("The time the download ended")
     private Date downloadEnd;
+    
     @Comment("The method of download.")
     private String method;
 
