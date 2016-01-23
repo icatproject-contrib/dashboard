@@ -29,6 +29,7 @@ import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.jms.Topic;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.xml.namespace.QName;
@@ -64,11 +65,11 @@ public class DownloadGenerator {
 
     private long downloadSize = 0;
 
-    @Resource(lookup = "java:jboss/DefaultJMSConnectionFactory")
+    @Resource(lookup = "java:comp/DefaultJMSConnectionFactory")
     private ConnectionFactory connectionFactory;
 
-    @Resource(lookup = "java:/jms/queue/test")
-    private Queue queue;
+    @Resource(lookup = "java:/jms/test")
+    private Topic topic;
 
     private Session sess;
 
@@ -94,7 +95,7 @@ public class DownloadGenerator {
     public void sendMessage(Message message) {
 
         try (JMSContext context = connectionFactory.createContext()) {
-            context.createProducer().send(queue, message);
+            context.createProducer().send(topic, message);
         }
     }
 
