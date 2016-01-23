@@ -14,7 +14,7 @@ angular.module('dashboardApp')
 	   		return service;
 
 	   		function Login(authenticator,username,password){
-	   			 return $http.post('http://localhost:8080/Dashboard/rest/session/login', {'authenticator' : 'uows', "username": username ,
+	   			 return $http.post('http://localhost:8080/Dashboard/session/login', {'authenticator' : 'uows', "username": username ,
 						   "password" : password })
 	   			
 	   		}

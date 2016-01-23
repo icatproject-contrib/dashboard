@@ -22,13 +22,21 @@
 						state.go('login');
 					}
 
+					inform.add('Session Expired. Please login.',{
+					'ttl':0,
+					'type':'danger'
+					});
 					
 				}
 
-				inform.add('Session Expired. Please login.',{
+				if(rejection.status === 500){
+					inform.add('Internal Error.'+rejection,{
 					'ttl':0,
 					'type':'danger'
-				});
+					});
+				}
+
+				
 
 				return $q.reject(rejection);
 
