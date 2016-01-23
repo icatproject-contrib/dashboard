@@ -3,9 +3,11 @@
 	angular.module('dashboardApp')
 		   .controller('IndexController', IndexController);
 
-	IndexController.$inject = ['$sessionStorage'];
+	IndexController.$inject = ['$sessionStorage','$scope'];
 
-	function IndexController($sessionStorage){
+	function IndexController($sessionStorage,$scope){
+
+		
 
 		var ic = this;
 

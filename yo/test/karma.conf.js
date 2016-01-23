@@ -38,8 +38,12 @@ module.exports = function(config) {
       'bower_components/angular-inform/dist/angular-inform.js',
       'bower_components/angular-loading-bar/build/loading-bar.js',
       'bower_components/moment/moment.js',
+      'bower_components/topojson/topojson.js',
+      'bower_components/datamaps/dist/datamaps.all.js',
+      'bower_components/angular-datamaps/dist/angular-datamaps.min.js',
+      'bower_components/momentjs/moment.js',
       'bower_components/bootstrap-daterangepicker/daterangepicker.js',
-      'bower_components/angular-daterangepicker/js/angular-daterangepicker.js',
+      'bower_components/ng-bs-daterangepicker/src/ng-bs-daterangepicker.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
       "bower_components/angular-ui-router/release/angular-ui-router.js",
@@ -66,7 +70,7 @@ module.exports = function(config) {
     browsers: [
       "Chrome",
 	  "Firefox",
-	  
+	  "IE",
 	  
     ],
 
@@ -84,8 +88,6 @@ module.exports = function(config) {
     singleRun: false,
 
     colors: true,
-
-    reporters: ['progress'],
 
     // level of logging
     // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
