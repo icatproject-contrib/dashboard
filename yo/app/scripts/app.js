@@ -15,9 +15,10 @@ angular
     'ngCookies',
     'ngResource',
     'ngSanitize',
-    'inform',
+    'inform', 
     'angular-loading-bar',
-    'daterangepicker'
+    'ngBootstrap',
+    
 
   ])
   .config(['$httpProvider', function($httpProvider){
