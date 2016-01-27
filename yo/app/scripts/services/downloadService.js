@@ -14,10 +14,10 @@
 
 				var services = {						
 
-				    getRoutes : function(startDate,endDate){
+				    getDownloadRoute : function(startDate,endDate){
 					
 					
-						return $http.get(baseURL+"route?sessionID=" + $sessionStorage.sessionData.sessionID+"&startDate="+startDate.unix()+"&endDate="+endDate.unix())
+						return $http.get(baseURL+"route?sessionID=" + $sessionStorage.sessionData.sessionID+"t&startDate="+startDate+"&endDate="+endDate)
 							.then(function(response){
 
 								return response.data;
@@ -28,13 +28,34 @@
 
 					getDownloadFrequency : function(startDate,endDate){
 
-						return $http.get(baseURL+"frequency?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate.unix()+"&endDate="+endDate.unix())
+						return $http.get(baseURL+"frequency?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
 							.then(function(response){
 
 								return response.data;
 							
 							});
 					},
+
+					getDownloadBandwidth : function(startDate, endDate){
+
+						return $http.get(baseURL+"bandwidth?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+							.then(function(response){
+
+								return response.data;
+							
+							});
+
+					},
+
+					getDownloadSize : function(startDate, endDate){
+
+						return $http.get(baseURL+"size?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+							.then(function(response){
+
+								return response.data;
+							});
+
+					},	
 				    
 			}
 
