@@ -15,6 +15,13 @@
 			return !(_.isEmpty($sessionStorage.sessionData));
 		}
 
+		//Date range manipulation so data is defaulted to 10 days ago.
+
+		var currentDate = moment();
+		var initialDate = moment().subtract(10,'days');
+
+		$scope.myDateRange = { startDate: initialDate, endDate: currentDate };
+
 	}		   
 
 
