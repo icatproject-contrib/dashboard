@@ -22,9 +22,8 @@ angular.module('dashboardApp').directive('donutChart',function(){
 								}
 							},
 							tooltip:{
-									position: function(data,width,height,element){
-										return {top:-180,left:300}
-									}
+									
+									
 								},
 							color:{
 								pattern: ['#CF000F','#7f8c8d','#2b2b2b'],

@@ -1,8 +1,7 @@
-angular.module('dashboardApp').directive('timeSeries', function(){
+angular.module('dashboardApp').directive('barTimeSeries', function(){
 
 
-	function link(scope,element,attr){
-		$(element).css("position","static")
+	function link(scope,element,attr){		
 
 		scope.$watch('data', function(){
 
@@ -10,26 +9,32 @@ angular.module('dashboardApp').directive('timeSeries', function(){
 			
 				var chart = c3.generate({
 					 bindto:element[0],
-					 data: {	
+
+					data: {
+
 					 	 x:"x",				 	 
-		       			 columns : [
-		       			 	scope.data[0],
-		       			 	scope.data[1]
-		       			 ],
+		       			 columns : scope.data,
+		       			 type:'bar',
+		       			 labels:true,
 				    },
 				    axis: {
 				        x: {
 				            type: 'timeseries',
 				            tick: {
 				                format: '%Y-%m-%d'
-				            }
+				            },
+				            
+				            
+				        },
+				        y: {
+				        	label:'MB',
 				        }
 				    },
 				    tooltip:{
 							
 						},
 					color:{
-						pattern: ['#CF000F','#7f8c8d','#2b2b2b'],
+						pattern: ['#2b2b2b'],
 					},	
 				});
 			}
