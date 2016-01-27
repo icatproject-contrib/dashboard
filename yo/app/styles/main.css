@@ -98,7 +98,8 @@ html,body, .cotainer-fluid,.row  {
 }
 #box{
   background-color: #fff;  
-  margin-top: 20px;  
+  margin-top: 20px; 
+  
   padding: 10px 10px 10px 10px;   
   border: 1px solid #d4d4d4;
 
@@ -150,18 +151,16 @@ html,body, .cotainer-fluid,.row  {
  
 }
 
-
-
-
-
-
 /* Download CSS */
 
-.bandwith-timeSeries{
+.chart-container{
   max-width: 98%;
 }
-time-series{
+
+
+#chart{
   position:static !important;
+
 }
 
 stats-map{
