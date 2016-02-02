@@ -10,7 +10,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
 @Provider
-@PreMatching
 public class CORSResponseFilter implements ContainerResponseFilter { 
     @Override
     public void filter( ContainerRequestContext requestCtx, ContainerResponseContext responseCtx ) throws IOException {
