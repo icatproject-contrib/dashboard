@@ -22,6 +22,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
+import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -36,6 +37,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import org.icatproject.dashboard.entity.DownloadLocation;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
@@ -53,7 +55,8 @@ import org.slf4j.LoggerFactory;
 
 
 @Stateless
-@Path("/")
+@LocalBean
+@Path("/v1")
 public class DashboardREST {
     
     private String icatURL;
@@ -111,9 +114,10 @@ public class DashboardREST {
                     obj.put(users.get(i), loginMessage);                
                 }
                 return obj.toString();
-            }          
-             
-            obj.put("Users ", "0");
+            }
+            else{             
+                 obj.put("Users ", "0");
+            }
            
             return obj.toString();
 	}
@@ -292,13 +296,19 @@ public class DashboardREST {
             
             for(Object[] download: downloads){               
                             
-                LocalDate beginningPoint = RestUtility.convertToLocalDate((Date)download[0]);
-                LocalDate endPoint = RestUtility.convertToLocalDate((Date)download[1]);
+                LocalDate downloadBeginning = RestUtility.convertToLocalDate((Date)download[0]);
+                LocalDate downloadEnd = RestUtility.convertToLocalDate((Date)download[1]);
                 
-                while((!beginningPoint.isAfter(endRange))&&(!beginningPoint.isAfter(endPoint))){
-                    Long currentTotal = downloadDates.get(beginningPoint);
-                    downloadDates.put(beginningPoint,currentTotal+=1);
-                    beginningPoint = beginningPoint.plusDays(1);
+                //Bring the download date up to the requested start date.
+                while(downloadBeginning.isBefore(startRange)){
+                    downloadBeginning = downloadBeginning.plusDays(1);                       
+                        
+                    }
+                
+                while((!downloadBeginning.isAfter(endRange))&&(!downloadBeginning.isAfter(downloadEnd))){
+                    Long currentTotal = downloadDates.get(downloadBeginning);
+                    downloadDates.put(downloadBeginning,currentTotal+=1);
+                    downloadBeginning = downloadBeginning.plusDays(1);
                 }
             }        
             
@@ -496,8 +506,85 @@ public class DashboardREST {
             return "PLACEHOLDER";
         }
         
+        @GET 
+        @Path("download/location/global")
+         @Produces(MediaType.APPLICATION_JSON)
+        public String getDownloadGlobalLocations( @QueryParam("sessionID")String sessionID,
+                                                  @QueryParam("startDate")String startUnixEpoch,
+                                                  @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }              
+                    
+            Date start = new Date(Long.valueOf(startUnixEpoch));
+            Date end = new Date(Long.valueOf(endUnixEpoch));       
+            
+            List<Object[]> downloadList = new ArrayList();            
+            
+            downloadList = manager.createNamedQuery("DownloadLocation.global").setParameter("startDate", start).setParameter("endDate", end).getResultList();
+            
+            JSONArray resultArray = new JSONArray();
+            
+            for(Object[] download: downloadList){
+                JSONObject obj = new JSONObject();
+                obj.put("countryCode",download[0]);
+                obj.put("amount",download[1]);
+             
+                
+                resultArray.add(obj);
+                
+            }
+            
+            
+            return resultArray.toJSONString();
+        }
+        
         @GET
-        @Path("ping")
+        @Path("download/location/")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getDownloadLocations( @QueryParam("sessionID")String sessionID,
+                                            @QueryParam("startDate")String startUnixEpoch,
+                                            @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }              
+           
+         
+            Date start = new Date(Long.valueOf(startUnixEpoch));
+            Date end = new Date(Long.valueOf(endUnixEpoch));
+            
+            
+            
+            List<Object[]> downloadList = new ArrayList();            
+            
+            downloadList = manager.createNamedQuery("Users.download.location").setParameter("startDate", start).setParameter("endDate", end).getResultList();
+            
+            JSONArray resultArray = new JSONArray();
+            
+            for(Object[] download: downloadList){
+                JSONObject obj = new JSONObject();
+                obj.put("name",download[0]);
+                obj.put("downloadID",download[2]);
+                obj.put("longitude",((DownloadLocation) download[1]).getLongitude());
+                obj.put("latitude", ((DownloadLocation) download[1]).getLatitude());
+                resultArray.add(obj);
+                
+            }
+            
+            
+            return resultArray.toJSONString();
+        }
+            
+
+        
+        @GET
+        @Path("/ping")
         @Produces(MediaType.TEXT_PLAIN)
         public String ping(){
             return "The Dashboard is doing fine!";
