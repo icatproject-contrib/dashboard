@@ -9,18 +9,18 @@
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>org.icatproject.dashboard</param-value>
         </init-param>
-
-        <load-on-startup>1</load-on-startup>
+        
     </servlet>
 
     <servlet-mapping>
         <servlet-name>ServletAdaptor</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
 
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
+    
 
     
 
