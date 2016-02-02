@@ -10,7 +10,7 @@ package org.icatproject.dashboard.exceptions;
 
 @SuppressWarnings("serial")
 public class DashboardException extends Exception {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private int httpStatusCode;
     private String message;
