@@ -8,13 +8,19 @@ package org.icatproject.dashboard.entity;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Comment("A download location is the geolocation of where the download took place.")
-@SuppressWarnings("serial")
+@NamedQueries({
+    @NamedQuery(name="DownloadLocation.global",
+                query="SELECT dl.countryCode, count(dl.countryCode) FROM DownloadLocation dl JOIN dl.downloads d WHERE d.downloadStart > :startDate AND d.downloadEnd <=:endDate AND dl.countryCode IS NOT NULL GROUP BY dl.countryCode "), 
+    @NamedQuery(name="DownloadLocation.check",
+                query="SELECT dl FROM DownloadLocation dl WHERE dl.longitude = :longitude AND dl.latitude = :latitude"), 
+})
 @Entity
-@XmlRootElement
 public class DownloadLocation extends EntityBaseBean {
     
     @Comment("A geolocation has many downloads")
@@ -25,21 +31,27 @@ public class DownloadLocation extends EntityBaseBean {
     private double longitude;
     
     @Comment("The latitude of a download")    
-    private double latitude;
+    private double latitude;    
     
-    @Comment("The hostmachine of the download")
-    private String hostMachineName;
     
-    @Comment("The ipAddress of location.")
-    private String ipAddress;
+    @Comment("The country code of the location.")
+    private String countryCode;
+    
+    @Comment("The city of the location.")
+    private String city;
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public String getCity() {
+        return city;
+    }   
+    
 
     public List<Download> getDownloads() {
         return downloads;
-    }
-
-    public String getIpAddress() {
-        return ipAddress;
-    }
+    }    
 
     
     public double getLongitude() {
@@ -48,11 +60,16 @@ public class DownloadLocation extends EntityBaseBean {
 
     public double getLatitude() {
         return latitude;
+    }   
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
     }
 
-    public String getHostMachineName() {
-        return hostMachineName;
-    }
+    public void setCity(String city) {
+        this.city = city;
+    }    
+    
 
     public void setDownloads(List<Download> downloads) {
         this.downloads = downloads;
@@ -61,19 +78,12 @@ public class DownloadLocation extends EntityBaseBean {
     public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
-
-    public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
-    }
-
+    
     
     public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
 
-    public void setHostMachineName(String hostMachineName) {
-        this.hostMachineName = hostMachineName;
-    }
     
     
     
