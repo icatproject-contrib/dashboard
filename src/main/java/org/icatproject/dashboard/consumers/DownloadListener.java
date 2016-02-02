@@ -56,7 +56,6 @@ import org.icatproject.dashboard.exceptions.InternalException;
 
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.ICATSessionManager;
-import org.icatproject.dashboard.tools.GeoTool;
 import org.icatproject.Datafile;
 import org.icatproject.Dataset;
 import org.icatproject.ICAT;
@@ -69,17 +68,18 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
 
-
-
 @MessageDriven(activationConfig = {
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/IDS/log"),
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),    
-    @ActivationConfigProperty(propertyName="addressList", propertyValue="mq://idsdev2.isis.cclrc.ac.uk:7676"),
-    @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "10")
+    @ActivationConfigProperty(propertyName="addressList", propertyValue="mq://idsdev2.isis.cclrc.ac.uk:7676"),    
+    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID"),
+    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),
+    
 })
- 
+
 @TransactionManagement(TransactionManagementType.BEAN)
 public class DownloadListener implements MessageListener {
 
@@ -180,7 +180,7 @@ public class DownloadListener implements MessageListener {
             download.setDownloadSize(downloadSize);
             download.setMethod(getMethod(preparedId));
             download.setPreparedID(preparedId);
-            download.setLocation(createLocation(message.getStringProperty("ip")));            
+            download.setLocation(getLocation(message.getStringProperty("ip")));            
             beanManager.create(download, manager);
             ut.commit();
 
@@ -266,7 +266,7 @@ public class DownloadListener implements MessageListener {
             download.setUser(getUser(message.getText()));
             download.setDownloadEntities(createDownloadEntities(message.getText()));
             download.setDownloadSize(downloadSize);            
-            download.setLocation(createLocation(message.getStringProperty("ip")));
+            download.setLocation(getLocation(message.getStringProperty("ip")));
             download.setMethod("https");
             download.setDuriation(duration);
             download.setDownloadEnd(new Date(startMilli+duration));
@@ -295,7 +295,7 @@ public class DownloadListener implements MessageListener {
         download.setPreparedID(oldDownload.getPreparedID());
         download.setDownloadEntities(createDownloadEntities(getEntities(oldDownload.getId())));
         download.setDownloadSize(oldDownload.getDownloadSize());            
-        download.setLocation(createLocation(ipAddress));
+        download.setLocation(getLocation(ipAddress));
         download.setMethod(oldDownload.getMethod());
         download.setDuriation(duration);
         download.setDownloadEnd(new Date(startMilli+duration));
@@ -334,14 +334,8 @@ public class DownloadListener implements MessageListener {
      *
      * @param ipAddress The idAddress to have it's GeoLocation resolved to.
      */
-    private DownloadLocation createLocation(String ipAddress) {
-        DownloadLocation location = GeoTool.getDownloadLocation(ipAddress);
-
-        try {
-            beanManager.create(location, manager);
-        } catch (DashboardException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private DownloadLocation getLocation(String ipAddress) {
+        DownloadLocation location = GeoTool.getDownloadLocation(ipAddress, manager, beanManager);      
 
         return location;
     }
