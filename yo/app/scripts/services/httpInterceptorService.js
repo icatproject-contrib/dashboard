@@ -14,7 +14,7 @@
 				var state;
 				var userName;
 
-				if(rejection.status === 403){
+				if(rejection.status === 401){
 					state = $injector.get('$state');
 
 					if($sessionStorage.sessionData.sessionID !== 'undefined'){
@@ -22,15 +22,21 @@
 						state.go('login');
 					}
 
-					inform.add('Session Expired. Please login.',{
+					inform.add('Session has Expired. Please re-login.',{
 					'ttl':0,
 					'type':'danger'
 					});
 					
 				}
 
+				if(rejection.status === 400){
+
+					inform.add('Bad request '+ reject);
+				}
+
+
 				if(rejection.status === 500){
-					inform.add('Internal Error.'+rejection,{
+					inform.add('Internal Error: '+rejection.data.message,{
 					'ttl':0,
 					'type':'danger'
 					});

@@ -51,7 +51,9 @@ angular
         url:'/users',
         resolve :{
           authenticate :['Authenticate', function(Authenticate){
-            return Authenticate.authenticate();
+            if(!Authenticate.authenticate()){
+              
+            }
           }]
         },
         templateUrl:'views/users.html',

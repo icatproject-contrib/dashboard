@@ -8,7 +8,7 @@
 
 	function DownloadCtrl(DownloadService, $scope){	
 
-		
+		google.charts.load('current', {'packages':['geochart']});
 
 		$scope.$watch('myDateRange',function(newDate){
 
@@ -19,6 +19,7 @@
 			var downloadCount = DownloadService.getDownloadFrequency(startDate,endDate);
 			var downloadBandwidth = DownloadService.getDownloadBandwidth(startDate,endDate);
 			var downloadSize = DownloadService.getDownloadSize(startDate,endDate);
+			var globalDownloadLocation = DownloadService.getGlobalDownloadLocation(startDate,endDate);
 
 			downloadRoutes.then(function(responseData){	
 				  	var data = responseData;			  			  	
@@ -104,6 +105,18 @@
 				amounts.unshift('Count');				
 
 	    		$scope.downloadSize = [dates,amounts];
+	    	});
+
+	    	globalDownloadLocation.then(function(responseData){ 
+
+			  	var data = responseData;	
+
+			    $scope.globalDownloadLocation = _.map(data, function(data){
+					return [data.countryCode, data.amount];
+				});
+
+	    		
+
 	    	});
 	    	
 	    });

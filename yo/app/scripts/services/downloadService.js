@@ -8,7 +8,7 @@
 
 			function DownloadService ($http, $sessionStorage, $q){
 
-				var baseURL = 'http://localhost:8080/Dashboard/download/';
+				var baseURL = 'http://localhost:8080/dashboard/api/v1/download/';
 
 					
 
@@ -17,7 +17,7 @@
 				    getDownloadRoute : function(startDate,endDate){
 					
 					
-						return $http.get(baseURL+"route?sessionID=" + $sessionStorage.sessionData.sessionID+"t&startDate="+startDate+"&endDate="+endDate)
+						return $http.get(baseURL+"route?sessionID=" + $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
 							.then(function(response){
 
 								return response.data;
@@ -56,6 +56,15 @@
 							});
 
 					},	
+					getGlobalDownloadLocation : function(startDate, endDate){
+
+						return $http.get(baseURL+"/location/global?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+							.then(function(response){
+
+								return response.data;
+							});
+
+					},
 				    
 			}
 
