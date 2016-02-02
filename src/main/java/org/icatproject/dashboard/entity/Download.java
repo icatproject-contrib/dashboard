@@ -31,8 +31,12 @@ import javax.persistence.TemporalType;
                 query="SELECT d.downloadStart, d.downloadEnd FROM Download d "
                     + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd)"),
     @NamedQuery(name="Download.bandwidth",
-                query="SELECT d.downloadStart, d.downloadEnd, d.bandwidth FROM Download d "
+                query="SELECT d.downloadStart, d.downloadEnd, d.bandwidth, d.id FROM Download d "
                     + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd)"),
+    @NamedQuery(name="Download.size",
+                query="SELECT d.downloadStart, d.downloadEnd, d.downloadSize FROM Download d "
+                    + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd)"),
+   
 })
 public class Download extends EntityBaseBean implements Serializable {
 
