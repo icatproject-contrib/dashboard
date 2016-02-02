@@ -2,7 +2,7 @@
 <configuration>
 	<appender name="logfile"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>../logs/topcatv2.log</file>
+		<file>../logs/dashboard.log</file>
 		<encoder>
 			<pattern>%d [%thread] %-5level %logger{0} - %msg%n</pattern>
 		</encoder>
