@@ -38,6 +38,9 @@ import javax.xml.bind.annotation.XmlTransient;
                 query="SELECT u.fullName FROM ICATUser u WHERE u.logged=1"),
     @NamedQuery(name="Users.LoggedOut",
                 query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"), 
+    @NamedQuery(name="Users.download.location",
+                query="SELECT u.fullName, dl, d.id FROM ICATUser u JOIN u.downloads d JOIN d.location dl "
+                        + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd) "),
     
     
 })
