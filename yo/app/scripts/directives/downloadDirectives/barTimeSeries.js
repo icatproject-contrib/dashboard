@@ -17,19 +17,29 @@ angular.module('dashboardApp').directive('barTimeSeries', function(){
 		       			 type:'bar',
 		       			 labels:true,
 				    },
+				    legend: {
+				    	show:false,
+				    },
 				    axis: {
 				        x: {
 				            type: 'timeseries',
 				            tick: {
 				                format: '%Y-%m-%d'
 				            },
+				            label: {
+				            	text: 'Dates',
+				        		position: 'outer-center',
+				            },
 				            
 				            
 				        },
 				        y: {
-				        	label:'MB',
-				        }
+				        	label: {
+				        			text: 'MegaBytes',
+				        			position: 'outer-center',
+				        		},				        
 				    },
+				},
 				    tooltip:{
 							
 						},

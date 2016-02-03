@@ -27,12 +27,18 @@ angular.module('dashboardApp').directive('scatterTimeSeries', function(){
 				            tick: {
 				                format: '%Y-%m-%d'
 				            },
-				            label: 'Dates'
+				            label:{ text: 'Dates',
+				            		position: 'outer-center',
+				            	},	
 				        },
 				        y: {
 				        	min:0,
-				        	label: 'MB/S',
-				        	padding:{bottom:0}
+				        	label: {
+				        			text: 'MB/S',
+				        			position: 'outer-center',
+				        		},	
+				        	padding:{bottom:0},
+				        	
 				        }
 				    },
 				    tooltip:{

@@ -14,13 +14,27 @@ angular.module('dashboardApp').directive('lineTimeSeries', function(){
 
 					 	 x:"x",				 	 
 		       			 columns : scope.data,
+		       			 
+				    },
+				    legend: {
+				    	show:false
 				    },
 				    axis: {
 				        x: {
 				            type: 'timeseries',
 				            tick: {
 				                format: '%Y-%m-%d'
-				            }
+				            },
+				            label: {
+				        			text: 'Dates',
+				        			position: 'outer-center',
+				        		}, 
+				        },
+				        y: {
+				        	label: {
+				        			text: 'Amount of Downloads',
+				        			position: 'outer-center',
+				        		},
 				        }
 				    },
 				    tooltip:{

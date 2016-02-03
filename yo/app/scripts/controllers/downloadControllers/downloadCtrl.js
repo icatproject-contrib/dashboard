@@ -8,9 +8,12 @@
 
 	function DownloadCtrl(DownloadService, $scope){	
 
-		google.charts.load('current', {'packages':['geochart']});
+	
+		var self=this;
 
 		$scope.$watch('myDateRange',function(newDate){
+
+			
 
 			var startDate = Date.parse($scope.myDateRange.startDate);
 			var endDate = Date.parse($scope.myDateRange.endDate);
@@ -50,6 +53,8 @@
 
 		    downloadBandwidth.then(function(responseData){
 		    	
+		    	$scope.rawBandwidthData = responseData;
+
 		    	var bandwidthData = [];
 
 		    	var dateArray = getDateArray(newDate.startDate,newDate.endDate)
@@ -116,12 +121,110 @@
 				});
 
 	    		
+			//Now the calls are done calculate the metrics
 
-	    	});
+			//Count metrics
+	    	self.getCountTotal = function(){
+	    		var data = $scope.downloadCount;
+	    		var total = 0;	    		
+	    		
+	    		for(var i=1;i<data[1].length;i++){	    			
+	    			total +=data[1][i];
+	    		}
+
+	    		return total;
+	    	}
+
+	    	self.getCountBusiestDay = function(){
+	    		var data = $scope.downloadCount;
+
+	    		var busiestIndex = 0;
+	    		var largestDay = 0;	    		
+	    		
+	    		for(var i=1;i<data[1].length;i++){	    			
+	    			if(data[1][i] > largestDay){
+	    				busiestIndex = i;
+	    				largestDay = data[1][i];
+	    			}
+	    		}
+
+	    		return data[0][busiestIndex] +" with "+largestDay;
+	    	}
+
+	    	//Badnwidth metrics
+	    	self.getHeighestBandwidth = function(){	    		
+
+		    	return getBandwidthMetrics($scope.rawBandwidthData)[1]+" MB/S";	
+
+	    	}
+
+	    	self.getLowestBandwidth = function(){
+	    		
+	    		return getBandwidthMetrics($scope.rawBandwidthData)[0]+" MB/S";
+	    	}
+
+	    	//Download amount metrics
+
+	    	self.getTotalAmount = function(){
+	    		var data = $scope.downloadSize;
+	    		var total = 0;	    		
+	    		
+	    		for(var i=1;i<data[1].length;i++){	    			
+	    			total +=data[1][i];
+	    		}
+
+	    		return total +" Megabytes";
+	    	}
+
+
+	    	
+
+	    	self.getBusiestDayAmount = function(){
+	    		var data = $scope.downloadSize;
+
+	    		var busiestIndex = 0;
+	    		var largestDay = 0;	    		
+	    		
+	    		for(var i=1;i<data[1].length;i++){	    			
+	    			if(data[1][i] > largestDay){
+	    				busiestIndex = i;
+	    				largestDay = data[1][i];
+	    			}
+	    		}
+
+	    		return data[0][busiestIndex] +" with "+largestDay +" Megabytes";
+
+	    	}
+
+	    	
+
+	    });
+
+	    	
+
+
 	    	
 	    });
 
 		
+		
+	}
+
+	function getBandwidthMetrics(data) {     		
+
+    		var highest = 0;
+    		var lowest = 9999999;
+    		
+	    	data.forEach( function(download){
+	    		if(download.bandwidth >highest){
+	    			highest = download.bandwidth;
+	    		}
+	    		if(download.bandwidth < lowest && download.bandwidth !=='0.0'){
+	    			lowest = download.bandwidth;
+	    		}
+	    	});
+
+	    	return[lowest,highest]
 	}
 
 	function getDateArray(startDate,stopDate) {

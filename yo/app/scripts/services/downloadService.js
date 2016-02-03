@@ -58,7 +58,7 @@
 					},	
 					getGlobalDownloadLocation : function(startDate, endDate){
 
-						return $http.get(baseURL+"/location/global?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+						return $http.get(baseURL+"location/global?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
 							.then(function(response){
 
 								return response.data;

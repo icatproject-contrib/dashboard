@@ -8,7 +8,7 @@
 	function IndexController($sessionStorage,$scope){
 
 		
-
+		google.charts.load('current', {'packages':['geochart']});
 		var ic = this;
 
 		ic.isLoggedIn = function(){
