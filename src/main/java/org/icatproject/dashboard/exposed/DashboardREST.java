@@ -83,7 +83,14 @@ public class DashboardREST {
             icatURL=properties.getICATUrl();
         }
         
-        
+        @GET
+        @Path("icat/cycles")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getCycles(){
+            return null;
+        }
+                
+                
         /**
          * Gets the name of users which are currently logged into the ICAT
          * @param sessionID Session ID
@@ -266,6 +273,14 @@ public class DashboardREST {
 
         }
         
+        /**
+         * Calculates the amount of downloads that occurred over the provided period.
+         * @param sessionID For authentication
+         * @param startUnixEpoch Start time in a Unix timestamp.
+         * @param endUnixEpoch End time in a Unix timestamp.
+         * @return A JSON array of JSON objects with each day between the provided times
+         * @throws DashboardException 
+         */
         @GET
         @Path("download/frequency")
         @Produces(MediaType.APPLICATION_JSON)
