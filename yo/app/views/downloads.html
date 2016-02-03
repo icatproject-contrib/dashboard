@@ -1,74 +1,101 @@
-<div class="row">
-	<div class="col-lg-5 col-lg-offset-1">
-		<div class="box" >
-			<p>Local Download Locations</p>	
-			<div class="chart-container-map" >						
-				<local-Chart data='localDownloadLocation'></local-Chart>
-			</div>			
-		</div>
-	</div>
-	<div class="col-lg-5">
-		<div class="box" >
-			<p>Global Download Locations</p>	
-			<div class="chart-container-map" >						
-				<world-Chart data='globalDownloadLocation'></world-Chart>
-			</div>			
-		</div>
-	</div>
-</div>
 
-<div class="row">
-	<div class="col-lg-10 col-lg-offset-1">
-		<div class="box">
-			<div class="chart-container">	
-				<p>Download Count</p>			
-				<line-time-Series class="chart" data='downloadCount'></line-time-Series>
-			</div>			
+
+
+	<div class="row">
+		<div class="col-lg-5 col-lg-offset-1">
+			<div class="box" >
+				<p>Local Download Locations</p>	
+				<div class="chart-container-map" >						
+					<local-Chart data='localDownloadLocation'></local-Chart>
+				</div>			
+			</div>
+		</div>
+		<div class="col-lg-5">
+			<div class="box" >
+				<p>Global Download Locations</p>	
+				<div class="chart-container-map" >						
+					<world-Chart data='globalDownloadLocation'></world-Chart>
+				</div>			
+			</div>
 		</div>
 	</div>
-</div>
 
-<div class="row">
-	<div class="col-lg-4 col-lg-offset-1">
-		<div class="box">
-			<div class="chart-container" >
-				<p>Download Methods</p>
-				<donut-chart class="chart" data='downloadRoutes'></donut-chart>
+	<div class="row">
+		<div class="col-lg-10 col-lg-offset-1">
+			<div class="box">
+				<div class="chart-container">	
+					<p>Download Count</p>			
+					<line-time-Series class="chart" data='downloadCount'></line-time-Series>
+				</div>			
+			</div>
+		</div>
+		
+	</div>
+
+
+	<div class="row">			
+		
+		<div id="box" class="col-lg-6 col-lg-offset-1">
+			<div class="box">
+				<div class="chart-container">
+					<p>Download Bandwidth</p>
+					<scatter-time-series class="chart" data='downloadBandwidth'></scatter-time-series>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-4">
+			<div class="box">
+				<div class="chart-container" >
+					<p>Download Methods</p>
+					<donut-chart class="chart" data='downloadRoutes'></donut-chart>
+				</div>	
 			</div>	
 		</div>	
 	</div>	
 
-	<div id="box" class="col-lg-6">
-		<div class="box">
-			<div class="chart-container">
-				<p>Download Bandwidth</p>
-				<scatter-time-series class="chart" data='downloadBandwidth'></scatter-time-series>
+	<div class="row">
+		<div class="col-lg-10 col-lg-offset-1">
+			<div class="box">
+				<div class="chart-container">
+					<p>Download Size</p>
+					<bar-time-series class="chart" data='downloadSize'></bar-time-series>
+				</div>
 			</div>
 		</div>
-	</div>	
-</div>	
-
-<div class="row">
-	<div class="col-lg-10 col-lg-offset-1">
-		<div class="box">
-			<div class="chart-container">
-				<p>Download Size</p>
-				<bar-time-series class="chart" data='downloadSize'></bar-time-series>
+		
+	</div>
+		<div class="row">
+		<div class="col-lg-3 col-lg-offset-1">
+			<div class="box">	
+				<div class="text-format">					
+					<h2>Total Amount</h2>
+					<h3>{{download.getTotalAmount()}}</h3>					
+					<h2>Busiest Day</h2>
+					<h3>{{download.getBusiestDayAmount()}}</h3>
+				</div>
 			</div>
 		</div>
-	</div>	
-
-
-</div>
+		<div class="col-lg-4">
+			<div class="box">	
+				<div class="text-format">					
+					<h2>Total Downloads</h2>
+					<h3>{{download.getCountTotal()}}</h3>					
+					<h2>Busiest Day</h2>
+					<h3>{{download.getCountBusiestDay()}}</h3>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3">
+			<div class="box">	
+				<div class="text-format">					
+					<h2>Highest Bandwidth</h2>
+					<h3>{{download.getHeighestBandwidth()}}</h3>					
+					<h2>Lowest Bandwidth</h2>
+					<h3>{{download.getLowestBandwidth()}}</h3>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	
-
-
-
-
-
-
-
-
-
-
+		
