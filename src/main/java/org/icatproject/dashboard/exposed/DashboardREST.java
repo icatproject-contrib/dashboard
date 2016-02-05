@@ -41,6 +41,7 @@ import org.icatproject.dashboard.entity.DownloadLocation;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
+import org.icatproject.dashboard.exceptions.ForbiddenException;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.icat.client.ICAT;
@@ -229,16 +230,14 @@ public class DashboardREST {
             user = session.getUserName();
             String auth = session.search("SELECT u FROM User u JOIN u.userGroups ug JOIN ug.grouping g WHERE u.name='"+user+"' AND g.name='Dashboard'");
             session.logout();
-            if(auth!=null){
+            if(!"[]".equals(auth)){
                 sessionID = beanManager.login(user, 120, manager);
                 
                 obj.put("sessionID", sessionID);
                 return obj.toString();
             }
             
-            obj.put("Failed Login","Access Denied");
-           
-            return obj.toString();
+            throw new ForbiddenException("Access Denied");
         } catch (IcatException ex) {
             throw new org.icatproject.dashboard.exceptions.IcatException(ex.getMessage());
         }            
