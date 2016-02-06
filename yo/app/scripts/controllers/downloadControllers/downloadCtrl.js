@@ -6,6 +6,8 @@
 
 	DownloadCtrl.$inject= ['DownloadService','$scope'];
 
+	
+
 	function DownloadCtrl(DownloadService, $scope){	
 
 	
@@ -22,7 +24,7 @@
 			var downloadCount = DownloadService.getDownloadFrequency(startDate,endDate);
 			var downloadBandwidth = DownloadService.getDownloadBandwidth(startDate,endDate);
 			var downloadSize = DownloadService.getDownloadSize(startDate,endDate);
-			var globalDownloadLocation = DownloadService.getGlobalDownloadLocation(startDate,endDate);
+			
 
 			downloadRoutes.then(function(responseData){	
 				  	var data = responseData;			  			  	
@@ -43,11 +45,41 @@
 					return data.amount;
 				});
 
-				dates.unshift("x");		
+				
+
+			    //Calculate metrics and assign to to controller variables
+			    self.getCountTotal = function(){		    		
+		    		var total = 0;	    		
+		    		
+		    		for(var i=1;i<amounts.length;i++){	    			
+		    			total +=amounts[i];
+		    		}
+
+		    		return total;
+	    		}
+
+	    		self.getCountBusiestDay = function(){
+	    		var data = [dates,amounts];
+
+	    		var busiestIndex = 0;
+	    		var largestDay = 0;	    		
+	    		
+	    		for(var i=1;i<data[1].length;i++){	    			
+	    			if(data[1][i] > largestDay){
+	    				busiestIndex = i;
+	    				largestDay = data[1][i];
+	    			}
+	    		}
+
+	    		return data[0][busiestIndex] +" with "+largestDay;
+	    		}
+
+	    		dates.unshift("x");		
 							
 				amounts.unshift('Count');	    		
 					
 			    $scope.downloadCount = [dates,amounts];
+
 					
 		    });
 
@@ -91,6 +123,18 @@
 		    	
 		    	$scope.downloadBandwidth = bandwidthData;
 
+		    	//Bandwidth metrics
+		    	self.getHeighestBandwidth = function(){	    		
+
+			    	return getBandwidthMetrics(responseData)[1]+" MB/S";	
+
+		    	}
+
+		    	self.getLowestBandwidth = function(){
+		    		
+		    		return getBandwidthMetrics(responseData)[0]+" MB/S";
+		    	}
+
 		    });
 
 			
@@ -105,6 +149,36 @@
 					return Math.round(data.amount/1000000);
 				});
 
+				//Download amount metrics
+
+		    	self.getTotalAmount = function(){
+		    		var total = 0;    		    			    		
+		    		
+		    		for(var i=1;i<amounts.length;i++){	    			
+		    			total +=amounts[i];
+		    		}
+
+		    		return total +" Megabytes";
+		    	}
+	    	
+
+		    	self.getBusiestDayAmount = function(){
+		    		var data = [dates,amounts];
+
+		    		var busiestIndex = 0;
+		    		var largestDay = 0;	    		
+		    		
+		    		for(var i=1;i<data[1].length;i++){	    			
+		    			if(data[1][i] > largestDay){
+		    				busiestIndex = i;
+		    				largestDay = data[1][i];
+		    			}
+		    		}
+
+		    		return data[0][busiestIndex] +" with "+largestDay +" Megabytes";
+
+		    	}	    	
+
 				dates.unshift("x");		
 							
 				amounts.unshift('Count');				
@@ -112,97 +186,7 @@
 	    		$scope.downloadSize = [dates,amounts];
 	    	});
 
-	    	globalDownloadLocation.then(function(responseData){ 
-
-			  	var data = responseData;	
-
-			    $scope.globalDownloadLocation = _.map(data, function(data){
-					return [data.countryCode, data.amount];
-				});
-
-	    		
-			//Now the calls are done calculate the metrics
-
-			//Count metrics
-	    	self.getCountTotal = function(){
-	    		var data = $scope.downloadCount;
-	    		var total = 0;	    		
-	    		
-	    		for(var i=1;i<data[1].length;i++){	    			
-	    			total +=data[1][i];
-	    		}
-
-	    		return total;
-	    	}
-
-	    	self.getCountBusiestDay = function(){
-	    		var data = $scope.downloadCount;
-
-	    		var busiestIndex = 0;
-	    		var largestDay = 0;	    		
-	    		
-	    		for(var i=1;i<data[1].length;i++){	    			
-	    			if(data[1][i] > largestDay){
-	    				busiestIndex = i;
-	    				largestDay = data[1][i];
-	    			}
-	    		}
-
-	    		return data[0][busiestIndex] +" with "+largestDay;
-	    	}
-
-	    	//Badnwidth metrics
-	    	self.getHeighestBandwidth = function(){	    		
-
-		    	return getBandwidthMetrics($scope.rawBandwidthData)[1]+" MB/S";	
-
-	    	}
-
-	    	self.getLowestBandwidth = function(){
-	    		
-	    		return getBandwidthMetrics($scope.rawBandwidthData)[0]+" MB/S";
-	    	}
-
-	    	//Download amount metrics
-
-	    	self.getTotalAmount = function(){
-	    		var data = $scope.downloadSize;
-	    		var total = 0;	    		
-	    		
-	    		for(var i=1;i<data[1].length;i++){	    			
-	    			total +=data[1][i];
-	    		}
-
-	    		return total +" Megabytes";
-	    	}
-
-
 	    	
-
-	    	self.getBusiestDayAmount = function(){
-	    		var data = $scope.downloadSize;
-
-	    		var busiestIndex = 0;
-	    		var largestDay = 0;	    		
-	    		
-	    		for(var i=1;i<data[1].length;i++){	    			
-	    			if(data[1][i] > largestDay){
-	    				busiestIndex = i;
-	    				largestDay = data[1][i];
-	    			}
-	    		}
-
-	    		return data[0][busiestIndex] +" with "+largestDay +" Megabytes";
-
-	    	}
-
-	    	
-
-	    });
-
-	    	
-
-
 	    	
 	    });
 
@@ -223,6 +207,11 @@
 	    			lowest = download.bandwidth;
 	    		}
 	    	});
+
+	    	//Don't want 9999999 returned as not correct.
+	    	if(lowest === 9999999){
+	    		lowest=0;
+	    	}
 
 	    	return[lowest,highest]
 	}
