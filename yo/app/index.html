@@ -6,9 +6,6 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript">google.charts.load('current', {'packages':['geochart']});</script>
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css(.) styles/vendor.css -->
     <!-- bower:css -->
@@ -110,6 +107,7 @@
     <script src="bower_components/momentjs/moment.js"></script>
     <script src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
     <script src="bower_components/ng-bs-daterangepicker/src/ng-bs-daterangepicker.js"></script>
+    <script src="bower_components/angular-google-chart/ng-google-chart.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
     
@@ -123,19 +121,22 @@
     <script src="scripts/services/authenticateService.js"></script>
     <!-- Controllers -->
     <script src="scripts/controllers/loginCtrl.js"></script>
-    <script src="scripts/controllers/downloadControllers/downloadCtrl.js"></script>  
+    <script src="scripts/controllers/downloadControllers/downloadCtrl.js"></script> 
+    <script src="scripts/controllers/downloadControllers/worldChartCtrl.js"></script>
+    <script src="scripts/controllers/downloadControllers/localChartCtrl.js"></script>  
     <script src="scripts/controllers/entityCtrl.js"></script>
     <script src="scripts/controllers/userCtrl.js"></script>
     <script src="scripts/controllers/indexCtrl.js"></script>
     <script src="scripts/controllers/logoutCtrl.js"></script>
+    <script src="scripts/controllers/downloadControllers/worldChartCtrl.js"></script>
     <!-- Directives -->
     <script src="scripts/directives/downloadDirectives/donutChart.js"></script>
     <script src="scripts/directives/downloadDirectives/lineTimeSeries.js"></script>   
     <script src="scripts/directives/downloadDirectives/statsMap.js"></script>
     <script src="scripts/directives/downloadDirectives/scatterTimeSeries.js"></script>
     <script src="scripts/directives/downloadDirectives/barTimeSeries.js"></script>
-    <script src="scripts/directives/downloadDirectives/worldChart.js"></script>
-    <script src="scripts/directives/downloadDirectives/localChart.js"></script>
+   
+    
 
     <!-- Additional -->
    
