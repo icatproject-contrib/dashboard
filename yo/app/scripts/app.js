@@ -18,6 +18,7 @@ angular
     'inform', 
     'angular-loading-bar',
     'ngBootstrap',
+    'googlechart',
     
 
   ])
