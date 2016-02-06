@@ -8,7 +8,7 @@
 
 			function DownloadService ($http, $sessionStorage, $q){
 
-				var baseURL = 'http://localhost:8080/dashboard/api/v1/download/';
+				var baseURL = 'https://localhost:8181/dashboard/api/v1/download/';
 
 					
 
