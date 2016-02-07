@@ -37,8 +37,7 @@ import org.icatproject.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Singleton
-@Startup
+
 @DependsOn("ICATSessionManager")
 public class DataCollector {
 
@@ -82,11 +81,7 @@ public class DataCollector {
         createTimers(prop);
         icat = createICATLink();
         sessionID = session.getSessionID();        
-        try {
-            collectData();
-        } catch (InternalException ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        
 
     }
 
