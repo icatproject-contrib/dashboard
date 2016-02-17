@@ -5,8 +5,8 @@ angular.module('dashboardApp').directive('barTimeSeries', function(){
 
 		scope.$watch('data', function(){
 
-			if(scope.data !== undefined){	
-			
+			if(scope.data !== undefined){
+
 				var chart = c3.generate({
 					 bindto:element[0],
 
@@ -47,6 +47,7 @@ angular.module('dashboardApp').directive('barTimeSeries', function(){
 						pattern: ['#2b2b2b'],
 					},	
 				});
+				
 			}
 		});
 }

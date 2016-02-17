@@ -9,6 +9,7 @@
  */
 angular
 .module('dashboardApp', [
+    'ui.bootstrap',
     'ui.router',
     'ngStorage',
     'ngAnimate',
@@ -18,7 +19,7 @@ angular
     'inform', 
     'angular-loading-bar',
     'ngBootstrap',
-    'googlechart',
+    'googlechart'
     
 
   ])
@@ -69,7 +70,7 @@ angular
         controller: 'EntityCtrl as entity'  
       })
       .state('downloads',{
-          url:'/downloads',
+          url:'/downloads',          
           resolve :{
           authenticate :['Authenticate', function(Authenticate){
             return Authenticate.authenticate();
@@ -77,7 +78,7 @@ angular
           },
           templateUrl: 'views/downloads.html',
           controller: 'DownloadCtrl as download'
-      });
-
+      })
+      
   });
 

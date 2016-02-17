@@ -8,13 +8,14 @@
 
 
 html,body, .cotainer-fluid,.row  { 
-  font-family:'Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif; 
+  font-family:'Gill Sans','Avant Garde', Avantgarde, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif; 
   width:100%;
+  height:100%;
+  background-color: #EEEEEE;
 
 
 }
 
-1
 
 /*Angular-Loading-Bar*/
 #loading-bar,
@@ -83,24 +84,20 @@ html,body, .cotainer-fluid,.row  {
   padding-right: 0;  
 }
 
-.sidebar-wrapper {  
-   background-color:#32323a; 
-  
-}
+
 .sidebar-wrapper a{  
   display: block;  
   color:#ECECEC; 
   font-size: 19px; 
   padding:15px;
-  padding-right:10px;
-  padding-left: 10px;
+ 
 
 }
 
 .sidebar-wrapper a:hover{
     color:#2b2b2b;
-    background-color: #FFF;
-    text-decoration: none;
+ 
+    
 }
 
 
@@ -135,7 +132,12 @@ html,body, .cotainer-fluid,.row  {
   
   padding: 10px 10px 10px 10px;   
   border: 1px solid #d4d4d4;
+  min-height: 377px;
 
+}
+
+.search-box {
+  min-height: 0px;
 }
 
 
@@ -150,9 +152,7 @@ html,body, .cotainer-fluid,.row  {
  
 }
 
-.dropdown {
-  float:right;
-}
+
 .dropdown .btn {
   background-color: #32323a;
 }
@@ -172,11 +172,18 @@ html,body, .cotainer-fluid,.row  {
 
 /* Login page CSS */
 
-.login-form {
-  max-width: 300px;
-  margin-top: 10%;
-  
- 
+
+
+#login-box {
+  background-color: #fff;  
+  border: 1px solid #d4d4d4;
+  margin-top: 8%;
+  padding-top: 40px;
+}
+
+#login-message {
+  font-size: 300%;
+
 }
 
 /* Download CSS */
@@ -195,5 +202,12 @@ html,body, .cotainer-fluid,.row  {
   margin-left: 50px;
 }
 
+.text-format{
+  text-align: center;
+}
+
+.text-format h2{
+    padding-top: 20px;
+}
 
 

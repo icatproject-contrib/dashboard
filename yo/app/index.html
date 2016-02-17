@@ -18,6 +18,7 @@
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
+
     <!-- endbuild -->
     </head>
     <body ng-app="dashboardApp" ng-controller="IndexController as ic">
@@ -31,7 +32,7 @@
 
     <div id="inform" inform class="inform-fixed inform-shadow"></div>
 
-    <div class="container-fluid ">
+<div class="container-fluid ">
     <div id="header" class="row">
         <div class="col-lg-8"> 
           <p class="navbar-brand"><span class="fa fa-bar-chart lg"></span> Dashboard</p>                 
@@ -40,7 +41,7 @@
               <ul class="nav nav-pills">
                 <a ng-if="ic.isLoggedIn()" ui-sref="logout"><li class="fa fa-unlock" ></li> Logout</a>
                 <a ng-if="!ic.isLoggedIn()" ui-sref="login"><li class="fa fa-lock"></li> Login</a>                
-                <a ui-sref="users"><li class="fa fa-users"></li> Users</a>          
+                    
                 <a ui-sref="entities"><li class="fa fa-archive"></li> Entities</a>
                 <a ui-sref="downloads"><li class="fa fa-download"></li> Downloads</a>
                 
@@ -50,30 +51,7 @@
         
     </div> 
     <div id="main-row" class="row">     
-        <div id="main-box" ng-class="col-lg-12" >
-            <div class="row">  
-                <div class="col-lg-10 col-lg-offset-1 " ng-show="ic.isLoggedIn()"> 
-                    <div class="box search-box col-lg-12">              
-                        <div class="col-lg-6">
-                            <div class="date-picker">
-                                <input type="daterange" class="date-picker" ng-model="myDateRange" />
-                                <span class="fa fa-calendar calendar"></span>
-                            </div> 
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="dropdown">
-                                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">                                 
-                                 Export Data
-                                 </button>
-                                <ul class="dropdown-menu">
-                                    <li><a>JSON</a></li>                                                    
-                                </ul>
-                                
-                            </div>  
-                        </div>                         
-                    </div>
-                </div>                        
-            </div>  
+        <div id="main-box" ng-class="col-lg-12" >                
                 <div ui-view=""></div>   
             </div>                
         </div>
@@ -101,13 +79,12 @@
     <script src="bower_components/angular-inform/dist/angular-inform.js"></script>
     <script src="bower_components/angular-loading-bar/build/loading-bar.js"></script>
     <script src="bower_components/moment/moment.js"></script>
-    <script src="bower_components/topojson/topojson.js"></script>
-    <script src="bower_components/datamaps/dist/datamaps.all.js"></script>
-    <script src="bower_components/angular-datamaps/dist/angular-datamaps.min.js"></script>
     <script src="bower_components/momentjs/moment.js"></script>
     <script src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
     <script src="bower_components/ng-bs-daterangepicker/src/ng-bs-daterangepicker.js"></script>
+    <script src="bower_components/jasmine-core/lib/jasmine-core/jasmine.js"></script>
     <script src="bower_components/angular-google-chart/ng-google-chart.js"></script>
+    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
     
@@ -121,20 +98,19 @@
     <script src="scripts/services/authenticateService.js"></script>
     <!-- Controllers -->
     <script src="scripts/controllers/loginCtrl.js"></script>
-    <script src="scripts/controllers/downloadControllers/downloadCtrl.js"></script> 
-    <script src="scripts/controllers/downloadControllers/worldChartCtrl.js"></script>
-    <script src="scripts/controllers/downloadControllers/localChartCtrl.js"></script>  
+    <script src="scripts/controllers/downloadCtrl.js"></script>   >  
     <script src="scripts/controllers/entityCtrl.js"></script>
     <script src="scripts/controllers/userCtrl.js"></script>
     <script src="scripts/controllers/indexCtrl.js"></script>
     <script src="scripts/controllers/logoutCtrl.js"></script>
-    <script src="scripts/controllers/downloadControllers/worldChartCtrl.js"></script>
+    <script src="scripts/controllers/searchCtrl.js"></script>    
     <!-- Directives -->
     <script src="scripts/directives/downloadDirectives/donutChart.js"></script>
     <script src="scripts/directives/downloadDirectives/lineTimeSeries.js"></script>   
-    <script src="scripts/directives/downloadDirectives/statsMap.js"></script>
     <script src="scripts/directives/downloadDirectives/scatterTimeSeries.js"></script>
     <script src="scripts/directives/downloadDirectives/barTimeSeries.js"></script>
+    <script src="scripts/directives/downloadDirectives/entityAgeScatter.js"></script>
+    
    
     
 

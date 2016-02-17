@@ -6,10 +6,10 @@ angular.module('dashboardApp').directive('scatterTimeSeries', function(){
 		scope.$watch('data', function(){
 
 			if(scope.data !== undefined){	
-			
+			console.log(scope.data);
 				var chart = c3.generate({
 					 bindto:element[0],
-
+						
 
 					 data: {
 
@@ -50,7 +50,8 @@ angular.module('dashboardApp').directive('scatterTimeSeries', function(){
 							        return format(value);
 							    }
 
-							}
+							},
+							grouped: false
 						},
 					color:{
 						pattern: ['#CF000F','#7f8c8d','#2b2b2b'],
@@ -60,6 +61,9 @@ angular.module('dashboardApp').directive('scatterTimeSeries', function(){
 					}
 
 				});
+				chart.zoom();
+				chart.zoom();
+				console.log("ZOOOM")
 			}
 		});
 }

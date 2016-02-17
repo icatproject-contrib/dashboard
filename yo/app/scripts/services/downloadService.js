@@ -12,12 +12,21 @@
 
 					
 
-				var services = {						
+				var services = {
 
-				    getDownloadRoute : function(startDate,endDate){
+					getDownloadMethodTypes :function(){
+						return $http.get(baseURL+"method/types?sessionID="+ $sessionStorage.sessionData.sessionID)
+							.then(function(response){
+
+								return response.data; 
+							});
+
+					},						
+
+				    getDownloadMethod : function(startDate,endDate, userName){
 					
-					
-						return $http.get(baseURL+"route?sessionID=" + $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+						
+						return $http.get(baseURL+"method?sessionID=" + $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName)
 							.then(function(response){
 
 								return response.data;
@@ -26,9 +35,9 @@
 	
 					},
 
-					getDownloadFrequency : function(startDate,endDate){
+					getDownloadFrequency : function(startDate,endDate, userName, method){
 
-						return $http.get(baseURL+"frequency?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+						return $http.get(baseURL+"frequency?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
 							.then(function(response){
 
 								return response.data;
@@ -36,9 +45,9 @@
 							});
 					},
 
-					getDownloadBandwidth : function(startDate, endDate){
+					getDownloadBandwidth : function(startDate, endDate, userName, method){
 
-						return $http.get(baseURL+"bandwidth?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+						return $http.get(baseURL+"bandwidth?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
 							.then(function(response){
 
 								return response.data;
@@ -47,18 +56,36 @@
 
 					},
 
-					getDownloadSize : function(startDate, endDate){
+					getDownloadSize : function(startDate, endDate, userName, method){
 
-						return $http.get(baseURL+"size?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+						return $http.get(baseURL+"size?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
 							.then(function(response){
 
 								return response.data;
 							});
 
 					},	
-					getGlobalDownloadLocation : function(startDate, endDate){
+					getLocalDownloadLocation : function(startDate, endDate, userName, method){
 
-						return $http.get(baseURL+"location/global?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+						return $http.get(baseURL+"location?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
+							.then(function(response){
+
+								return response.data;
+							});
+
+					},
+					getGlobalDownloadLocation : function(startDate, endDate, userName, method){
+
+						return $http.get(baseURL+"location/global?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
+							.then(function(response){
+
+								return response.data;
+							});
+
+					},
+					getDownloadEntityAge : function(startDate, endDate, userName, method){
+
+						return $http.get(baseURL+"entities/age?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
 							.then(function(response){
 
 								return response.data;
