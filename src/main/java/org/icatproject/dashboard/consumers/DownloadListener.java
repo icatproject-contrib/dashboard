@@ -711,7 +711,7 @@ public class DownloadListener implements MessageListener {
      * Processes a list of dates. Each date is subtracted from the current date to get an age in days.
      * 
      * @param dates a list of dates to calculate ages from.
-     * @return a hashmap of <age of file in days, amount of files of that age>
+     * @return a hashmap of <age of file in days, number of files of that age>
      */
     private Map<Long,Long> createEntityAgeMap(List<Object> dates){
         
@@ -724,15 +724,15 @@ public class DownloadListener implements MessageListener {
             
             long diff = ChronoUnit.DAYS.between(temp, now);
             
-            Long amount = entityAgeMap.get(diff);
+            Long number = entityAgeMap.get(diff);
             
-            if(amount == null){
-                amount = new Long(1);
-                entityAgeMap.put(diff, amount);
+            if(number == null){
+                number = new Long(1);
+                entityAgeMap.put(diff, number);
             }
             else{
-                amount+=1;
-                entityAgeMap.put(diff,amount);
+                number+=1;
+                entityAgeMap.put(diff,number);
             }
         }
         
