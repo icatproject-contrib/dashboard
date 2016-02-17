@@ -24,18 +24,11 @@ import javax.persistence.TemporalType;
 @Comment("A download is the process of saving entities from the repositry to the users computer. ")
 @SuppressWarnings("serial")
 @Entity
-@NamedQueries({
-    @NamedQuery(name="Download.methods",
-                query="SELECT d.method, count(d.method) FROM Download d WHERE d.downloadStart > :startDate AND d.downloadEnd <=:endDate GROUP BY d.method "),  
-    @NamedQuery(name="Download.frequency",
-                query="SELECT d.downloadStart, d.downloadEnd FROM Download d "
-                    + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd)"),
-    @NamedQuery(name="Download.bandwidth",
-                query="SELECT d.downloadStart, d.downloadEnd, d.bandwidth, d.id FROM Download d "
-                    + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd)"),
-    @NamedQuery(name="Download.size",
-                query="SELECT d.downloadStart, d.downloadEnd, d.downloadSize FROM Download d "
-                    + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd)"),
+@NamedQueries({    
+  
+    @NamedQuery(name="Download.method.types",
+                query="SELECT DISTINCT(d.method) from Download d WHERE d.method IS NOT NULL")
+    
    
 })
 public class Download extends EntityBaseBean implements Serializable {
@@ -48,6 +41,10 @@ public class Download extends EntityBaseBean implements Serializable {
     @Comment("A download has a Entity collection")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "download")    
     private List<DownloadEntity> downloadEntities;
+    
+    @Comment("A download has a collection of entity ages")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "download") 
+    private List<DownloadEntityAge> downloadEntityAges;
     
     @Comment("A download is associated with a geolocation")
     @JoinColumn(name="DOWNLOADLOCATION_ID")
@@ -79,6 +76,10 @@ public class Download extends EntityBaseBean implements Serializable {
 
     public Download() {
 
+    }
+
+    public void setDownloadEntityAges(List<DownloadEntityAge> downloadEntityAges) {
+        this.downloadEntityAges = downloadEntityAges;
     }
 
     public void setDuriation(long duriation) {
@@ -121,6 +122,10 @@ public class Download extends EntityBaseBean implements Serializable {
 
     public void setMethod(String method) {
         this.method = method;
+    }
+
+    public List<DownloadEntityAge> getDownloadEntityAges() {
+        return downloadEntityAges;
     }
 
     public ICATUser getUser() {
