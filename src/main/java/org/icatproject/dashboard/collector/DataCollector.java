@@ -78,7 +78,7 @@ public class DataCollector {
     private void init() {
         log.info("Initial Setup Check.");
 
-        createTimers(prop);
+        //createTimers(prop);
         icat = createICATLink();
         sessionID = session.getSessionID();        
         
@@ -86,7 +86,7 @@ public class DataCollector {
     }
 
     public void collectData() throws InternalException {
-        setupUserCollection();
+        //setupUserCollection();
         // setupEntityCollection();   
 
     }
