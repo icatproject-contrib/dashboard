@@ -69,9 +69,7 @@ public class EntityBeanManager {
                 logger.trace("Transaction rolled back for login because of " + e.getClass() + " " + e.getMessage());
                 throw new InternalException(e.getMessage());
             }
-        } catch (IllegalStateException e) {
-            throw new InternalException(e.getMessage());
-        } catch (SecurityException e) {
+        } catch (IllegalStateException | SecurityException e) {
             throw new InternalException(e.getMessage());
         }
     }
