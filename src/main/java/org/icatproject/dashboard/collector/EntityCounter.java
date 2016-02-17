@@ -26,7 +26,7 @@ import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.*;
 
 /**
- * Will count the amount of entities found inside the ICAT.
+ * Will count the number of entities found inside the ICAT.
  * 
  */
 @Stateless
