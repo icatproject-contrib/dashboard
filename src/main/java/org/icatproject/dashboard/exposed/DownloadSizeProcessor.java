@@ -76,9 +76,9 @@ public class DownloadSizeProcessor {
                     
                     if(!earlyDownload){
                         //Calculate the initial part day.
-                        long beginingDateAmount = (24 - beginningTime.getHour())*bytesPerHour;
+                        long beginingDatenumber = (24 - beginningTime.getHour())*bytesPerHour;
                         Long currentTotal = downloadDates.get(beginningDate);
-                        downloadDates.put(beginningDate,currentTotal+=beginingDateAmount);  
+                        downloadDates.put(beginningDate,currentTotal+=beginingDatenumber);  
 
                         //Increment the day as do not want to calculate it again.
                         beginningDate = beginningDate.plusDays(1);
@@ -94,9 +94,9 @@ public class DownloadSizeProcessor {
                     
                     if(endDate.isBefore(endPoint)){
                         //Clean up with the last date.
-                        long endDateAmount = (24-(24-endTime.getHour()))*bytesPerHour;
+                        long endDatenumber = (24-(24-endTime.getHour()))*bytesPerHour;
                         Long dateTotalSize = downloadDates.get(endDate);
-                        downloadDates.put(endDate,dateTotalSize+=endDateAmount); 
+                        downloadDates.put(endDate,dateTotalSize+=endDatenumber); 
                     }
                     
                 }
