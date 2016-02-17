@@ -1,99 +1,141 @@
+<div class="row" ng-init="download.updatePage()">  
+    <div class="col-lg-10 col-lg-offset-1 "> 
+        <div class="box search-box col-lg-12">
+            <div class="col-lg-2 col-lg-offset-1">
+                <p class="input-group">
+                    <input type="text" tooltip-placement="top" uib-tooltip="Start Date" uib-datepicker-popup="{{download.format}}" class="form-control" ng-model="download.startDate" is-open="download.isStartDateOpen" close-text="Close" placeholder="Start Date" on-return-click-submit-button />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="download.openStartDate()"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                </p>
+            </div>
+            <div class="col-lg-2">    
+                <p class="input-group">
+                    <input type="text" tooltip-placement="top" uib-tooltip="End Date" uib-datepicker-popup="{{download.format}}" class="form-control" ng-model="download.endDate" is-open="download.isEndDateOpen" close-text="Close" placeholder="End Date" on-return-click-submit-button />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="download.openEndDate()"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                </p> 
+           </div>        
+           <div class="col-lg-2">
+                <input type="text" class="form-control " ng-model="download.userName" placeholder="User"/>
+            </div>            
+            <div class="col-lg-2">       	
+	            <select class="form-control" placeholder="Download Method" ng-model="download.selectedMethod" ng-options=" methods.method as methods.method for methods in download.downloadMethodTypes">
+	            	<option value="" disabled selected>Download Method</option>
+	            </select>	                      
+            </div>
+            <div class="col-lg-2">   
+                
+                <button type="submit" class="form-control btn btn-default" ng-click="download.updatePage()" > Search</button>
+                </form>  
+            </div>                                                
+        </div>
+    </div>                        
+</div> 
 
 
 
-	<div class="row">
-		<div class="col-lg-5 col-lg-offset-1">
-			<div class="box" ng-controller="WorldChartCtrl">
-				<p>Global Download Locations</p>	
-				<div google-chart chart="worldChart">  	
-			    </div>
+<div class="row">
+	<div class="col-lg-5 col-lg-offset-1">
+		<div class="box">
+			<p>Global Download Locations</p>	
+			<div google-chart chart="download.worldChart">  	
 		    </div>
-		</div>    
-		<div class="col-lg-5">
-			<div class="box" ng-controller="LocalChartCtrl" >
-				<p>Local Download Locations</p>	
-				<div google-chart chart="localChart">  	
-			    </div>		
+	    </div>
+	</div>    
+	<div class="col-lg-5">
+		<div class="box">
+			<p>Local Download Locations</p>	
+			<div google-chart chart="download.localChart">
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-lg-4 col-lg-offset-1">
+		<div class="box">
+			<div class="chart-container">	
+				<p>Age of Downloaded Files</p>			
+				<entity-Age-Scatter class="chart" data='download.downloadEntityAge'></entity-Age-Scatter>
+			</div>		
+	    </div>
+	</div>
+	<div class="col-lg-6">
+		<div class="box">
+			<div class="chart-container">	
+				<p>Download Count</p>			
+				<line-time-Series class="chart" data='download.downloadCount'></line-time-Series>
+			</div>			
+		</div>
+	</div>
+</div>
+
+
+
+<div class="row">			
+
+	<div id="box" class="col-lg-6 col-lg-offset-1">
+		<div class="box">
+			<div class="chart-container">
+				<p>Download Bandwidth</p>
+				<scatter-time-series class="chart" data='download.downloadBandwidth'></scatter-time-series>
 			</div>
 		</div>
 	</div>
-
-	<div class="row">
-		<div class="col-lg-10 col-lg-offset-1">
-			<div class="box">
-				<div class="chart-container">	
-					<p>Download Count</p>			
-					<line-time-Series class="chart" data='downloadCount'></line-time-Series>
-				</div>			
-			</div>
-		</div>
-		
-	</div>
-
-
-	<div class="row">			
-		
-		<div id="box" class="col-lg-6 col-lg-offset-1">
-			<div class="box">
-				<div class="chart-container">
-					<p>Download Bandwidth</p>
-					<scatter-time-series class="chart" data='downloadBandwidth'></scatter-time-series>
-				</div>
-			</div>
-		</div>
-		<div class="col-lg-4">
-			<div class="box">
-				<div class="chart-container" >
-					<p>Download Methods</p>
-					<donut-chart class="chart" data='downloadRoutes'></donut-chart>
-				</div>	
+	<div class="col-lg-4">
+		<div class="box">
+			<div class="chart-container" >
+				<p>Download Methods</p>
+				<donut-chart class="chart" data='download.downloadMethod'></donut-chart>
 			</div>	
 		</div>	
 	</div>	
+</div>	
 
-	<div class="row">
-		<div class="col-lg-10 col-lg-offset-1">
-			<div class="box">
-				<div class="chart-container">
-					<p>Download Size</p>
-					<bar-time-series class="chart" data='downloadSize'></bar-time-series>
-				</div>
-			</div>
-		</div>
-		
-	</div>
-		<div class="row">
-		<div class="col-lg-3 col-lg-offset-1">
-			<div class="box">	
-				<div class="text-format">					
-					<h2>Total Amount</h2>
-					<h3>{{download.getTotalAmount()}}</h3>					
-					<h2>Busiest Day</h2>
-					<h3>{{download.getBusiestDayAmount()}}</h3>
-				</div>
-			</div>
-		</div>
-		<div class="col-lg-4">
-			<div class="box">	
-				<div class="text-format">					
-					<h2>Total Downloads</h2>
-					<h3>{{download.getCountTotal()}}</h3>					
-					<h2>Busiest Day</h2>
-					<h3>{{download.getCountBusiestDay()}}</h3>
-				</div>
-			</div>
-		</div>
-		<div class="col-lg-3">
-			<div class="box">	
-				<div class="text-format">					
-					<h2>Highest Bandwidth</h2>
-					<h3>{{download.getHeighestBandwidth()}}</h3>					
-					<h2>Lowest Bandwidth</h2>
-					<h3>{{download.getLowestBandwidth()}}</h3>
-				</div>
+<div class="row">
+	<div class="col-lg-10 col-lg-offset-1">
+		<div class="box">
+			<div class="chart-container">
+				<p>Download Size</p>
+				<bar-time-series class="chart" data='download.downloadSize'></bar-time-series>
 			</div>
 		</div>
 	</div>
 
-	
-		
+</div>
+<div class="row">
+	<div class="col-lg-3 col-lg-offset-1">
+		<div class="box">	
+			<div class="text-format">					
+				<h2>Total number</h2>
+				<h3>{{download.getTotalnumber()}}</h3>					
+				<h2>Busiest Day</h2>
+				<h3>{{download.getBusiestDaynumber()}}</h3>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-4">
+		<div class="box">	
+			<div class="text-format">					
+				<h2>Total Downloads</h2>
+				<h3>{{download.getCountTotal()}}</h3>					
+				<h2>Busiest Day</h2>
+				<h3>{{download.getCountBusiestDay()}}</h3>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-3">
+		<div class="box">	
+			<div class="text-format">					
+				<h2>Highest Bandwidth</h2>
+				<h3>{{download.getHeighestBandwidth()}}</h3>					
+				<h2>Lowest Bandwidth</h2>
+				<h3>{{download.getLowestBandwidth()}}</h3>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+
