@@ -95,7 +95,7 @@ public class RestUtility {
             Long value = entry.getValue();
 
             obj.put("date",key.toString());
-            obj.put("amount",value);
+            obj.put("number",value);
 
             ary.add(obj);
 
