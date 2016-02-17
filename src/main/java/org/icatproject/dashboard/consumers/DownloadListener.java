@@ -11,14 +11,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -41,9 +42,8 @@ import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.UserTransaction;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import org.icatproject.dashboard.collector.DataCollector;
-import org.icatproject.dashboard.collector.EntityCounter;
 import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.dashboard.collector.UserCollector;
 import org.icatproject.dashboard.entity.Download;
@@ -62,6 +62,8 @@ import org.icatproject.ICAT;
 import org.icatproject.ICATService;
 import org.icatproject.IcatException_Exception;
 import org.icatproject.Investigation;
+import org.icatproject.dashboard.entity.DownloadEntityAge;
+import org.icatproject.dashboard.manager.DashboardSessionManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -81,7 +83,16 @@ import org.slf4j.LoggerFactory;
 })
 
 @TransactionManagement(TransactionManagementType.BEAN)
+/**
+ * DownloadListener is a Message driven bean that processes JMS messages from an IDS.
+ * It deals with two types of messages the getData call and the prepareData call. 
+ * The class deals with these messages by extracting all of the data from the JMS text body
+ * and properties. It will then collect extra information from the ICAT and from the TopCat. 
+ * With all this information it then pushes the data to the database.
+ */
 public class DownloadListener implements MessageListener {
+    
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(DashboardSessionManager.class);
 
     @EJB
     private PropsManager prop;
@@ -95,8 +106,7 @@ public class DownloadListener implements MessageListener {
     @EJB
     private UserCollector userCollector;
 
-    @EJB
-    private EntityCounter entityCounter;
+   
 
     //User transaction is used here to prevent Entities being created if the download fails.
     @Resource
@@ -108,9 +118,7 @@ public class DownloadListener implements MessageListener {
 
     private final String api = "/api/v1/admin/downloads?preparedId=";
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(ICATListener.class);
-
-    private final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+      
 
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
@@ -128,9 +136,7 @@ public class DownloadListener implements MessageListener {
         sessionID = sessionManager.getSessionID();
     }
     
-    private void ejbCreate(){
-        
-    }
+    
 
     /**
      * The implemented method for message listener. Will send the message to the
@@ -155,22 +161,18 @@ public class DownloadListener implements MessageListener {
             }
 
         } catch (JMSException | ParseException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InternalException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (DashboardException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
+            logger.debug("An error has occured", ex);
         }
     }
 
     /**
      * *
-     * Method to deal with prepareDownload messages. Will create the majority of
-     * the download information. Creates the download.
+     * Deals with prepareData messages. Will create the majority of
+     * the download information. 
      *
      * @param message The message from JMS.
      */
-    private void prepareDataHandler(TextMessage message) throws InternalException, ParseException {
+    private void prepareDataHandler(TextMessage message) throws ParseException {
         try {
             ut.begin();
             String preparedId = getPreparedId(message.getText());
@@ -185,7 +187,7 @@ public class DownloadListener implements MessageListener {
             ut.commit();
 
         } catch (JMSException | DashboardException | NotSupportedException | SystemException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | RollbackException ex) {
-            throw new InternalException(ex.getMessage());
+            logger.error("A Fatal Error has Occured",ex);
         }
     }
 
@@ -193,9 +195,9 @@ public class DownloadListener implements MessageListener {
      * Either creates or updates the download depending on if it is a standard getData call
      * or a getData with a preparedId call.
      *
-     * @param message The JMS message that contains the required information.
+     * @param message The JMS message that contains the download information.
      */
-    private void getDataHandler(TextMessage message) throws InternalException, DashboardException {
+    private void getDataHandler(TextMessage message)  {
         try {
             ut.begin();
             
@@ -210,22 +212,20 @@ public class DownloadListener implements MessageListener {
             }            
            
             ut.commit();
-        } catch (JMSException | NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | ParseException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (DashboardException | JMSException | NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | ParseException  | IcatException_Exception ex) {
+             logger.error("A Fatal Error has Occured",ex);
         }
 
     }
     
     /**
-     * Deals with the use case of a user downloading the same download order 
-     * from TopCat multiple times. If it is a new download then it will update the
-     * prepare data download.
-     * @param message The JMS Message
-     * @throws InternalException
-     * @throws JMSException If there is an issue with the JMS message.
-     * @throws ParseException Pulling JSON data from the message.
+     * Checks the download to see if it either needs updating or a new download
+     * needs to be created. 
+     * @param message The JMS Message   
+     * @throws JMSException If there is an issue with accessing the JMS message properties.
+     * @throws ParseException if there is an issue parsing the JSON message.
      */
-    private void checkDownload(TextMessage message) throws InternalException, JMSException, ParseException, DashboardException {
+    private void checkDownload(TextMessage message) throws JMSException, ParseException, DashboardException, IcatException_Exception {
         
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(message.getText());
@@ -241,11 +241,13 @@ public class DownloadListener implements MessageListener {
             createDownload(download, ipAddress,duration, startMilli);          
         }
         else {
-            //Update the prepareData download
+            //Update download
                  
             download.setDownloadEnd(new Date(startMilli+duration));
             download.setDownloadStart(new Date(startMilli));
             download.setDuriation(duration);
+            download.setDownloadEntityAges(createDownloadEntityAges(getDownloadEntityIDs(download.getPreparedID())));
+            download.setBandwidth(calculateBandwidth(duration ,download.getDownloadSize()));
 
             beanManager.update(download, manager);
         }
@@ -253,10 +255,10 @@ public class DownloadListener implements MessageListener {
     }
 
     /**
-     * Creates the download for a getData call.
-     * @param messageBody The JMS message that contains the getData call.
+     * Creates the download for a getData call without a preparedID.
+     * @param message the getData JMS message.
      */
-    private void createDownload(TextMessage message) throws InternalException{
+    private void createDownload(TextMessage message) throws InternalException, IcatException_Exception{
         try {            
             long duration = message.getLongProperty("millis");
             long startMilli = message.getLongProperty("start");
@@ -267,28 +269,29 @@ public class DownloadListener implements MessageListener {
             download.setDownloadEntities(createDownloadEntities(message.getText()));
             download.setDownloadSize(downloadSize);            
             download.setLocation(getLocation(message.getStringProperty("ip")));
+            //Assumes the user is using a secure download.
             download.setMethod("https");
             download.setDuriation(duration);
             download.setDownloadEnd(new Date(startMilli+duration));
             download.setDownloadStart(new Date(startMilli));
+            download.setDownloadEntityAges(createDownloadEntityAges(message.getText()));
             download.setBandwidth(calculateBandwidth(download.getDuriation(),download.getDownloadSize()));
             beanManager.create(download, manager);
-        } catch (DashboardException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (JMSException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (DashboardException | JMSException | ParseException ex) {
+            logger.error("A Fatal Error has Occured ",ex);
         }
         
                 
     }
     /**
      * Overloaded method to handle a user downloading the same download order multiple
-     * times
-     * @param oldDownload 
+     * times.
+     * @param oldDownload A download that contains the same preparedID which will contain the same entities.
+     * @param ipAddress  of the new download.
+     * @param duration of the the new download.
+     * @param startMilli the start time in milliseconds.
      */
-    private void createDownload(Download oldDownload, String ipAddress, long duration, long startMilli) throws DashboardException{
+    private void createDownload(Download oldDownload, String ipAddress, long duration, long startMilli) throws DashboardException, ParseException, IcatException_Exception, JMSException{
         
         download = new Download();        
         download.setUser(oldDownload.getUser());
@@ -300,6 +303,7 @@ public class DownloadListener implements MessageListener {
         download.setDuriation(duration);
         download.setDownloadEnd(new Date(startMilli+duration));
         download.setDownloadStart(new Date(startMilli));
+        download.setDownloadEntityAges(createDownloadEntityAges(getDownloadEntityIDs(oldDownload.getPreparedID())));
         download.setBandwidth(calculateBandwidth(oldDownload.getDuriation(),oldDownload.getDownloadSize()));
         beanManager.create(download, manager);
         
@@ -310,9 +314,9 @@ public class DownloadListener implements MessageListener {
      * Retrieves the preparedId from the message body.
      *
      * @param messageBody The JMS message body
-     * @return PreparedId
+     * @return the PreparedId from the JMS message.
      */
-    private String getPreparedId(String messageBody) throws InternalException {
+    private String getPreparedId(String messageBody)  {
         String preparedId = null;
         try {
             JSONParser parser = new JSONParser();
@@ -323,7 +327,7 @@ public class DownloadListener implements MessageListener {
             
             
         } catch (ParseException ex) {
-            throw new InternalException("Unable to parse JMS message body for preparedID");
+            logger.error("A Fatal Error has Occured ",ex);
         }
         
         return preparedId;
@@ -332,7 +336,7 @@ public class DownloadListener implements MessageListener {
     /**
      * Creates a download location object using the GeoTool module.
      *
-     * @param ipAddress The idAddress to have it's GeoLocation resolved to.
+     * @param ipAddress The idAddress to have its GeoLocation resolved.
      */
     private DownloadLocation getLocation(String ipAddress) {
         DownloadLocation location = GeoTool.getDownloadLocation(ipAddress, manager, beanManager);      
@@ -354,38 +358,37 @@ public class DownloadListener implements MessageListener {
         return bandwidth;
     }
 
-    /**
-     * Parses the date into a date object to be inserted into the database.
-     *
-     * @param stringDate The string to be parsed.
-     * @return A date object that contains the value of the string sent.
-     */
-    private Date parseDate(String stringDate) throws java.text.ParseException {
-        Date date;
-
-        return date = format.parse(stringDate);
-    }
-
+    
     /**
      * Retrieves the download from the dashboard database.
      *
      * @param preparedID The unique identifier of the download.
-     * @return The download required.
+     * @return The download object requested.
      */
     private Download getDownload(String preparedID) throws InternalException {
-        List<Object> download = beanManager.search("SELECT d FROM Download d WHERE d.preparedID='" + preparedID + "'", manager);
-        if (download.size() > 0) {
-            return (Download) download.get(0);
+        List<Object> existingDownload = beanManager.search("SELECT d FROM Download d WHERE d.preparedID='" + preparedID + "'", manager);
+        if (existingDownload.size() > 0) {
+            return (Download) existingDownload.get(0);
         }
-        //not found
+        //not found rare case
         return null;
 
     }
-    private List<Entity_> getEntities(long downloadID) throws InternalException{
+    
+    /***
+     * Gathers the Entities from a pre existing download and gathers them into a list. 
+     * @param downloadID of the download you wish to get the entities from. 
+     * @return a list of Entity_ objects that are associated with a download.
+     */
+    private List<Entity_> getEntities(long downloadID) {
         List<Object> entityQuery = new ArrayList();
         List<Entity_> entities = new ArrayList();
         
-        entityQuery = beanManager.search("SELECT e FROM Entity_ e JOIN e.downloadEntities ed JOIN ed.download d WHERE d.id='"+ downloadID +"'", manager);        
+        try {        
+            entityQuery = beanManager.search("SELECT e FROM Entity_ e JOIN e.downloadEntities ed JOIN ed.download d WHERE d.id='"+ downloadID +"'", manager);
+        } catch (InternalException ex) {
+            logger.error("A Fatal Error has Occured ",ex);
+        }
         
         for(Object e : entityQuery){
             entities.add((Entity_)e);
@@ -414,7 +417,7 @@ public class DownloadListener implements MessageListener {
             BufferedReader responseBuffer = new BufferedReader(new InputStreamReader((httpsConnection.getInputStream())));
 
             String output;
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
 
             while ((output = responseBuffer.readLine()) != null) {
                 buffer.append(output);
@@ -427,43 +430,144 @@ public class DownloadListener implements MessageListener {
             JSONObject jsonObject = (JSONObject) jsonArray.get(0);
             method = jsonObject.get("transport").toString();
 
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ProtocolException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
+             logger.error("A Fatal Error has Occured ",ex);
         }
-
         return method;
          
     }
+    
+    /**
+     * Method that calls the TopCat API to retrieve the entity IDs associated with
+     * the preparedID.
+     * @param preparedID Unique download Identifier.
+     * @return JSON String that contains all of the entities and what entity they are 
+     * associated with.
+     * @throws ParseException issues accessing the returned JSON string. 
+     */    
+    private String getDownloadEntityIDs(String preparedID) throws ParseException{
+        
+        String entityIDs = null;
+        
+        try {
+            URL topCatURL = new URL(prop.getTopCatURL() + api + preparedID);
+            HttpsURLConnection httpsConnection = (HttpsURLConnection) topCatURL.openConnection();
+            httpsConnection.setRequestMethod("GET");
+            httpsConnection.setRequestProperty("Accept", "application/json");
+            httpsConnection.addRequestProperty("Authorization", getCredentials());
 
+            BufferedReader responseBuffer = new BufferedReader(new InputStreamReader((httpsConnection.getInputStream())));
+
+            String output;
+            StringBuilder buffer = new StringBuilder();
+
+            while ((output = responseBuffer.readLine()) != null) {
+                buffer.append(output);
+            }
+
+            JSONParser parser = new JSONParser();
+
+            Object obj = parser.parse(buffer.toString());
+            JSONArray jsonArray = (JSONArray) obj;
+            JSONObject jsonObject = (JSONObject) jsonArray.get(0);
+            entityIDs = jsonObject.get("downloadItems").toString();
+
+        } catch (IOException | ParseException ex) {
+             logger.error("A Fatal Error has Occured ",ex);
+        }
+
+        return formatTopCatOutput(entityIDs);
+        
+    }
+
+    /***
+     * Formats the topcat returned output to match that of the IDS JMS message text body.
+     * @param topCatOutput The ouput returned from topcat.
+     * @return A JSON String containing an array of entities associated with what
+     * entity they are.
+     * @throws ParseException issue accessing the the topCatOutput. 
+     */
+    private String formatTopCatOutput(String topCatOutput) throws ParseException{
+        
+        JSONObject formatted = new JSONObject();
+        
+        JSONParser parser = new JSONParser();        
+        Object obj = parser.parse(topCatOutput);
+        JSONArray array = (JSONArray) obj;
+
+        JSONArray investigationIDs = new JSONArray();
+        JSONArray datasetIDs = new JSONArray();
+        JSONArray datafileIDs = new JSONArray();
+        
+       
+        
+        for(int i=0; i<array.size();i++){
+            JSONObject temp = (JSONObject) array.get(i);
+            String type = (String) temp.get("entityType");
+            long id = (long) temp.get("entityId");
+            
+            if("investigation".equals(type)){
+                investigationIDs.add(id);
+            }
+            else if("dataset".equals(type)){
+                datasetIDs.add(id);
+            }
+            else if("datafile".equals(type)){
+                 datafileIDs.add(id);
+            }     
+            
+        }
+        
+        if(investigationIDs.size()>0){
+                       
+            formatted.put("investigationIds",investigationIDs);
+        }
+        if(datasetIDs.size()>0){
+            formatted.put("datasetIds", datasetIDs);
+        }
+        if(datafileIDs.size()>0){
+            formatted.put("datafileIds", datafileIDs);
+        }
+        
+        
+        
+        return formatted.toJSONString();
+        
+        
+    }
+    
+  
    
     /**
      * Gets the user from the dashboard database. If the user isn't found then
      * they are inserted into the dashboard.
      *
-     * @param name The unique name identifier of the user.
+     * @param messageBody the message body of the JMS message
      * @return the dashboard user with the provided name.
+     * @throws ParseException issue accessing the string messageBody.
      */
-    public ICATUser getUser(String messageBody) throws InternalException, ParseException {
+    public ICATUser getUser(String messageBody) throws ParseException {
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(messageBody);
         JSONObject json = (JSONObject) obj;
 
         String name = (String) json.get("userName");
 
-        ICATUser dashBoardUser = new ICATUser();
-        log.info("Searching for user: " + name + " in dashboard.");
-        List<Object> user = beanManager.search("SELECT u FROM ICATUser u WHERE u.name='" + name + "'", manager);
+        ICATUser dashBoardUser;
+        logger.info("Searching for user: " + name + " in dashboard.");
+        List<Object> user = null;
+        try {
+            user = beanManager.search("SELECT u FROM ICATUser u WHERE u.name='" + name + "'", manager);
+        } catch (InternalException ex) {
+            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
-        if (user.get(0) == null) {
-            log.info("No user found in the Dashboard. Retrieving from ICAT. ");
+        if (user.get(0)!=null) {
+            logger.info("No user found in the Dashboard. Retrieving from ICAT.");
             dashBoardUser = userCollector.insertUser(name);
 
         } else {
-            log.info("Found the user in the dashboard");
+            logger.info("Found the user in the dashboard");
             dashBoardUser = (ICATUser) user.get(0);
         }
 
@@ -491,6 +595,156 @@ public class DownloadListener implements MessageListener {
         
         return collection;
     }
+    
+    /***
+     * 
+     * @param entities A JSON string of entities.
+     * @return a List of DownloadEntityAge Objects
+     * @throws DashboardException Problems persisting the object.
+     * @throws ParseException Problems parsing the entities string.
+     * @throws IcatException_Exception Problems getting the datafilecreatime from the ICAT
+     */
+    private List<DownloadEntityAge> createDownloadEntityAges(String entities) throws DashboardException, ParseException, IcatException_Exception {
+        
+        List<DownloadEntityAge> collection = new ArrayList();       
+       
+        List<Object> dates = new ArrayList();
+        
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(entities);
+        JSONObject json = (JSONObject) obj;
+
+        if (json.containsKey("investigationIds")) {
+            JSONArray invIDs = (JSONArray) json.get("investigationIds");
+            for (int i = 0; i < invIDs.size(); i++) {
+                dates.addAll(getInvestigationEntityAges(invIDs.get(i).toString()));               
+
+            }
+        }
+        if (json.containsKey("datasetIds")) {
+            JSONArray dsIDs = (JSONArray) json.get("datasetIds");
+            for (int i = 0; i < dsIDs.size(); i++) {
+                dates.addAll(getDatasetEntityAges(dsIDs.get(i).toString()));        
+
+            }
+        }
+        if (json.containsKey("datafileIds")) {
+            JSONArray dfIDs = (JSONArray) json.get("datafileIds");
+            for (int i = 0; i < dfIDs.size(); i++) {
+                dates.addAll(getDataFileEntityAge(dfIDs.get(i).toString()));        
+                
+            }
+        }
+        
+        Map<Long,Long> entityAgeMap = createEntityAgeMap(dates);
+        
+        for(Map.Entry<Long,Long> entry : entityAgeMap.entrySet()){
+            DownloadEntityAge dea = new DownloadEntityAge();
+            
+            dea.setAge(entry.getKey());
+            dea.setAmount(entry.getValue());
+            
+            dea.preparePersist();
+            dea.setDownload(download);
+            collection.add(dea);
+        }
+        
+        
+        
+        
+        return collection;
+    }
+    
+    /***
+     * Gets the datafilecreatime of all datafiles in the set investigation.
+     * @param investigationID The id of the investigation to search for.
+     * @return A list of dates.
+     * @throws IcatException_Exception Issues with getting the data from the ICAT. 
+     */
+    private List<Object> getInvestigationEntityAges(String investigationID) throws IcatException_Exception{
+        
+        List<Object> dates;
+        
+        dates = icat.search(sessionID, "SELECT df.datafileCreateTime FROM Datafile df JOIN df.dataset ds JOIN ds.investigation inv WHERE inv.id='"+investigationID+"'");
+        
+        return dates;
+            
+        
+        
+    }
+    
+     /***
+     * Gets the datafilecreatime of all datafiles in the set dataset.
+     * @param datasetID The id of the dataset to search for.
+     * @return A list of dates.
+     * @throws IcatException_Exception Issues with getting the data from the ICAT. 
+     */
+    
+    private List<Object> getDatasetEntityAges(String datasetID) throws IcatException_Exception{
+        
+        List<Object> dates;
+        
+        dates =  icat.search(sessionID, "SELECT df.datafileCreateTime FROM Datafile df JOIN df.dataset WHERE ds.id='"+datasetID+"'");
+        
+        return dates;
+        
+    }
+    
+     /***
+     * Gets the datafilecreatime of the datafile.
+     * @param datafileID The id of the datafile to search for.
+     * @return A single date.
+     * @throws IcatException_Exception Issues with getting the data from the ICAT. 
+     */
+    
+    private List<Object> getDataFileEntityAge(String datafileID) throws IcatException_Exception{
+        
+        List<Object> dates;
+        
+        dates =  icat.search(sessionID, "SELECT df.datafileCreateTime FROM Datafile df WHERE df.id='"+datafileID+"'");
+        
+        return dates;
+        
+    }
+    
+    /***
+     * Processes a list of dates. Each date is subtracted from the current date to get an age in days.
+     * 
+     * @param dates a list of dates to calculate ages from.
+     * @return a hashmap of <age of file in days, amount of files of that age>
+     */
+    private Map<Long,Long> createEntityAgeMap(List<Object> dates){
+        
+        Map<Long,Long> entityAgeMap = new HashMap<>();
+        
+        LocalDate now = LocalDate.now();
+        
+        for(Object dat: dates){
+            LocalDate temp = (((XMLGregorianCalendar) dat).toGregorianCalendar().toZonedDateTime().toLocalDate());
+            
+            long diff = ChronoUnit.DAYS.between(temp, now);
+            
+            Long amount = entityAgeMap.get(diff);
+            
+            if(amount == null){
+                amount = new Long(1);
+                entityAgeMap.put(diff, amount);
+            }
+            else{
+                amount+=1;
+                entityAgeMap.put(diff,amount);
+            }
+        }
+        
+        return entityAgeMap;
+            
+        }
+        
+        
+        
+        
+    
+    
     /**
      * The main method that creates the download entities. Will prepare persist
      * each entity. Global variable download is assigned to each download
@@ -502,7 +756,7 @@ public class DownloadListener implements MessageListener {
      */
     private List<DownloadEntity> createDownloadEntities(String entities) throws DashboardException {
         List<DownloadEntity> collection = new ArrayList();
-        Entity_ ent = new Entity_();
+        Entity_ ent;
 
         try {
             JSONParser parser = new JSONParser();
@@ -550,7 +804,7 @@ public class DownloadListener implements MessageListener {
             }
 
         } catch (ParseException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("Found the user in the dashboard", ex);
         }
 
         return collection;
@@ -570,54 +824,40 @@ public class DownloadListener implements MessageListener {
      * into the dashboard database.
      */
     private Entity_ createEntity(Long id, String entityType) throws DashboardException {
-        Entity_ entity = new Entity_();
-        switch (entityType) {
-            case "investigation":
-                entity = checkEntity(id, entityType);
-                if (entity.getId() == null) {
-                    Investigation inv = getInvestigation(id);
-                    entity.setICATID(id);
-                    entity.setEntityName(inv.getName());
-                    entity.setICATcreationTime(inv.getCreateTime().toGregorianCalendar().getTime());
-                    entity.setEntitySize(getInvSize(id));
-                    downloadSize += entity.getEntitySize();
-                    entity.setType(entityType);
-                    entity.preparePersist();
-                    beanManager.create(entity, manager);
-                }
-                break;
-
-            case "dataset":
-                entity = checkEntity(id, entityType);
-                if (entity.getId() == null) {
-                    Dataset ds = getDataset(id);
-                    entity.setICATID(id);
-                    entity.setEntityName(ds.getName());
-                    entity.setICATcreationTime(ds.getCreateTime().toGregorianCalendar().getTime());
-                    entity.setEntitySize(getDatasetSize(id));
-                    downloadSize += entity.getEntitySize();
-                    entity.setType(entityType);
-                    entity.preparePersist();
-                    beanManager.create(entity, manager);
-                }
-                break;
-
-            case "datafile":
-                entity = checkEntity(id, entityType);
-                if (entity.getId() == null) {
-                    Datafile df = getDatafile(id);
-                    entity.setICATID(id);
-                    entity.setEntityName(df.getName());
-                    entity.setICATcreationTime(df.getCreateTime().toGregorianCalendar().getTime());
-                    entity.setEntitySize(df.getFileSize());
-                    downloadSize += entity.getEntitySize();
-                    entity.setType(entityType);
-                    entity.preparePersist();
-                    beanManager.create(entity, manager);
-                }
-                break;
+        Entity_ entity = checkEntity(id, entityType);
+        
+        if("investigation".equals(entityType)){        
+               
+            Investigation inv = getInvestigation(id);
+            entity.setICATID(id);
+            entity.setEntityName(inv.getName());
+            entity.setICATcreationTime(inv.getCreateTime().toGregorianCalendar().getTime());
+            entity.setEntitySize(getInvSize(id));                   
+                        }
+        else if("dataset".equals(entityType)){           
+                
+            Dataset ds = getDataset(id);
+            entity.setICATID(id);
+            entity.setEntityName(ds.getName());
+            entity.setICATcreationTime(ds.getCreateTime().toGregorianCalendar().getTime());
+            entity.setEntitySize(getDatasetSize(id));                   
+                
         }
+        else if("datafile".equals(entityType)){
+            
+            Datafile df = getDatafile(id);
+            entity.setICATID(id);
+            entity.setEntityName(df.getName());
+            entity.setICATcreationTime(df.getCreateTime().toGregorianCalendar().getTime());
+            entity.setEntitySize(df.getFileSize());                    
+                    
+                    
+         }                
+        
+        entity.setType(entityType);
+        entity.preparePersist();
         downloadSize += entity.getEntitySize();
+        beanManager.create(entity, manager);
         return entity;
     }
 
@@ -648,7 +888,7 @@ public class DownloadListener implements MessageListener {
         try {
             inv = (Investigation) icat.get(sessionID, "Investigation", id);
         } catch (IcatException_Exception ex) {
-            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("A fatal error has occured ",ex);
         }
 
         return inv;
@@ -666,7 +906,7 @@ public class DownloadListener implements MessageListener {
         try {
             ds = (Dataset) icat.get(sessionID, "Dataset", id);
         } catch (IcatException_Exception ex) {
-            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("A fatal error has occured ",ex);
         }
         return ds;
     }
@@ -683,7 +923,7 @@ public class DownloadListener implements MessageListener {
         try {
             df = (Datafile) icat.get(sessionID, "Datafile", id);
         } catch (IcatException_Exception ex) {
-            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("A fatal error has occured ",ex);
         }
         return df;
 
@@ -702,7 +942,7 @@ public class DownloadListener implements MessageListener {
         try {
             size = Long.parseLong((icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds JOIN ds.investigation i WHERE i.id=" + id).toArray()[0].toString()));
         } catch (IcatException_Exception ex) {
-            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("A fatal error has occured ",ex);
         }
         return size;
     }
@@ -720,7 +960,7 @@ public class DownloadListener implements MessageListener {
         try {
             size = Long.parseLong(icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds WHERE ds.id=" + id).toArray()[0].toString());
         } catch (IcatException_Exception ex) {
-            Logger.getLogger(EntityCounter.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("A fatal error has occured ",ex);
         }
 
         return size;
@@ -742,7 +982,7 @@ public class DownloadListener implements MessageListener {
             icat = service.getICATPort();
 
         } catch (MalformedURLException ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+           logger.error("A fatal error has occured ",ex);
         }
 
         return icat;
