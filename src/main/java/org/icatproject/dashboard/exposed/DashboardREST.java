@@ -6,30 +6,29 @@
 package org.icatproject.dashboard.exposed;
 
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import static java.time.temporal.TemporalQueries.zone;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.ws.rs.ApplicationPath;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -37,7 +36,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import org.icatproject.dashboard.entity.Download;
+import org.icatproject.dashboard.entity.DownloadEntityAge;
 import org.icatproject.dashboard.entity.DownloadLocation;
+import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
@@ -49,7 +51,6 @@ import org.icatproject.icat.client.IcatException;
 import org.icatproject.icat.client.Session;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,51 +142,6 @@ public class DashboardREST {
 	
         }
         
-        /**
-         * Gets the amount of downloads performed by a user the over a specific time period.
-         * If only the sessionID 
-         * 
-         * @param sessionID Session ID
-         * @param userName The unique name of the user. 
-         * @param startDate Start date to check from. Format yyyyMMdd.
-         * @param endDate End Date to check up to. Format yyyyMMdd.
-         * @return JSON string containing the names of the users with the amount of downloads they have performed.
-         * @throws ParseException Incorrect date format provided.
-         * @throws BadRequestException Incorrect SessionID provided or not one provided at all.
-         */
-        @GET
-        @Path("user/download/frequency")
-        @Produces(MediaType.APPLICATION_JSON)
-        public String getFrequent(@QueryParam("sessionID")String sessionID,
-                                  @QueryParam("Username")String userName,
-                                  @DefaultValue("19500101") @QueryParam("startDate")String startDate,
-                                  @DefaultValue("21000101") @QueryParam("endDate")String endDate) throws DashboardException, ParseException{
-            if(sessionID==null){
-                throw new BadRequestException("A SessionID must be provided");
-            }
-            if(!(beanManager.checkSessionID(sessionID, manager))){
-                throw new AuthenticationException("An invalid sessionID has been provided");
-            }
-            
-            Date sDate = dateFormat.parse(startDate);
-            Date eDate = dateFormat.parse(endDate);
-            
-            List<Object[]> downloads = new ArrayList();
-            if(userName==null){
-                 downloads =  manager.createNamedQuery("Users.DownloadCount").setParameter("startDate", sDate)
-                                                                             .setParameter("endDate", eDate)
-                                                                              .getResultList();  
-                 String dog = "test";
-            }
-            else{
-                downloads = manager.createNamedQuery("Users.DownloadCount.User").setParameter("startDate", sDate)
-                                                                                .setParameter("endDate", eDate)
-                                                                                .setParameter("name", userName)
-                                                                                .getResultList(); 
-                String dog = "test";
-            }
-            return null;
-        }
         
          
        
@@ -273,10 +229,12 @@ public class DashboardREST {
         }
         
         /**
-         * Calculates the amount of downloads that occurred over the provided period.
+         * Calculates the number of downloads that occurred over the provided period.
          * @param sessionID For authentication
          * @param startUnixEpoch Start time in a Unix timestamp.
          * @param endUnixEpoch End time in a Unix timestamp.
+         * @param userName Unique name of the user. Corresponds to name in the ICAT user table.
+         * @param method the method of download 
          * @return A JSON array of JSON objects with each day between the provided times
          * @throws DashboardException 
          */
@@ -285,7 +243,9 @@ public class DashboardREST {
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloadFrequency(@QueryParam("sessionID")String sessionID,
                                 @QueryParam("startDate")String startUnixEpoch,
-                                @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+                                @QueryParam("endDate")String endUnixEpoch,
+                                @QueryParam("userName")String userName,
+                                @QueryParam("method")String method) throws DashboardException{
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
@@ -301,17 +261,28 @@ public class DashboardREST {
             LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();   
             
-            TreeMap<LocalDate,Long> downloadDates = RestUtility.createPrePopulatedMap(startRange, endRange);          
+            TreeMap<LocalDate,Long> downloadDates = RestUtility.createPrePopulatedMap(startRange, endRange); 
             
-
-            List<Object[]> downloads = new ArrayList();            
+             //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);
             
-            downloads = manager.createNamedQuery("Download.frequency").setParameter("startDate", start).setParameter("endDate", end).getResultList();
+                        
+            //Get methods and count how many their are.
+            query.multiselect(download.get("downloadStart"),download.get("downloadEnd"));            
             
-            for(Object[] download: downloads){               
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);     
+            
+            query.where(finalPredicate);         
+            
+            List<Object[]> downloads = manager.createQuery(query).getResultList();
+                      
+                        
+            for(Object[] singleDownload: downloads){               
                             
-                LocalDate downloadBeginning = RestUtility.convertToLocalDate((Date)download[0]);
-                LocalDate downloadEnd = RestUtility.convertToLocalDate((Date)download[1]);
+                LocalDate downloadBeginning = RestUtility.convertToLocalDate((Date)singleDownload[0]);
+                LocalDate downloadEnd = RestUtility.convertToLocalDate((Date)singleDownload[1]);
                 
                 //Bring the download date up to the requested start date.
                 while(downloadBeginning.isBefore(startRange)){
@@ -333,74 +304,117 @@ public class DashboardREST {
 
         }
         
+        
+        
         /**
          * Gets the routes used by downloads e.g. Globus. 
          * @param sessionID SessionID for authentication.
-         * @QueryParam startDate Start point for downloads.
-         * @QueryParam endDate end points for downloads.
-         * @return The type of route and the amount of times used over the set period.
-         * @throws BadRequestException Incorrect date formats or a valid sessionID.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+         * @return The type of route and the number of times used over the set period.
+         * @throws BadRequestException Incorrect date formats or a invalid sessionID.
          */
         @GET
-        @Path("download/route")
+        @Path("download/method")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getRoutes(@QueryParam("sessionID")String sessionID,
-                                @QueryParam("startDate")String startUnixEpoch,
-                                @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+        public String getMethods(@QueryParam("sessionID")String sessionID,
+                                 @QueryParam("startDate")String startDate,
+                                 @QueryParam("endDate")String endDate,
+                                 @QueryParam("userName")String userName) throws DashboardException{
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
-            }            
-           
-           
+            }  
             
-            Date start = new Date(Long.valueOf(startUnixEpoch));
-            Date end = new Date(Long.valueOf(endUnixEpoch));
-
-            JSONObject obj = new JSONObject();
-            JSONArray ary = new JSONArray();            
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));
+                      
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);
             
-            List<Object[]> methods = new ArrayList();     
-            
-            methods = manager.createNamedQuery("Download.methods").setParameter("startDate", start).setParameter("endDate", end).getResultList();
-            
-            
-            if(methods.size()==0){
-               obj.put("amount", 1);
-               obj.put("method", "No Downloads");              
-               ary.add(obj);
-               return ary.toString();
-            }
                         
-            for(int i=0;i<methods.size();i++){   
-               obj = new JSONObject();
-               String method = methods.get(i)[0].toString();
-               long amount = (long)methods.get(i)[1];  
-               obj.put("amount", amount);
+            //Get methods and count how many their are.
+            query.multiselect(download.get("method"),cb.count(download.get("method")));
+            
+            
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, null);            
+            
+            
+            query.where(finalPredicate);
+            
+            //Finally group by the method
+            query.groupBy(download.get("method"));
+            
+            List<Object[]> methods = manager.createQuery(query).getResultList();
+
+            
+            JSONArray ary = new JSONArray();            
+                  
+            
+               
+            for(Object[] result: methods){   
+               JSONObject obj = new JSONObject();
+               String method = result[0].toString();
+               long number = (long)result[1];  
+               obj.put("number", number);
                obj.put("method",method);              
                ary.add(obj);
             }
                      
             
-            return ary.toString();
+            return ary.toJSONString();
 
         }
-
+        
+        /***
+         * Gets all the types of download methods used in the ICAT family.
+         * @param sessionID To authenticate the user.
+         * @return a JSON containing all the different methods of downloads.
+         * @throws AuthenticationException Invalid sessionID.
+         * @throws BadRequestException No session ID provided.
+         */
         @GET
-        @Path("download/age")
+        @Path("download/method/types")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getFileAge(@QueryParam("sessionID")String sessionID,@QueryParam("Username")String userName,@QueryParam("startDate")String startDate,@QueryParam("endDate")String endDate){
-            return null;
-
+        public String getMethods(@QueryParam("sessionID")String sessionID) throws AuthenticationException, BadRequestException{
+            
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }  
+            
+            List<String> methodTypes;
+            
+            methodTypes =  manager.createNamedQuery("Download.method.types").getResultList(); 
+            
+            
+            JSONArray ary = new JSONArray();            
+                       
+            for(int i=0;i<methodTypes.size();i++){  
+               JSONObject obj = new JSONObject();
+               String method = methodTypes.get(i);       
+               obj.put("method",method);              
+               ary.add(obj);
+            }
+            
+            return ary.toJSONString();
         }
 
+      
         /***
          * Returns the bandwidth of downloads within the provided dates. 
-         * @param sessionID SessionID to authenticate.
-         * @param startUnixEpoch The start time as a unix millisecond timestamp.         
-         * @param endUnixEpoch The end time as unix millisecond timestamp.
+         * @param sessionID SessionID for authentication.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+         * @param method type of download method.
          * @return JSON object includes the start and end dates, download ID and bandwidth.
          * @throws DashboardException 
          */
@@ -408,8 +422,10 @@ public class DashboardREST {
         @Path("download/bandwidth")
         @Produces(MediaType.APPLICATION_JSON)
         public String getBandwidth(@QueryParam("sessionID")String sessionID,
-                                   @QueryParam("startDate")String startUnixEpoch,
-                                   @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+                                   @QueryParam("startDate")String startDate,
+                                   @QueryParam("endDate")String endDate,
+                                   @QueryParam("userName")String userName,
+                                   @QueryParam("method")String method) throws DashboardException{
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
@@ -417,25 +433,39 @@ public class DashboardREST {
                 throw new AuthenticationException("An invalid sessionID has been provided");           }                       
            
           
-            Date start = new Date(Long.valueOf(startUnixEpoch));
-            Date end = new Date(Long.valueOf(endUnixEpoch));           
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));           
                        
              
             JSONArray container = new JSONArray();
-           
-            List<Object[]> downloads = new ArrayList();            
             
-            downloads = manager.createNamedQuery("Download.bandwidth").setParameter("startDate", start).setParameter("endDate", end).getResultList();           
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);
+            
+                        
+            //Get methods and count how many their are.
+            query.multiselect(download.get("downloadStart"),download.get("downloadEnd"), download.get("bandwidth"),download.get("id"));
             
             
-            for(Object[] download: downloads){
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);           
+            
+            
+            query.where(finalPredicate);     
+          
+            
+            List<Object[]> downloads = manager.createQuery(query).getResultList();                
+            
+            
+            for(Object[] singleDownload: downloads){
                 
                 JSONObject downloadData = new JSONObject();
                 
-                downloadData.put("startDate", dateTimeFormat.format(download[0]));
-                downloadData.put("endDate",dateTimeFormat.format(download[1]));
-                downloadData.put("bandwidth", download[2].toString());
-                downloadData.put("id",download[3].toString());              
+                downloadData.put("startDate", dateTimeFormat.format(singleDownload[0]));
+                downloadData.put("endDate",dateTimeFormat.format(singleDownload[1]));
+                downloadData.put("bandwidth", singleDownload[2].toString());
+                downloadData.put("id",singleDownload[3].toString());              
                 
                container.add(downloadData);                               
             }
@@ -445,10 +475,12 @@ public class DashboardREST {
         
 
         /**
-         * Calculates the amount of data that was downloaded over a set period of time.
-         * @param sessionID To authenticate
-         * @param startUnixEpoch Start time in unix epoch millisecond.
-         * @param endUnixEpoch End time in unix epoch millisecond.
+         * Calculates the number of data that was downloaded over a set period of time.
+         * @param sessionID SessionID for authentication.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+         * @param method type of download method.
          * @return A JSONArray of each date between the start and end and how much
          * data was downloaded.
          * @throws DashboardException Issues with accessing the data from the database. 
@@ -457,8 +489,10 @@ public class DashboardREST {
         @Path("download/size")
         @Produces(MediaType.APPLICATION_JSON)
         public String getSize(@QueryParam("sessionID")String sessionID,
-                              @QueryParam("startDate")String startUnixEpoch,
-                              @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+                              @QueryParam("startDate")String startDate,
+                              @QueryParam("endDate")String endDate,
+                              @QueryParam("userName")String userName,
+                              @QueryParam("method")String method) throws DashboardException{
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
@@ -466,87 +500,180 @@ public class DashboardREST {
                 throw new AuthenticationException("An invalid sessionID has been provided");
             }                
          
-            Date start = new Date(Long.valueOf(startUnixEpoch));
-            Date end = new Date(Long.valueOf(endUnixEpoch));
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));
             
             
-            LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();   
+            LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();   
             
             DownloadSizeProcessor downloadHelper = new DownloadSizeProcessor(startRange,endRange);         
 
-            List<Object[]> downloadList = new ArrayList();            
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);
             
-            downloadList = manager.createNamedQuery("Download.size").setParameter("startDate", start).setParameter("endDate", end).getResultList();
+                        
+            //Get methods and count how many their are.
+            query.multiselect(download.get("downloadStart"),download.get("downloadEnd"), download.get("downloadSize"));
             
-            TreeMap<LocalDate,Long> downloadDates = downloadHelper.calculateDataDownloaded(downloadList);      
+            
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);          
+            
+            
+            query.where(finalPredicate);     
+          
+            
+            List<Object[]> downloads = manager.createQuery(query).getResultList();                      
+            
+            
+            TreeMap<LocalDate,Long> downloadDates = downloadHelper.calculateDataDownloaded(downloads);      
             
             return RestUtility.convertMapToJSON(downloadDates).toJSONString();
         }
         
-        /**
-         * Gets the most frequently downloaded entities in order of the most frequent.
-         * @param sessionID For authentication
-         * @param limit How many entities (descending) to be returned. Default (All are returned)
-         * @return The name of the entity and how many times it has been downloaded up to the limit desired.
-         * @throws DashboardException Error collecting the data from the database.
+        /***
+         * Gets the age of files in days of every download within the set parameters.
+         * @param sessionID SessionID for authentication.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+         * @param method type of download method.
+         * @return a JSONArray of JSONObjects in the format {number:10,age:200}
+         * @throws DashboardException Issues with accessing the dashboard database.
          */
         @GET
-        @Path("download/entities/frequency")
+        @Path("download/entities/age")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getFrequencyOfEntites(@QueryParam("sessionID")String sessionID,
-                                            @QueryParam("limit")long limit) throws DashboardException{
+        public String getEntityAge(@QueryParam("sessionID")String sessionID,
+                              @QueryParam("startDate")String startDate,
+                              @QueryParam("endDate")String endDate,
+                              @QueryParam("userName")String userName,
+                              @QueryParam("method")String method) throws DashboardException{
+            
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
-            }                        
-
-            JSONObject obj = new JSONObject();
-            JSONArray ary = new JSONArray();
+            }                
+         
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));
             
-            List<Object[]> entityCount = new ArrayList();
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<DownloadEntityAge> downloadEntityAge = query.from(DownloadEntityAge.class);
+            
+            //Join between downloadEntityAge, downloads and users.
+            Join<DownloadEntityAge, Download> downloadJoin = downloadEntityAge.join("download");
+            Join<Download, ICATUser> downloadUserJoin = downloadJoin.join("user");
+                        
            
+            query.multiselect(cb.sum(downloadEntityAge.<Long>get("amount")),downloadEntityAge.get("age"));
             
-            entityCount  = manager.createNamedQuery("DownloadEntity.frequency").getResultList();
             
-            for(int i=0;i<entityCount.size();i++){
-                
+            Predicate startGreater = cb.greaterThan(downloadJoin.<Date>get("downloadStart"), start);
+            Predicate endLess = cb.lessThan(downloadJoin.<Date>get("downloadEnd"),end);
+            Predicate betweenStart = cb.between(downloadJoin.<Date>get("downloadStart"),start,end);
+            Predicate betweenEnd = cb.between(downloadJoin.<Date>get("downloadEnd"),start,end);
+            
+            Predicate combineBetween = cb.or(betweenStart,betweenEnd);
+            Predicate combineGL = cb.and(startGreater,endLess);
+            Predicate finalPredicate = cb.or(combineBetween, combineGL);
+            
+             if(method!=null && !method.equals("undefined")){
+                Predicate methodPredicate = cb.equal(downloadJoin.get("method"), method);
+                finalPredicate = cb.and(finalPredicate, methodPredicate);
             }
             
+            if(userName!=null && !userName.equals("undefined")){                
+                Predicate userPredicate = cb.equal( downloadUserJoin.get("name"), userName);  
+                finalPredicate = cb.and(finalPredicate,userPredicate);
+            } 
+            
+            query.groupBy(downloadEntityAge.get("age"));
             
             
-            return "PLACEHOLDER";
+            query.where(finalPredicate);     
+          
+            
+            List<Object[]> downloads = manager.createQuery(query).getResultList();
+            
+            
+            JSONArray ary = new JSONArray();
+            
+            for(Object[] download:downloads){
+                JSONObject obj = new JSONObject();
+                obj.put("number", download[0]);
+                obj.put("age", download[1]);
+                ary.add(obj);
+            }
+                              
+               
+            return ary.toJSONString();
+        
         }
         
+        /***
+         * Gets the number of downloads in each country.
+         * @param sessionID SessionID for authentication.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+         * @param method type of download method.
+         * @return a JSON String in the format {countryCode:GB, Number:10}
+         * @throws DashboardException issue with accessing the database
+         */
         @GET 
         @Path("download/location/global")
          @Produces(MediaType.APPLICATION_JSON)
         public String getDownloadGlobalLocations( @QueryParam("sessionID")String sessionID,
-                                                  @QueryParam("startDate")String startUnixEpoch,
-                                                  @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+                                                  @QueryParam("startDate")String startDate,
+                                                  @QueryParam("endDate")String endDate,
+                                                  @QueryParam("userName")String userName,
+                                                  @QueryParam("method")String method) throws DashboardException{
+            
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
             }              
-                    
-            Date start = new Date(Long.valueOf(startUnixEpoch));
-            Date end = new Date(Long.valueOf(endUnixEpoch));       
             
-            List<Object[]> downloadList = new ArrayList();            
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate)); 
             
-            downloadList = manager.createNamedQuery("DownloadLocation.global").setParameter("startDate", start).setParameter("endDate", end).getResultList();
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<DownloadLocation> downloadLocation = query.from(DownloadLocation.class);           
+            
+            //Join between downloads and location.
+            Join<Download, DownloadLocation> downloadLocationJoin = downloadLocation.join("downloads");
+            
+            //Get methods and count how many their are.
+            query.multiselect(downloadLocation.get("countryCode"),cb.count(downloadLocation.get("countryCode")));            
+            
+            Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,downloadLocation,downloadLocationJoin,userName, method);     
+            
+            query.where(finalPredicate);  
+            
+            //Finally group by the method
+            query.groupBy(downloadLocation.get("countryCode"));          
+            
+            List<Object[]> downloadGlobalLocations = manager.createQuery(query).getResultList();
+            
+           
             
             JSONArray resultArray = new JSONArray();
             
-            for(Object[] download: downloadList){
+            for(Object[] download: downloadGlobalLocations){
                 JSONObject obj = new JSONObject();
                 obj.put("countryCode",download[0]);
-                obj.put("amount",download[1]);
-             
+                obj.put("number",download[1]);            
                 
                 resultArray.add(obj);
                 
@@ -556,12 +683,24 @@ public class DashboardREST {
             return resultArray.toJSONString();
         }
         
+         /***
+         * Gets the number of downloads in each set of longitude and latitude pairs.
+         * @param sessionID SessionID for authentication.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+         * @param method type of download method.
+         * @return a JSON String in the format {city:Appelton, Number:10, Longitude:20.20, Latitude:-1.34}
+         * @throws DashboardException issue with accessing the database
+         */
         @GET
-        @Path("download/location/")
+        @Path("download/location")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloadLocations( @QueryParam("sessionID")String sessionID,
-                                            @QueryParam("startDate")String startUnixEpoch,
-                                            @QueryParam("endDate")String endUnixEpoch) throws DashboardException{
+                                            @QueryParam("startDate")String startDate,
+                                            @QueryParam("endDate")String endDate,
+                                            @QueryParam("userName")String userName,
+                                            @QueryParam("method")String method) throws DashboardException{
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
@@ -570,23 +709,40 @@ public class DashboardREST {
             }              
            
          
-            Date start = new Date(Long.valueOf(startUnixEpoch));
-            Date end = new Date(Long.valueOf(endUnixEpoch));
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));
             
             
             
-            List<Object[]> downloadList = new ArrayList();            
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<DownloadLocation> downloadLocation = query.from(DownloadLocation.class); 
             
-            downloadList = manager.createNamedQuery("Users.download.location").setParameter("startDate", start).setParameter("endDate", end).getResultList();
+            Join<Download, DownloadLocation> downloadLocationJoin = downloadLocation.join("downloads"); 
+            
+            Predicate finalPredicate = createDownloadLocationPredicate(cb,  start, end,  downloadLocation, downloadLocationJoin,  userName, method);    
+                        
+            //Get methods and count how many their are.
+            query.multiselect(downloadLocation,cb.count(downloadLocationJoin));            
+            
+            //Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,downloadLocation,userName, method);     
+            
+            query.where(finalPredicate);  
+            
+            //Finally group by the method
+            query.groupBy(downloadLocation);          
+            
+            List<Object[]> downloadLocalLocations = manager.createQuery(query).getResultList();
             
             JSONArray resultArray = new JSONArray();
             
-            for(Object[] download: downloadList){
+            for(Object[] download: downloadLocalLocations){
                 JSONObject obj = new JSONObject();
-                obj.put("name",download[0]);
-                obj.put("downloadID",download[2]);
-                obj.put("longitude",((DownloadLocation) download[1]).getLongitude());
-                obj.put("latitude", ((DownloadLocation) download[1]).getLatitude());
+                obj.put("number",download[1]);
+                obj.put("city",((DownloadLocation) download[0]).getCity());
+                obj.put("longitude",((DownloadLocation) download[0]).getLongitude());
+                obj.put("latitude", ((DownloadLocation) download[0]).getLatitude());
                 resultArray.add(obj);
                 
             }
@@ -596,7 +752,10 @@ public class DashboardREST {
         }
             
 
-        
+        /***
+         * Simple ping to see if the dashboard is up and running.
+         * @return Message saying it is fine.
+         */
         @GET
         @Path("/ping")
         @Produces(MediaType.TEXT_PLAIN)
@@ -604,7 +763,84 @@ public class DashboardREST {
             return "The Dashboard is doing fine!";
         }
         
+        /***
+         * Creates a predicate that applies a restriction to gather all downloads between the 
+         * start and end date and any during those period.
+         * @param cb CriteriaBuilder to build the Predicate.
+         * @param start Start time of the predicate statement.
+         * @param end End time of the predicate statement.
+         * @param userName The name of a ICATuser to add to the predicate.
+         * @param method The name of a method to add to the predicate.
+         * @return a predicate object that contains restrictions to gather all downloads during the start
+         * and end date.
+         */
+        private Predicate createDownloadPredicate(CriteriaBuilder cb, Date start, Date end, Root<Download> download,  String userName, String method){
+            
+            Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
+            Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"),end);
+            Predicate betweenStart = cb.between(download.<Date>get("downloadStart"),start,end);
+            Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"),start,end);
+            
+            Predicate combineBetween = cb.or(betweenStart,betweenEnd);
+            Predicate combineGL = cb.and(startGreater,endLess);
+            Predicate finalPredicate = cb.or(combineBetween, combineGL);
+            
+             if(method!=null && !method.equals("undefined")){
+                Predicate methodPredicate = cb.equal(download.get("method"), method);
+                finalPredicate = cb.and(finalPredicate, methodPredicate);
+            }
+            
+            if(userName!=null && !userName.equals("undefined")){
+                Join<ICATUser, Download> downloadJoin = download.join("user"); 
+                Predicate userPredicate = cb.equal(downloadJoin.get("name"), userName);  
+                finalPredicate = cb.and(finalPredicate,userPredicate);
+            }           
+           
+            
+            return finalPredicate;
+            
+        }
+        
+         /***
+         * Creates a predicate that applies a restriction to gather all downloadLocations between the 
+         * start and end date and any during those period.
+         * @param cb CriteriaBuilder to build the Predicate.
+         * @param start Start time of the predicate statement.
+         * @param end End time of the predicate statement.
+         * @param userName The name of a ICATuser to add to the predicate.
+         * @param method The name of a method to add to the predicate.
+         * @return a predicate object that contains restrictions to gather all downloadLocations during the start
+         * and end date.
+         */
+        private Predicate createDownloadLocationPredicate(CriteriaBuilder cb, Date start, Date end, Root<DownloadLocation> downloadLocation, Join<Download, DownloadLocation> downloadLocationJoin, String userName, String method){
+            
+            Predicate startGreater = cb.greaterThan(downloadLocationJoin.<Date>get("downloadStart"), start);
+            Predicate endLess = cb.lessThan(downloadLocationJoin.<Date>get("downloadEnd"),end);
+            Predicate betweenStart = cb.between(downloadLocationJoin.<Date>get("downloadStart"),start,end);
+            Predicate betweenEnd = cb.between(downloadLocationJoin.<Date>get("downloadEnd"),start,end);
+            
+            Predicate combineBetween = cb.or(betweenStart,betweenEnd);
+            Predicate combineGL = cb.and(startGreater,endLess);
+            Predicate finalPredicate = cb.or(combineBetween, combineGL);
+            
+             if(method!=null && !method.equals("undefined")){
+                Predicate methodPredicate = cb.equal(downloadLocationJoin.get("method"), method);
+                finalPredicate = cb.and(finalPredicate, methodPredicate);
+            }
+            
+            if(userName!=null && !userName.equals("undefined")){
+                Join<ICATUser, Download> downloadUserJoin = downloadLocationJoin.join("user"); 
+                Predicate userPredicate = cb.equal(downloadUserJoin.get("name"), userName);  
+                finalPredicate = cb.and(finalPredicate,userPredicate);
+            }           
+            
+           
+           
+            
+            return finalPredicate;
+        }
 
+       
 
     }	
 
