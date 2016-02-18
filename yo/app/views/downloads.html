@@ -21,7 +21,7 @@
                 <input type="text" class="form-control " ng-model="download.userName" placeholder="User"/>
             </div>            
             <div class="col-lg-2">       	
-	            <select class="form-control" placeholder="Download Method" ng-model="download.selectedMethod" ng-options=" methods.method as methods.method for methods in download.downloadMethodTypes">
+	            <select class="form-control" placeholder="Download Method" ng-model="download.selectedMethod" ng-options=" downloads.method as downloads.method for downloads in download.downloadMethodTypes">
 	            	<option value="" disabled selected>Download Method</option>
 	            </select>	                      
             </div>
