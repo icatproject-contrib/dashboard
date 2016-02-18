@@ -21,6 +21,10 @@ angular.module('dashboardApp').directive('lineTimeSeries', function(){
 				    },
 				    axis: {
 				        x: {
+				        	padding:{
+				        		left:0,
+				        		
+				        	},
 				            type: 'timeseries',
 				            tick: {
 				                format: '%Y-%m-%d'
@@ -31,8 +35,11 @@ angular.module('dashboardApp').directive('lineTimeSeries', function(){
 				        		}, 
 				        },
 				        y: {
+				        	padding:{
+				        		bottom:0,
+				        	},
 				        	label: {
-				        			text: 'number of Downloads',
+				        			text: 'Number of Downloads',
 				        			position: 'outer-center',
 				        		},
 				        }
