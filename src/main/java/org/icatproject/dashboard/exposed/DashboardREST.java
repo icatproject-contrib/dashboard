@@ -5,12 +5,16 @@
  */
 package org.icatproject.dashboard.exposed;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +36,6 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -44,6 +47,7 @@ import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.ForbiddenException;
+import org.icatproject.dashboard.exceptions.InternalException;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.icat.client.ICAT;
@@ -51,6 +55,8 @@ import org.icatproject.icat.client.IcatException;
 import org.icatproject.icat.client.Session;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,9 +78,9 @@ public class DashboardREST {
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
     
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     
-    private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
      
     private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);
@@ -86,10 +92,59 @@ public class DashboardREST {
         }
         
         @GET
-        @Path("icat/cycles")
+        @Path("icat/authenticators")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getCycles(){
-            return null;
+        public String getICATAuthenticators() throws InternalException{
+            
+            URL url;
+            JSONArray mnemonicArray;
+            
+            try {
+                url = new URL(properties.getICATUrl()+"/icat/properties");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+
+                BufferedReader responseBuffer = new BufferedReader(new InputStreamReader(
+                            (conn.getInputStream())));
+
+                StringBuilder buffer = new StringBuilder();
+                String output;
+               
+                while ((output = responseBuffer.readLine()) != null) {
+                    buffer.append(output);
+                }
+
+                conn.disconnect();
+
+                JSONParser parser = new JSONParser();
+
+                JSONObject response = (JSONObject) parser.parse(buffer.toString());
+                JSONArray authenticators =  (JSONArray) response.get("authenticators");
+                
+                mnemonicArray = new JSONArray();
+                
+                for(int i=0; i<authenticators.size();i++){
+                    JSONObject temp =  (JSONObject) authenticators.get(i);
+                    JSONObject mnemonic = new JSONObject();
+                    
+                    mnemonic.put("mnemonic",temp.get("mnemonic"));
+                    
+                    mnemonicArray.add(mnemonic);
+                }       
+                
+                
+
+
+
+            } catch (IOException | ParseException ex) {
+                throw new InternalException("Issues with generating Authenticator List." +ex);
+            }
+       
+            
+       
+            
+            
+           return mnemonicArray.toJSONString();
         }
                 
                 
@@ -110,9 +165,9 @@ public class DashboardREST {
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
             }
-            List<String> users = null;
+            List<String> users;
             JSONObject obj = new JSONObject();
-            String loginMessage = null;           
+            String loginMessage;           
 
             users = manager.createNamedQuery("Users.LoggedIn").getResultList();
             loginMessage = "Logged in";
@@ -132,15 +187,6 @@ public class DashboardREST {
 	}
 	
 	
-	@GET
-	@Path("user/location/{userName}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public String getLocation(@PathParam("userName")String userName, @QueryParam("sessionID")String sessionID){
-            
-		return null;
-	
-	
-        }
         
         
          
@@ -150,7 +196,6 @@ public class DashboardREST {
          * @param login Login object containing the authenticator, username and password.
          * @return Session ID.
          * @throws URISyntaxException Incorrect ICAT URL provided.
-         * @throws IcatException Issue authenticating with the ICAT.
          * @throws BadRequestException Username, authenticator or password is missing.
          */
         @POST
@@ -231,8 +276,8 @@ public class DashboardREST {
         /**
          * Calculates the number of downloads that occurred over the provided period.
          * @param sessionID For authentication
-         * @param startUnixEpoch Start time in a Unix timestamp.
-         * @param endUnixEpoch End time in a Unix timestamp.
+         * @param startDate Start time in a Unix timestamp.
+         * @param endDate End time in a Unix timestamp.
          * @param userName Unique name of the user. Corresponds to name in the ICAT user table.
          * @param method the method of download 
          * @return A JSON array of JSON objects with each day between the provided times
@@ -242,8 +287,8 @@ public class DashboardREST {
         @Path("download/frequency")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloadFrequency(@QueryParam("sessionID")String sessionID,
-                                @QueryParam("startDate")String startUnixEpoch,
-                                @QueryParam("endDate")String endUnixEpoch,
+                                @QueryParam("startDate")String startDate,
+                                @QueryParam("endDate")String endDate,
                                 @QueryParam("userName")String userName,
                                 @QueryParam("method")String method) throws DashboardException{
             if(sessionID==null){
@@ -254,12 +299,12 @@ public class DashboardREST {
             }              
            
          
-            Date start = new Date(Long.valueOf(startUnixEpoch));
-            Date end = new Date(Long.valueOf(endUnixEpoch));
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));
             
             
-            LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endUnixEpoch)).atZone(ZoneId.systemDefault()).toLocalDate();   
+            LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();   
             
             TreeMap<LocalDate,Long> downloadDates = RestUtility.createPrePopulatedMap(startRange, endRange); 
             
