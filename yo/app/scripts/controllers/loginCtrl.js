@@ -7,20 +7,30 @@ angular.module('dashboardApp').controller('LoginCtrl', LoginCtrl);
 	function LoginCtrl( LoginService, $sessionStorage, $state, $rootScope){
 		var lc = this;
 
-		lc.login = login;
+		
+
+		var authenticators = LoginService.getAuthenticators();
+
+        authenticators.then(function(responseData){
 
 
-		function login(){
+        	lc.authenticators = responseData;
 
-			LoginService.Login(lc.authenticator, lc.username, lc.password).
-			then(function(responseData){				
-				$sessionStorage.sessionData = {
+        });
 
-				sessionID : responseData.data['sessionID'],
-				username : lc.username
-					};
-									
-				$state.go('downloads');
+
+		lc.login = function(){
+
+			LoginService.login(lc.authenticator, lc.username, lc.password).
+				then(function(responseData){
+								
+					$sessionStorage.sessionData = {
+
+					sessionID : responseData['sessionID'],
+					username : lc.username
+						};
+										
+					$state.go('downloads');
 			});		
 
 
