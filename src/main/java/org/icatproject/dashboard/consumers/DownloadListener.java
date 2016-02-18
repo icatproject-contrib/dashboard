@@ -77,7 +77,7 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),    
     @ActivationConfigProperty(propertyName="addressList", propertyValue="mq://idsdev2.isis.cclrc.ac.uk:7676"),    
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID"),
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID3"),
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),
     
 })
