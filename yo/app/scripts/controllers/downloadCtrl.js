@@ -245,7 +245,7 @@
 		    	//Bandwidth metrics
 
 		    	var bandwidthMetrics = getBandwidthMetrics(responseData);
-		    	console.log(bandwidthMetrics)
+		    	
 
 		    	self.lowestBandwidth = bandwidthMetrics[1]+"MB/S";
 		    	self.heighestBandwidth = bandwidthMetrics[0]+"MB/S";
