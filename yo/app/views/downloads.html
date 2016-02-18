@@ -1,4 +1,37 @@
-<div class="row" ng-init="download.updatePage()">  
+<div class="row" ng-init="download.updatePage()">
+	<div class="col-lg-3 col-lg-offset-1">
+		<div class="box">	
+			<div class="text-format">					
+				<h2>Total number</h2>
+				<h3>{{download.getTotalnumber()}}</h3>					
+				<h2>Busiest Day</h2>
+				<h3>{{download.getBusiestDaynumber()}}</h3>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-4">
+		<div class="box">	
+			<div class="text-format">					
+				<h2>Total Downloads</h2>
+				<h3>{{download.getCountTotal()}}</h3>					
+				<h2>Busiest Day</h2>
+				<h3>{{download.getCountBusiestDay()}}</h3>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-3">
+		<div class="box">	
+			<div class="text-format">					
+				<h2>Highest Bandwidth</h2>
+				<h3>{{download.heighestBandwidth}}</h3>					
+				<h2>Lowest Bandwidth</h2>
+				<h3>{{download.lowestBandwidth}}</h3>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row" >  
     <div class="col-lg-10 col-lg-offset-1 "> 
         <div class="box search-box col-lg-12">
             <div class="col-lg-2 col-lg-offset-1">
@@ -39,14 +72,19 @@
 <div class="row">
 	<div class="col-lg-5 col-lg-offset-1">
 		<div class="box">
-			<p>Global Download Locations</p>	
-			<div google-chart chart="download.worldChart">  	
+			<p class="graph-title">Global Download Locations 
+				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.globalLocationDescription}}"></i>
+			</p>
+				
+			<div google-chart chart="download.worldChart" >  	
 		    </div>
 	    </div>
 	</div>    
 	<div class="col-lg-5">
 		<div class="box">
-			<p>Local Download Locations</p>	
+			<p>Local Download Locations
+			<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.localLocationDescription}}"></i>
+			</p>	
 			<div google-chart chart="download.localChart">
 		</div>
 	</div>
@@ -55,7 +93,9 @@
 	<div class="col-lg-4 col-lg-offset-1">
 		<div class="box">
 			<div class="chart-container">	
-				<p>Age of Downloaded Files</p>			
+				<p>Age of Downloaded Files
+				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.ageOfDownloadedFilesDescription}}"></i>
+				</p>			
 				<entity-Age-Scatter class="chart" data='download.downloadEntityAge'></entity-Age-Scatter>
 			</div>		
 	    </div>
@@ -63,7 +103,9 @@
 	<div class="col-lg-6">
 		<div class="box">
 			<div class="chart-container">	
-				<p>Download Count</p>			
+				<p>Download Count
+				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.downloadCountDescription}}"></i>
+				</p>			
 				<line-time-Series class="chart" data='download.downloadCount'></line-time-Series>
 			</div>			
 		</div>
@@ -77,7 +119,9 @@
 	<div id="box" class="col-lg-6 col-lg-offset-1">
 		<div class="box">
 			<div class="chart-container">
-				<p>Download Bandwidth</p>
+				<p>Download Bandwidth
+				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.downloadBandwidthDescription}}"></i>
+				</p>
 				<scatter-time-series class="chart" data='download.downloadBandwidth'></scatter-time-series>
 			</div>
 		</div>
@@ -85,7 +129,9 @@
 	<div class="col-lg-4">
 		<div class="box">
 			<div class="chart-container" >
-				<p>Download Methods</p>
+				<p>Download Methods
+				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.downloadMethodsDescription}}"></i>
+				</p>
 				<donut-chart class="chart" data='download.downloadMethod'></donut-chart>
 			</div>	
 		</div>	
@@ -96,45 +142,16 @@
 	<div class="col-lg-10 col-lg-offset-1">
 		<div class="box">
 			<div class="chart-container">
-				<p>Download Size</p>
+				<p>Download Size
+				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.downloadSizeDescription}}"></i>
+				</p>
 				<bar-time-series class="chart" data='download.downloadSize'></bar-time-series>
 			</div>
 		</div>
 	</div>
 
 </div>
-<div class="row">
-	<div class="col-lg-3 col-lg-offset-1">
-		<div class="box">	
-			<div class="text-format">					
-				<h2>Total number</h2>
-				<h3>{{download.getTotalnumber()}}</h3>					
-				<h2>Busiest Day</h2>
-				<h3>{{download.getBusiestDaynumber()}}</h3>
-			</div>
-		</div>
-	</div>
-	<div class="col-lg-4">
-		<div class="box">	
-			<div class="text-format">					
-				<h2>Total Downloads</h2>
-				<h3>{{download.getCountTotal()}}</h3>					
-				<h2>Busiest Day</h2>
-				<h3>{{download.getCountBusiestDay()}}</h3>
-			</div>
-		</div>
-	</div>
-	<div class="col-lg-3">
-		<div class="box">	
-			<div class="text-format">					
-				<h2>Highest Bandwidth</h2>
-				<h3>{{download.heighestBandwidth}}</h3>					
-				<h2>Lowest Bandwidth</h2>
-				<h3>{{download.lowestBandwidth}}</h3>
-			</div>
-		</div>
-	</div>
-</div>
+
 
 
 
