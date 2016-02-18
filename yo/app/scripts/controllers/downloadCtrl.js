@@ -154,6 +154,7 @@
 		    downloadCount.then(function(responseData){
 
 		    	var data = responseData;
+		    	
 
 		    	var dates  = _.map(data, function(data){
 					return data.date;
@@ -242,16 +243,14 @@
 		    	self.downloadBandwidth = bandwidthData;
 
 		    	//Bandwidth metrics
-		    	self.getHeighestBandwidth = function(){	    		
 
-			    	return getBandwidthMetrics(responseData)[1]+" MB/S";	
+		    	var bandwidthMetrics = getBandwidthMetrics(responseData);
+		    	console.log(bandwidthMetrics)
 
-		    	}
+		    	self.lowestBandwidth = bandwidthMetrics[1]+"MB/S";
+		    	self.heighestBandwidth = bandwidthMetrics[0]+"MB/S";
 
-		    	self.getLowestBandwidth = function(){
-		    		
-		    		return getBandwidthMetrics(responseData)[0]+" MB/S";
-		    	}
+		    	
 
 		    });
 
@@ -310,7 +309,9 @@
 		
 	}
 
-	
+	/*Calculates the highest and lowest bandiwdth from the provided data.
+	* 
+	*/
 	function getBandwidthMetrics(data) {     		
 
     		var highest = 0;
@@ -330,7 +331,9 @@
 	    		lowest=0;
 	    	}
 
-	    	return[lowest,highest]
+	    	var result = [lowest,highest];
+
+	    	return result;
 	}
 
 	function getDateArray(startDate,stopDate) {
