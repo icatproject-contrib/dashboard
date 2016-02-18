@@ -23,7 +23,7 @@ public class DashboardSessionManager {
 	public void removeExpiredSessions() {
 		try {
 			int n = manager.createNamedQuery(Session.DELETE_EXPIRED).executeUpdate();
-			logger.debug(n + " sessions were removed");
+			logger.debug(n+ " sessions were removed");
 		} catch (Throwable e) {
 			logger.error(e.getClass() + " " + e.getMessage());
 		}
