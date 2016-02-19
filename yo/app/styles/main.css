@@ -141,21 +141,17 @@ html,body, .cotainer-fluid,.row  {
 }
 
 
-/* datepicker / export button */
+/* icon classes */
 
 
 
-.date-picker {
-  padding-left:4px;  
-  width:300px; 
-  padding-top: 4px;
- 
+.sub-menu {
+  float:right;
+  position: static;
+  background-color: #808080;
+  margin-left: 6px;
 }
 
-
-.dropdown .btn {
-  background-color: #32323a;
-}
 
 .calendar , .user, .lock {
     float: right;
@@ -185,6 +181,7 @@ html,body, .cotainer-fluid,.row  {
   font-size: 300%;
 
 }
+
 
 /* Download CSS */
 
