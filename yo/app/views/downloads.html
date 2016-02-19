@@ -73,7 +73,9 @@
 	<div class="col-lg-5 col-lg-offset-1">
 		<div class="box">
 			<p class="graph-title">Global Download Locations 
-				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.globalLocationDescription}}"></i>
+				<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{download.globalLocationDescription}}"><i class=" fa fa-question-circle fa-lg"></i></button>
+			</p>
+
 			</p>
 				
 			<div google-chart chart="download.worldChart" >  	
@@ -82,72 +84,35 @@
 	</div>    
 	<div class="col-lg-5">
 		<div class="box">
-			<p>Local Download Locations
-			<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.localLocationDescription}}"></i>
+			<p>Local Download Locations			
+			<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{download.localLocationDescription}}"><i class=" fa fa-question-circle fa-lg"></i></button>
 			</p>	
 			<div google-chart chart="download.localChart">
 		</div>
 	</div>
 </div>
 <div class="row">
-	<div class="col-lg-4 col-lg-offset-1">
-		<div class="box">
-			<div class="chart-container">	
-				<p>Age of Downloaded Files
-				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.ageOfDownloadedFilesDescription}}"></i>
-				</p>			
-				<entity-Age-Scatter class="chart" data='download.downloadEntityAge'></entity-Age-Scatter>
-			</div>		
-	    </div>
+	<div class="col-lg-4 col-lg-offset-1">					
+		<entity-Age-Scatter class="chart" data='download.downloadEntityAge'></entity-Age-Scatter>		
 	</div>
-	<div class="col-lg-6">
-		<div class="box">
-			<div class="chart-container">	
-				<p>Download Count
-				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.downloadCountDescription}}"></i>
-				</p>			
-				<line-time-Series class="chart" data='download.downloadCount'></line-time-Series>
-			</div>			
-		</div>
+	<div class="col-lg-6">		
+		<download-count-line class="chart" data='download.downloadCount'></download-count-line>			
 	</div>
 </div>
 
 
-
-<div class="row">			
-
-	<div id="box" class="col-lg-6 col-lg-offset-1">
-		<div class="box">
-			<div class="chart-container">
-				<p>Download Bandwidth
-				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.downloadBandwidthDescription}}"></i>
-				</p>
-				<scatter-time-series class="chart" data='download.downloadBandwidth'></scatter-time-series>
-			</div>
-		</div>
-	</div>
-	<div class="col-lg-4">
-		<div class="box">
-			<div class="chart-container" >
-				<p>Download Methods
-				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.downloadMethodsDescription}}"></i>
-				</p>
-				<donut-chart class="chart" data='download.downloadMethod'></donut-chart>
-			</div>	
-		</div>	
+<div class="row">
+	<div class="col-lg-6 col-lg-offset-1">		
+		<bandwidth-scatter class="chart" data='download.downloadBandwidth'></bandwidth-scatter>	
+	</div>		
+	<div class="col-lg-4">		
+		<methods-number-donut class="chart" data='download.downloadMethod'></methods-number-donut>			
 	</div>	
 </div>	
 
 <div class="row">
-	<div class="col-lg-10 col-lg-offset-1">
-		<div class="box">
-			<div class="chart-container">
-				<p>Download Size
-				<i class="sub-menu fa fa-question-circle fa-lg" tooltip-append-to-body="true"  uib-tooltip="{{download.downloadSizeDescription}}"></i>
-				</p>
-				<bar-time-series class="chart" data='download.downloadSize'></bar-time-series>
-			</div>
-		</div>
+	<div class="col-lg-10 col-lg-offset-1">		
+		<download-size-bar class="chart" data='download.downloadSize'></download-size-bar>
 	</div>
 
 </div>
