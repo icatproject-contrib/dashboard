@@ -308,11 +308,11 @@
 		};	
 		self.globalLocationDescription = "This map displays the number of downloads that have occured within each country during the requested period.";
 		self.localLocationDescription = "This map displays the number of downloads that have occured within the selected area. The circles center position is based on the longitude and latitude of the download.";
-		self.ageOfDownloadedFilesDescription = "This scatter graph displays the number of datafiles that have been downloaded grouped by their age. The age of the datafile is calculated from its creation date subtracted by the date of the download. The age is displayed in days.";
-		self.downloadCountDescription = "This line graph displays the number of downloads that occured on the requested days.";
-		self.downloadBandwidthDescription = "This scatter graph displays the bandwidth of downloads in Megabytes. This is calculated by the download amount (Megabytes) over the time it took to complete."
-		self.downloadMethodsDescription = "This donut chart displays the amount of downloads per method of download.";
-		self.downloadSizeDescription = "This bar graph displays the amount of data that was downloaded during the requested period."
+		
+		
+		
+		
+ 
 	}
 
 	/*Calculates the highest and lowest bandiwdth from the provided data.
