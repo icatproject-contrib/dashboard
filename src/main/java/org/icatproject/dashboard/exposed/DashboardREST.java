@@ -387,7 +387,7 @@ public class DashboardREST {
             query.multiselect(download.get("method"),cb.count(download.get("method")));
             
             
-            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, null);            
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, "");            
             
             
             query.where(finalPredicate);
@@ -629,12 +629,12 @@ public class DashboardREST {
             Predicate combineGL = cb.and(startGreater,endLess);
             Predicate finalPredicate = cb.or(combineBetween, combineGL);
             
-             if(method!=null && !method.equals("undefined")){
+            if(!("undefined".equals(method))&&!("".equals(method))){
                 Predicate methodPredicate = cb.equal(downloadJoin.get("method"), method);
                 finalPredicate = cb.and(finalPredicate, methodPredicate);
             }
             
-            if(userName!=null && !userName.equals("undefined")){                
+            if(!("undefined".equals(userName))&&!(("").equals(userName))){                
                 Predicate userPredicate = cb.equal( downloadUserJoin.get("name"), userName);  
                 finalPredicate = cb.and(finalPredicate,userPredicate);
             } 
@@ -702,7 +702,7 @@ public class DashboardREST {
             //Get methods and count how many their are.
             query.multiselect(downloadLocation.get("countryCode"),cb.count(downloadLocation.get("countryCode")));            
             
-            Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,downloadLocation,downloadLocationJoin,userName, method);     
+            Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,downloadLocationJoin,userName, method);     
             
             query.where(finalPredicate);  
             
@@ -766,7 +766,7 @@ public class DashboardREST {
             
             Join<Download, DownloadLocation> downloadLocationJoin = downloadLocation.join("downloads"); 
             
-            Predicate finalPredicate = createDownloadLocationPredicate(cb,  start, end,  downloadLocation, downloadLocationJoin,  userName, method);    
+            Predicate finalPredicate = createDownloadLocationPredicate(cb,  start, end, downloadLocationJoin,  userName, method);    
                         
             //Get methods and count how many their are.
             query.multiselect(downloadLocation,cb.count(downloadLocationJoin));            
@@ -830,12 +830,12 @@ public class DashboardREST {
             Predicate combineGL = cb.and(startGreater,endLess);
             Predicate finalPredicate = cb.or(combineBetween, combineGL);
             
-             if(method!=null && !method.equals("undefined")){
+            if(!("undefined".equals(method))&&!("".equals(method))){
                 Predicate methodPredicate = cb.equal(download.get("method"), method);
                 finalPredicate = cb.and(finalPredicate, methodPredicate);
             }
             
-            if(userName!=null && !userName.equals("undefined")){
+            if(!("undefined".equals(userName))&&!(("").equals(userName))){
                 Join<ICATUser, Download> downloadJoin = download.join("user"); 
                 Predicate userPredicate = cb.equal(downloadJoin.get("name"), userName);  
                 finalPredicate = cb.and(finalPredicate,userPredicate);
@@ -857,7 +857,7 @@ public class DashboardREST {
          * @return a predicate object that contains restrictions to gather all downloadLocations during the start
          * and end date.
          */
-        private Predicate createDownloadLocationPredicate(CriteriaBuilder cb, Date start, Date end, Root<DownloadLocation> downloadLocation, Join<Download, DownloadLocation> downloadLocationJoin, String userName, String method){
+        private Predicate createDownloadLocationPredicate(CriteriaBuilder cb, Date start, Date end, Join<Download, DownloadLocation> downloadLocationJoin, String userName, String method){
             
             Predicate startGreater = cb.greaterThan(downloadLocationJoin.<Date>get("downloadStart"), start);
             Predicate endLess = cb.lessThan(downloadLocationJoin.<Date>get("downloadEnd"),end);
@@ -868,12 +868,12 @@ public class DashboardREST {
             Predicate combineGL = cb.and(startGreater,endLess);
             Predicate finalPredicate = cb.or(combineBetween, combineGL);
             
-             if(method!=null && !method.equals("undefined")){
+           if(!("undefined".equals(method))&&!("".equals(method))){
                 Predicate methodPredicate = cb.equal(downloadLocationJoin.get("method"), method);
                 finalPredicate = cb.and(finalPredicate, methodPredicate);
             }
             
-            if(userName!=null && !userName.equals("undefined")){
+            if(!("undefined".equals(userName))&&!(("").equals(userName))){
                 Join<ICATUser, Download> downloadUserJoin = downloadLocationJoin.join("user"); 
                 Predicate userPredicate = cb.equal(downloadUserJoin.get("name"), userName);  
                 finalPredicate = cb.and(finalPredicate,userPredicate);
