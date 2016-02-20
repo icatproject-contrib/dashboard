@@ -1,7 +1,12 @@
 (function(){
 	'use strict';
 
-
+	/* 
+	* A service that deals with calling the the dashboards download RESTful calls.
+	* Each call is dealt in the exact same manner with a .then promise which 
+	* returns the data to the method that accesses this service.
+	*
+	*/
 	angular.module('dashboardApp').factory('DownloadService', DownloadService);
 
 			DownloadService.$inject = ['$http', '$sessionStorage','$q'];
