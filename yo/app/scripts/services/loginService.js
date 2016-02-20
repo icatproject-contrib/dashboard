@@ -8,11 +8,11 @@
 angular.module('dashboardApp')	
 	   .factory('LoginService', LoginService);
 
-	   LoginService.$inject = ['$http'];
+	   LoginService.$inject = ['$http','$rootScope'];
 
-	   function LoginService($http){
+	   function LoginService($http, $rootScope){
 
-	   		var baseURL = 'https://localhost:8181/dashboard/api/v1/';
+	   		var baseURL = $rootScope.baseURL;
 	   		
 	   		var service = {
 

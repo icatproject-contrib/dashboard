@@ -9,11 +9,11 @@
 	*/
 	angular.module('dashboardApp').factory('DownloadService', DownloadService);
 
-			DownloadService.$inject = ['$http', '$sessionStorage','$q'];
+			DownloadService.$inject = ['$http', '$sessionStorage','$q','$rootScope'];
 
-			function DownloadService ($http, $sessionStorage, $q){
+			function DownloadService ($http, $sessionStorage, $q,$rootScope){
 
-				var baseURL = 'https://localhost:8181/dashboard/api/v1/download/';
+				var baseURL = $rootScope.baseURL+'/download/';
 
 					
 
