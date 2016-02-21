@@ -156,7 +156,7 @@ html,body, .cotainer-fluid,.row  {
 .calendar , .user, .lock {
     float: right;
     margin-right: 8px;
-    margin-top: -23px;
+    margin-top: -43px;
     position: relative;
     z-index: 2;
    
@@ -179,6 +179,11 @@ html,body, .cotainer-fluid,.row  {
 
 #login-message {
   font-size: 300%;
+
+}
+
+.login-menu{
+  margin-bottom:20px;
 
 }
 

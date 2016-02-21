@@ -3,10 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.icatproject</groupId>
-    <artifactId>Dashboard</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>dashboard</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>war</packaging>
-
     <name>Dashboard</name>
 
     <properties>

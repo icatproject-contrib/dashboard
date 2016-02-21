@@ -7,11 +7,11 @@
 	* returns the data to the method that accesses this service.
 	*
 	*/
-	angular.module('dashboardApp').factory('DownloadService', DownloadService);
+	angular.module('dashboardApp').factory('downloadService', downloadService);
 
-			DownloadService.$inject = ['$http', '$sessionStorage','$q','$rootScope'];
+			downloadService.$inject = ['$http', '$sessionStorage','$q','$rootScope'];
 
-			function DownloadService ($http, $sessionStorage, $q,$rootScope){
+			function downloadService ($http, $sessionStorage, $q,$rootScope){
 
 				var baseURL = $rootScope.baseURL+'/download/';
 
@@ -28,10 +28,22 @@
 
 					},						
 
-				    getDownloadMethod : function(startDate,endDate, userName){
+				    getDownloadMethodNumber : function(startDate,endDate, userName){
 					
 						
-						return $http.get(baseURL+"method?sessionID=" + $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName)
+						return $http.get(baseURL+"method/number?sessionID=" + $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName)
+							.then(function(response){
+
+								return response.data;
+							
+							});
+	
+					},
+
+					getDownloadMethodVolume : function(startDate,endDate, userName){
+					
+						
+						return $http.get(baseURL+"method/volume?sessionID=" + $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName)
 							.then(function(response){
 
 								return response.data;
@@ -61,9 +73,9 @@
 
 					},
 
-					getDownloadSize : function(startDate, endDate, userName, method){
+					getDownloadVolume : function(startDate, endDate, userName, method){
 
-						return $http.get(baseURL+"size?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
+						return $http.get(baseURL+"volume?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
 							.then(function(response){
 
 								return response.data;

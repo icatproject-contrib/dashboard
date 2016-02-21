@@ -4,70 +4,62 @@
 
 	angular.module('dashboardApp').controller('DownloadCtrl', DownloadCtrl);
 
-	DownloadCtrl.$inject= ['DownloadService','$scope','googleChartApiPromise'];
+	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise'];
 
 	
 
-	function DownloadCtrl(DownloadService, $scope, googleChartApiPromise){	
+	function DownloadCtrl(downloadService, $scope, googleChartApiPromise){	
 
-		var self=this;
+		var vm=this;
 
 		var globalIdentifiers = ['Country', 'number of Downloads'];
 		
-		self.format =  'yyyy-MM-dd';
+		vm.format =  'yyyy-MM-dd';
 
-		self.endDate = new Date();
+		vm.endDate = new Date();
 		
-		self.startDate = new Date(new Date().setDate(new Date().getDate()-10));		
+		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10));		
 
-		self.isStartDateOpen = false;
-        self.isEndDateOpen = false;
+		vm.isStartDateOpen = false;
+        vm.isEndDateOpen = false;
 
-		self.openStartDate = function(){
+		vm.openStartDate = function(){
             this.isStartDateOpen = true;
             this.isEndDateOpen = false;
         };
 
-        self.openEndDate = function(){
+        vm.openEndDate = function(){
             this.isStartDateOpen = false;
             this.isEndDateOpen = true;
         };	
 
         
 
-        var downloadMethodTypes = DownloadService.getDownloadMethodTypes();
+        var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
         	downloadMethodTypes.then(function(responseData){
 
-        		self.downloadMethodTypes = responseData;
+        		vm.downloadMethodTypes = responseData;
 
         	});
 
-		self.updatePage = function(){	
+		vm.updatePage = function(){	
 
 			//Have to set the time to midnight otherwise will use current time.
-     		var startDate = moment(self.startDate);			
+     		var startDate = moment(vm.startDate);			
 
 			startDate.set('hour','00');
 			startDate.set('minute','00');
 			startDate.set('second','00');
 
 						
-			var endDate = Date.parse(self.endDate);
-			var userName = self.userName;
-			var method = self.selectedMethod;	
+			var endDate = Date.parse(vm.endDate);
+			var userName = vm.userName;
+			var method = vm.selectedMethod;	
 
-		
 			
-			var downloadMethod = DownloadService.getDownloadMethod(startDate,endDate, userName);
-			var downloadCount = DownloadService.getDownloadFrequency(startDate,endDate, userName, method);
-			var downloadBandwidth = DownloadService.getDownloadBandwidth(startDate,endDate, userName, method);
-			var downloadSize = DownloadService.getDownloadSize(startDate,endDate, userName, method);			
-			var globalDownloadLocation = DownloadService.getGlobalDownloadLocation(startDate,endDate, userName, method);
-			var localDownloadLocation = DownloadService.getLocalDownloadLocation(startDate,endDate, userName, method);
-			var downloadEntityAge = DownloadService.getDownloadEntityAge(startDate,endDate,userName,method);
 
-			downloadEntityAge.then(function(responseData){					
+			downloadService.getDownloadEntityAge(startDate,endDate,userName,method).then(function(responseData){					
 
 				
 				var age  = _.map(responseData, function(responseData){
@@ -82,7 +74,7 @@
 							
 				number.unshift('Number of Files');				
 				
-				self.downloadEntityAge = [age,number];
+				vm.downloadEntityAge = [age,number];
 				
 				
 
@@ -91,7 +83,7 @@
 
 
 
-			localDownloadLocation.then(function(responseData){
+			downloadService.getLocalDownloadLocation(startDate,endDate, userName, method).then(function(responseData){
 				
 				googleChartApiPromise.then(function(){
 					var dataTable = new google.visualization.DataTable();
@@ -116,7 +108,7 @@
 				    	region:'GB',				    	
 				    	colorAxis: {colors: ['grey', '#e31b23']}
 				    };				   
-				    self.localChart = localChart;
+				    vm.localChart = localChart;
 					
 				});
 
@@ -124,7 +116,7 @@
 			});
 
 
-			globalDownloadLocation.then(function(responseData){ 			   				  		
+			downloadService.getGlobalDownloadLocation(startDate,endDate, userName, method).then(function(responseData){ 			   				  		
 				
 
 			    responseData = _.map(responseData, function(responseData){
@@ -140,19 +132,29 @@
 			    	colorAxis: {colors: ['grey', '#e31b23']}
 			    };
 			   
-			    self.worldChart = worldChart;
+			    vm.worldChart = worldChart;
 			    
 			});
 			
 
-			downloadMethod.then(function(responseData){	
-				  	var data = responseData;			  			  	
-				    self.downloadMethod = _.map(data, function(data){
+			downloadService.getDownloadMethodNumber(startDate,endDate, userName).then(function(responseData){	
+				  	var data = responseData;
+
+				  	vm.downloadMethod = {
+
+				  	}
+
+				    vm.downloadMethodNumber = _.map(data, function(data){
 						return [data.method, data.number];
 					});
 		    });
 
-		    downloadCount.then(function(responseData){
+		    downloadService.getDownloadMethodVolume(startDate,endDate, userName).then(function(responseData){	
+				  	var data = responseData;			  			  	
+				    
+		    });
+
+		    downloadService.getDownloadFrequency(startDate,endDate, userName, method).then(function(responseData){
 
 		    	var data = responseData;
 		    	
@@ -168,7 +170,7 @@
 				
 
 			    //Calculate metrics and assign to to controller variables
-			    self.getCountTotal = function(){		    		
+			    vm.getCountTotal = function(){		    		
 		    		var total = 0;	    		
 		    		
 		    		for(var i=1;i<numbers.length;i++){	    			
@@ -178,7 +180,7 @@
 		    		return total;
 	    		}
 
-	    		self.getCountBusiestDay = function(){
+	    		vm.getCountBusiestDay = function(){
 	    		var data = [dates,numbers];
 
 	    		var busiestIndex = 0;
@@ -198,14 +200,14 @@
 							
 				numbers.unshift('Number of Downloads');	    		
 					
-			    self.downloadCount = [dates,numbers];
+			    vm.downloadCount = [dates,numbers];
 
 					
 		    });
 
-		    downloadBandwidth.then(function(responseData){
+		    downloadService.getDownloadBandwidth(startDate,endDate, userName, method).then(function(responseData){
 		    	
-		    	self.rawBandwidthData = responseData;
+		    	vm.rawBandwidthData = responseData;
 
 		    	var bandwidthData = [];
 
@@ -241,18 +243,19 @@
 		    			
 					});
 		    	
-		    	self.downloadBandwidth = bandwidthData;  	
+		    	vm.downloadBandwidth = bandwidthData;  	
 		    	
 		    	
-		    	self.highestBandwidth = Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
-		    	self.lowestBandwidth  = Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
+		    	vm.highestBandwidth = Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
+		    	vm.lowestBandwidth  = Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
 
 		    	
 
 		    });
 
 			
-	    	downloadSize.then(function(responseData){
+	    	downloadService.getDownloadVolume(startDate,endDate, userName, method).then(function(responseData){
+
 
 	    		var data = responseData;
 
@@ -266,44 +269,9 @@
 				});
 
 				//Need to format the bytes into human readable format
-				var formattedData = byteArrayToSize(byteArray)
+				var formattedData = byteArrayToSize(byteArray)			
 
 				
-
-				//Download number metrics
-
-		    	self.getTotalnumber = function(){
-		    		var total = 0.0;    		    			    		
-		    		
-
-		    		for(var i=0;i<byteArray.length;i++){
-		    			if(total!==null){	    			
-		    				total +=byteArray[i];
-		    			}
-		    		}
-
-		    		return bytesToSize(total);
-		    	}
-	    	
-		    	//Busiest day metric
-		    	self.getBusiestDaynumber = function(){
-
-		    		var data = [dates,byteArray];
-
-		    		var busiestIndex = 0;
-		    		var largestDay = 0;	    		
-		    		
-		    		for(var i=1;i<data[1].length;i++){	    			
-		    			if(data[1][i] > largestDay){
-		    				busiestIndex = i;
-		    				largestDay = data[1][i];
-		    			}
-		    		}
-
-		    		return data[0][busiestIndex] +" with "+bytesToSize(largestDay);
-
-		    	}	    	
-
 		    	//Adding on to the beginning of the array to allow c3 to read the data
 				dates.unshift("x");		
 							
@@ -311,7 +279,7 @@
 				dataForGraph.unshift(formattedData[1]);
 		
 
-	    		self.downloadSize = { 	
+	    		vm.downloadVolume = { 	
 	    			data:[dates,dataForGraph],
 	    			byteFormat:formattedData[1]
 
@@ -321,9 +289,11 @@
 			
 
 		};	
-		self.globalLocationDescription = "This map displays the number of downloads that have occured within each country during the requested period.";
-		self.localLocationDescription = "This map displays the number of downloads that have occured within the selected area. The circles center position is based on the longitude and latitude of the download.";
+		vm.globalLocationDescription = "This map displays the number of downloads that have occured within each country during the requested period.";
+		vm.localLocationDescription = "This map displays the number of downloads that have occured within the selected area. The circles center position is based on the longitude and latitude of the download.";
 		
+	
+
 		
 		
 		

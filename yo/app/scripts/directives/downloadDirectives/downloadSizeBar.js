@@ -40,7 +40,7 @@
 						data: {
 
 						 	 x:"x",				 	 
-			       			 columns : data,
+			       			 columns : data.data,
 			       			 type:'bar',
 			       			 labels:true,
 					    },
@@ -62,7 +62,7 @@
 					        },
 					        y: {
 					        	label: {
-					        			text: 'MegaBytes',
+					        			text: data.byteFormat,
 					        			position: 'outer-center',
 					        		},				        
 					    },
