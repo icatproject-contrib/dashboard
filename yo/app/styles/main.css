@@ -152,6 +152,11 @@ html,body, .cotainer-fluid,.row  {
   margin-left: 6px;
 }
 
+.graph-options{
+  background-color: #808080;
+  margin-left: 6px;
+}
+
 
 .calendar , .user, .lock {
     float: right;

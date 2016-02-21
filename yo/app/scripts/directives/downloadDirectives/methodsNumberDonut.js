@@ -26,17 +26,21 @@
 					chart.unzoom();
 				}
 
-				
-				$scope.description =  "This donut chart displays the number of downloads by download mechanism";
-				$scope.title = "Download Methods";
+				$scope.options = ["number","volume"];
+
+			
+
+						
 
 				$scope.$watch('data', function(data){
-					if(data){						
-					
+					if(data){
+						console.log(data.volume)
+						$scope.description =  data.description;
+						$scope.title = data.title;					
 						chart  = c3.generate({
 							bindto:divElement[0],
 							data:{
-								columns : data,							
+								columns : data.number,							
 								type: 'donut'
 								},
 							donut:{
@@ -57,6 +61,14 @@
 						});
 				}
 			});
+
+			$scope.changeData = function(option){				
+				chart.unload();
+				
+				chart.load({
+					columns: $scope.data[option]
+				});
+			}	
 		}
 
 	}

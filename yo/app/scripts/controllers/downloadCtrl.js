@@ -4,11 +4,11 @@
 
 	angular.module('dashboardApp').controller('DownloadCtrl', DownloadCtrl);
 
-	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise'];
+	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise','$q'];
 
 	
 
-	function DownloadCtrl(downloadService, $scope, googleChartApiPromise){	
+	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q){	
 
 		var vm=this;
 
@@ -56,6 +56,46 @@
 			var endDate = Date.parse(vm.endDate);
 			var userName = vm.userName;
 			var method = vm.selectedMethod;	
+
+
+			var methodNumberPromise = downloadService.getDownloadMethodNumber(startDate,endDate, userName);			
+			var methodVolumePromise = downloadService.getDownloadMethodVolume(startDate,endDate, userName);
+
+			var downloadMethod = $q.all([methodNumberPromise,methodVolumePromise]);
+
+			downloadMethod.then(function(responseData){
+
+				var number = _.map(responseData[0], function(data){
+						return [data.method, data.number];
+				});
+
+				var volumeMethods = _.map(responseData[1], function(data){
+						return data.method;
+				});
+
+				var volumeRaw = _.map(responseData[1], function(data){
+						return [data.volume];
+				});
+
+				
+				var formattedVolume = byteArrayToSize(volumeRaw);
+
+				var volume = formattedVolume.map(function(value,index){
+				    return [formattedVolume[index],volumeMethods[index]];
+				});
+				console.log(volume);
+
+				vm.downloadMethod = {
+					"number":number,
+					"volume":[formattedVolume[0],volumeMethods],
+					"description" :  "This donut chart displays the number and volume of downloads by download mechanism.",
+				    "title" :"Download Methods"
+				};
+
+			});
+
+			
+			
 
 			
 
@@ -135,24 +175,12 @@
 			    vm.worldChart = worldChart;
 			    
 			});
+
+
+
 			
 
-			downloadService.getDownloadMethodNumber(startDate,endDate, userName).then(function(responseData){	
-				  	var data = responseData;
-
-				  	vm.downloadMethod = {
-
-				  	}
-
-				    vm.downloadMethodNumber = _.map(data, function(data){
-						return [data.method, data.number];
-					});
-		    });
-
-		    downloadService.getDownloadMethodVolume(startDate,endDate, userName).then(function(responseData){	
-				  	var data = responseData;			  			  	
-				    
-		    });
+			
 
 		    downloadService.getDownloadFrequency(startDate,endDate, userName, method).then(function(responseData){
 
@@ -376,28 +404,7 @@
 
 	}
 
-	function mapJsonDataToArry(data){		
-		    		
-		var dates  = _.map(data, function(data){
-			return data.date;
-		});
-
-		var numbers = _.map(data, function(data){
-			return data.number;
-		});
-
-		dates.unshift("x");		
-					
-		numbers.unshift('Count');
-
-		var result = [dates,numbers];
-
-		return result;
-
-	}
-
-
-
+	
 
 
 

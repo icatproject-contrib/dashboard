@@ -25,7 +25,7 @@
 						
 						var displayData = [];
 
-						console.log(data)
+					
 
 						var rawData = data[1];
 						var dates = data[0];
