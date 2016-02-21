@@ -36,7 +36,7 @@ public class DownloadSizeProcessor {
     /**
      * Calculates how much data was hyperthetically downloaded each date for each
      * download and adds this to an overall treemap.
-     * @param downloads List of downloads to be processed.
+     * @param downloadList List of downloads to be processed.
      * 
      * @return TreeMap of how much data was downloaded at each date.
      */

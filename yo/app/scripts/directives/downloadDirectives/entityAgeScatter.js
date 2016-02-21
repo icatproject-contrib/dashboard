@@ -40,10 +40,11 @@
 								
 							data: {
 
-							 	 x:"x",				 	 
+							 	 x:"Days old",				 	 
 				       			 columns : data,
 				       			 type:'scatter'
 						    },
+						   
 						    legend: {
 						    	show:false
 						    },
@@ -70,7 +71,7 @@
 						    tooltip:{
 									
 									format: {
-									    
+									    title: function (d) { return d+' days old '; },
 									    value: function (value, ratio, id) {
 									        var format = d3.format('s');
 									        return format(value);

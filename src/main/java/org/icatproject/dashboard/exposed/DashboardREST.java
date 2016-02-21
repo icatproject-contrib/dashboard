@@ -352,7 +352,8 @@ public class DashboardREST {
         
         
         /**
-         * Gets the routes used by downloads e.g. Globus. 
+         * Gets the routes used by downloads e.g. Globus https etc with the amount 
+         * of downloads that used those methods.
          * @param sessionID SessionID for authentication.
          * @param startDate Start point for downloads.
          * @param endDate end points for downloads.
@@ -361,9 +362,9 @@ public class DashboardREST {
          * @throws BadRequestException Incorrect date formats or a invalid sessionID.
          */
         @GET
-        @Path("download/method")
+        @Path("download/method/number")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getMethods(@QueryParam("sessionID")String sessionID,
+        public String getMethodNumber(@QueryParam("sessionID")String sessionID,
                                  @QueryParam("startDate")String startDate,
                                  @QueryParam("endDate")String endDate,
                                  @QueryParam("userName")String userName) throws DashboardException{
@@ -407,6 +408,71 @@ public class DashboardREST {
                String method = result[0].toString();
                long number = (long)result[1];  
                obj.put("number", number);
+               obj.put("method",method);              
+               ary.add(obj);
+            }
+                     
+            
+            return ary.toJSONString();
+
+        }
+        
+        /**
+         * Gets the routes used by downloads e.g. Globus. 
+         * @param sessionID SessionID for authentication.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+         * @return The type of route and the number of times used over the set period.
+         * @throws BadRequestException Incorrect date formats or a invalid sessionID.
+         */
+        @GET
+        @Path("download/method/volume")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getMethodVolume(@QueryParam("sessionID")String sessionID,
+                                 @QueryParam("startDate")String startDate,
+                                 @QueryParam("endDate")String endDate,
+                                 @QueryParam("userName")String userName) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }  
+            
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));
+                      
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);
+            
+                        
+            //Get methods and count how many their are.
+            query.multiselect(download.get("method"),cb.sum(download.<Long>get("downloadSize")));
+            
+            
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, "");            
+            
+            
+            query.where(finalPredicate);
+            
+            //Finally group by the method
+            query.groupBy(download.get("method"));
+            
+            List<Object[]> methods = manager.createQuery(query).getResultList();
+
+            
+            JSONArray ary = new JSONArray();            
+                  
+            
+               
+            for(Object[] result: methods){   
+               JSONObject obj = new JSONObject();
+               String method = result[0].toString();
+               long number = (long)result[1];  
+               obj.put("volume", number);
                obj.put("method",method);              
                ary.add(obj);
             }
@@ -531,7 +597,7 @@ public class DashboardREST {
          * @throws DashboardException Issues with accessing the data from the database. 
          */
         @GET 
-        @Path("download/size")
+        @Path("download/volume")
         @Produces(MediaType.APPLICATION_JSON)
         public String getSize(@QueryParam("sessionID")String sessionID,
                               @QueryParam("startDate")String startDate,

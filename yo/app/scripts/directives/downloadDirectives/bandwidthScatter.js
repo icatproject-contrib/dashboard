@@ -44,6 +44,7 @@
 			       			 columns : data,
 			       			 type:'spline'
 					    },
+					    transition: {duration: 0},
 					    legend: {
 					    	show:false
 					    },
