@@ -7,15 +7,16 @@
  */
 package org.icatproject.dashboard.consumers;
 
-import java.io.BufferedReader;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,25 +24,15 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
-import javax.net.ssl.HttpsURLConnection;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
-import javax.transaction.UserTransaction;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import org.icatproject.dashboard.manager.PropsManager;
@@ -110,7 +101,7 @@ public class DownloadListener implements MessageListener {
 
     protected String sessionID;
 
-    private final String api = "/api/v1/admin/downloads?preparedId=";
+    private String topCatApi; 
 
       
 
@@ -128,6 +119,7 @@ public class DownloadListener implements MessageListener {
     private void init() {
         icat = createICATLink();
         sessionID = sessionManager.getSessionID();
+        topCatApi= prop.getTopCatURL()+"/api/v1/admin/downloads?icatUrl="+prop.getICATUrl()+"&sessionId="+sessionManager.getSessionID()+"&queryOffset=";
     }
     
     
@@ -397,38 +389,43 @@ public class DownloadListener implements MessageListener {
      * @param preparedID The unique download identifier.
      * @return
      */
-    private String getMethod(String preparedID) {
+    private String getMethod(String preparedID)  {
        
-        String method = null;
-        
-        try {
-            URL topCatURL = new URL(prop.getTopCatURL() + api + preparedID);
-            HttpsURLConnection httpsConnection = (HttpsURLConnection) topCatURL.openConnection();
-            httpsConnection.setRequestMethod("GET");
-            httpsConnection.setRequestProperty("Accept", "application/json");
-            httpsConnection.addRequestProperty("Authorization", getCredentials());
-
-            BufferedReader responseBuffer = new BufferedReader(new InputStreamReader((httpsConnection.getInputStream())));
-
-            String output;
-            StringBuilder buffer = new StringBuilder();
-
-            while ((output = responseBuffer.readLine()) != null) {
-                buffer.append(output);
-            }
-
-            JSONParser parser = new JSONParser();
-
-            Object obj = parser.parse(buffer.toString());
-            JSONArray jsonArray = (JSONArray) obj;
-            JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-            method = jsonObject.get("transport").toString();
-
-        } catch (IOException | ParseException ex) {
-             logger.error("A Fatal Error has Occured ",ex);
-        }
+        String method =callTopCat(preparedID).get("transport").toString();       
         return method;
          
+    }
+    
+    /**
+     * Contacts the topCat and returns all the download data associated with that
+     * preparedID.
+     * @param prepearedID of the download.
+     * @return A JSONObject of the topCat response.
+     */
+    private JSONObject callTopCat(String preparedID){
+        JSONObject topCatOutput = null;
+        
+        try {
+            Client client = Client.create();
+            String url =  URLEncoder.encode("where download.preparedId='"+preparedID+"'", "UTF-8");
+            WebResource webResource  = client.resource(topCatApi+url);
+            ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
+            String result = response.getEntity(String.class);
+            
+            
+            JSONParser parser = new JSONParser();
+
+            Object obj = parser.parse(result);
+            JSONArray jsonArray = (JSONArray) obj;
+            topCatOutput = (JSONObject) jsonArray.get(0);
+        }
+        catch (IOException | ParseException ex) {
+             logger.error("A Fatal Error has Occured ",ex);
+        }
+        
+        return topCatOutput;
+                
+        
     }
     
     /**
@@ -441,34 +438,7 @@ public class DownloadListener implements MessageListener {
      */    
     private String getDownloadEntityIDs(String preparedID) throws ParseException{
         
-        String entityIDs = null;
-        
-        try {
-            URL topCatURL = new URL(prop.getTopCatURL() + api + preparedID);
-            HttpsURLConnection httpsConnection = (HttpsURLConnection) topCatURL.openConnection();
-            httpsConnection.setRequestMethod("GET");
-            httpsConnection.setRequestProperty("Accept", "application/json");
-            httpsConnection.addRequestProperty("Authorization", getCredentials());
-
-            BufferedReader responseBuffer = new BufferedReader(new InputStreamReader((httpsConnection.getInputStream())));
-
-            String output;
-            StringBuilder buffer = new StringBuilder();
-
-            while ((output = responseBuffer.readLine()) != null) {
-                buffer.append(output);
-            }
-
-            JSONParser parser = new JSONParser();
-
-            Object obj = parser.parse(buffer.toString());
-            JSONArray jsonArray = (JSONArray) obj;
-            JSONObject jsonObject = (JSONObject) jsonArray.get(0);
-            entityIDs = jsonObject.get("downloadItems").toString();
-
-        } catch (IOException | ParseException ex) {
-             logger.error("A Fatal Error has Occured ",ex);
-        }
+        String entityIDs = callTopCat(preparedID).get("downloadItems").toString();       
 
         return formatTopCatOutput(entityIDs);
         
@@ -556,7 +526,7 @@ public class DownloadListener implements MessageListener {
             Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        if (user.get(0)!=null) {
+        if (user.size()==0) {
             logger.info("No user found in the Dashboard. Retrieving from ICAT.");
             dashBoardUser = userCollector.insertUser(name);
 
@@ -982,18 +952,5 @@ public class DownloadListener implements MessageListener {
         return icat;
     }
 
-    /**
-     * Encodes the topcat admin password and username to Base64
-     *
-     * @return Base64 topcat credentials
-     */
-    private String getCredentials() {
-        String rawUser = prop.getTopCatUser();
-        String rawPass = prop.getTopCatPass();
-        String rawCred = rawUser + ":" + rawPass;
-        byte[] authEncBytes = Base64.getEncoder().encode(rawCred.getBytes());
-        String authStringEnc = new String(authEncBytes);
-
-        return "Basic " + authStringEnc;
-    }
+    
 }
