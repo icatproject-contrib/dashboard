@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory;
     
 })
 
-@TransactionManagement(TransactionManagementType.BEAN)
+
 /**
  * DownloadListener is a Message driven bean that processes JMS messages from an IDS.
  * It deals with two types of messages the getData call and the prepareData call. 
@@ -105,12 +105,6 @@ public class DownloadListener implements MessageListener {
 
     @EJB
     private UserCollector userCollector;
-
-   
-
-    //User transaction is used here to prevent Entities being created if the download fails.
-    @Resource
-    private UserTransaction ut;
 
     protected ICAT icat;
 
@@ -174,7 +168,7 @@ public class DownloadListener implements MessageListener {
      */
     private void prepareDataHandler(TextMessage message) throws ParseException {
         try {
-            ut.begin();
+           
             String preparedId = getPreparedId(message.getText());
             download = new Download();
             download.setUser(getUser(message.getText()));
@@ -184,10 +178,10 @@ public class DownloadListener implements MessageListener {
             download.setPreparedID(preparedId);
             download.setLocation(getLocation(message.getStringProperty("ip")));            
             beanManager.create(download, manager);
-            ut.commit();
+            
 
-        } catch (JMSException | DashboardException | NotSupportedException | SystemException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | RollbackException ex) {
-            logger.error("A Fatal Error has Occured",ex);
+        } catch (JMSException | DashboardException | SecurityException | IllegalStateException ex) {
+            logger.error("A Fatal Error has Occured ",ex);
         }
     }
 
@@ -199,7 +193,7 @@ public class DownloadListener implements MessageListener {
      */
     private void getDataHandler(TextMessage message)  {
         try {
-            ut.begin();
+         
             
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(message.getText());
@@ -211,8 +205,8 @@ public class DownloadListener implements MessageListener {
                 createDownload(message);
             }            
            
-            ut.commit();
-        } catch (DashboardException | JMSException | NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | ParseException  | IcatException_Exception ex) {
+            
+        } catch (DashboardException | JMSException |  ParseException  | IcatException_Exception ex) {
              logger.error("A Fatal Error has Occured",ex);
         }
 
