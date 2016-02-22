@@ -27,11 +27,13 @@ import org.json.simple.parser.ParseException;
 public class GeoTool {
  
     //End point of the API
-    private static String apiEndPoint = "http://ipinfo.io/"; 
+    private static final String apiEndPoint = "http://ip-api.com/json/"; 
     
     /**
      * Gets the longitude and latitude from the above API and inserts it into a DownloadLocation object.
      * @param ipAddress
+     * @param manager
+     * @param beanManager
      * @return DownloadLocation object with its filled in variables.
      */    
     public static DownloadLocation getDownloadLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) {
@@ -42,30 +44,30 @@ public class GeoTool {
         try {
             dl = new DownloadLocation();   
             
-            URL url = new URL(apiEndPoint + ipAddress + "/json");
+            URL url = new URL(apiEndPoint + ipAddress);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            
-            while ((line = rd.readLine()) != null) {
-                sb.append(line);
-                
-            }                      
-            rd.close();
+            StringBuilder sb;
+            try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                sb = new StringBuilder();
+                String line;
+                while ((line = rd.readLine()) != null) {
+                    sb.append(line);
+                    
+                }
+            }
             conn.disconnect();
             
-            result = (JSONObject) parser.parse(sb.toString());
-            
+            result = (JSONObject) parser.parse(sb.toString());   
            
-            String[] loc = ((String)result.get("loc")).split(",");
+            
                        
-            double latitude = Double.parseDouble(loc[0]);
-            double longitude= Double.parseDouble(loc[1]);
+            double latitude = (double) result.get("lat");
+            double longitude= (double) result.get("lon");
             String city = (String) result.get("city");
             String countryCode = (String) result.get("country");
+            String isp = (String) result.get("isp");
             
-            List<DownloadLocation> locations = new ArrayList<DownloadLocation>();
+            List<DownloadLocation> locations;
             
             locations = manager.createNamedQuery("DownloadLocation.check").setParameter("longitude", longitude).setParameter("latitude", latitude).getResultList();
             
@@ -78,6 +80,7 @@ public class GeoTool {
                 dl.setCity(city);
                 dl.setLatitude(latitude);
                 dl.setLongitude(longitude);
+                dl.setIsp(isp);
                 
                 try {
                     beanManager.create(dl, manager);
@@ -92,9 +95,7 @@ public class GeoTool {
             
         } catch (MalformedURLException ex) {
             Logger.getLogger(GeoTool.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(GeoTool.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
+        } catch (IOException | ParseException ex) {
             Logger.getLogger(GeoTool.class.getName()).log(Level.SEVERE, null, ex);
         }
         
