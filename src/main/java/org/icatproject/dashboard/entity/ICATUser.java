@@ -30,7 +30,9 @@ import javax.xml.bind.annotation.XmlTransient;
 @Comment("A user that operates within the ICAT family. They can have downloads or be part of queries.")
 
 
-@Table(uniqueConstraints ={ @UniqueConstraint(columnNames ={"USER_ICAT_ID"})})
+@Table(uniqueConstraints ={ @UniqueConstraint(columnNames ={"userICATID"}),
+                            @UniqueConstraint(columnNames={"name"})
+       })
 @Entity
 
 @NamedQueries({
