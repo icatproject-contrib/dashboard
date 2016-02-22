@@ -39,7 +39,15 @@ public class DownloadLocation extends EntityBaseBean {
     
     @Comment("The city of the location.")
     private String city;
+    
+    @Comment("The ISP at this location.")
+    private String isp;
 
+    public String getIsp() {
+        return isp;
+    }
+
+    
     public String getCountryCode() {
         return countryCode;
     }
@@ -82,6 +90,10 @@ public class DownloadLocation extends EntityBaseBean {
     
     public void setLatitude(double latitude) {
         this.latitude = latitude;
+    }
+
+    public void setIsp(String isp) {
+        this.isp = isp;
     }
 
     
