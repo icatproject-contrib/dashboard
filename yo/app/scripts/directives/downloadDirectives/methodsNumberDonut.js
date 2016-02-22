@@ -26,7 +26,7 @@
 					chart.unzoom();
 				}
 
-				$scope.options = ["number","volume"];
+				
 
 			
 
@@ -34,13 +34,15 @@
 
 				$scope.$watch('data', function(data){
 					if(data){
-						console.log(data.volume)
+						
 						$scope.description =  data.description;
-						$scope.title = data.title;					
+						$scope.options = data.datasets;
+						$scope.title = data.number.title;
+
 						chart  = c3.generate({
 							bindto:divElement[0],
 							data:{
-								columns : data.number,							
+								columns : data.number.data,							
 								type: 'donut'
 								},
 							donut:{
@@ -64,10 +66,15 @@
 
 			$scope.changeData = function(option){				
 				chart.unload();
+
+				var dataset = $scope.data[option];
+				console.log(dataset.title)
 				
 				chart.load({
-					columns: $scope.data[option]
+					columns: dataset.data,
+					
 				});
+				$scope.title=  dataset.title;
 			}	
 		}
 

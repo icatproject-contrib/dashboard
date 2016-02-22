@@ -57,14 +57,15 @@
 			var userName = vm.userName;
 			var method = vm.selectedMethod;	
 
-
+			//Create the promises for the data.
 			var methodNumberPromise = downloadService.getDownloadMethodNumber(startDate,endDate, userName);			
 			var methodVolumePromise = downloadService.getDownloadMethodVolume(startDate,endDate, userName);
 
+			//Combine the promises for multiple datasets per graph
 			var downloadMethod = $q.all([methodNumberPromise,methodVolumePromise]);
 
 			downloadMethod.then(function(responseData){
-
+				//Extract the data from the response.
 				var number = _.map(responseData[0], function(data){
 						return [data.method, data.number];
 				});
@@ -77,19 +78,30 @@
 						return [data.volume];
 				});
 
-				
+				//Conver the data to human readable format.
 				var formattedVolume = byteArrayToSize(volumeRaw);
+				var formattedVolumeData = formattedVolume[0];
 
-				var volume = formattedVolume.map(function(value,index){
-				    return [formattedVolume[index],volumeMethods[index]];
+				var byteFormat = formattedVolume[1]; 
+
+				//Combine the data into one array for the c3.js donut.
+				var volume =  formattedVolumeData.map(function(value,index){
+				    return [volumeMethods[index], formattedVolumeData[index]];
 				});
-				console.log(volume);
+				
 
-				vm.downloadMethod = {
-					"number":number,
-					"volume":[formattedVolume[0],volumeMethods],
-					"description" :  "This donut chart displays the number and volume of downloads by download mechanism.",
-				    "title" :"Download Methods"
+				vm.method = {
+					datasets:["number","volume"],
+					number : {
+						"data":number,
+						"title":"Number of downloads"
+					},
+					volume : {
+						"data":volume,
+						"title":"Volume ("+byteFormat+")"
+					},					
+					description :  "This donut chart displays the number and volume of downloads by download mechanism.",
+				    title :"Download Methods"
 				};
 
 			});
@@ -114,7 +126,12 @@
 							
 				number.unshift('Number of Files');				
 				
-				vm.downloadEntityAge = [age,number];
+				vm.entityAge ={
+					data:[age,number],
+					description : "This scatter graph displays the number of datafiles that have been downloaded grouped by their age. The age of the datafile is calculated from its creation date subtracted by the date of the download. The age is displayed in days.",
+				    title : "Download File Age",
+				    zoom : true
+				} 
 				
 				
 
@@ -194,22 +211,17 @@
 				var numbers = _.map(data, function(data){
 					return data.number;
 				});
-
 				
+				var data = [dates,numbers];
 
-			    //Calculate metrics and assign to to controller variables
-			    vm.getCountTotal = function(){		    		
-		    		var total = 0;	    		
-		    		
-		    		for(var i=1;i<numbers.length;i++){	    			
-		    			total +=numbers[i];
-		    		}
-
-		    		return total;
-	    		}
-
-	    		vm.getCountBusiestDay = function(){
-	    		var data = [dates,numbers];
+			    //Calculate metrics: Total amount of downloads and the busiest Day.
+			 		    		
+	    		var total = 0;	    		
+	    		
+	    		for(var i=1;i<numbers.length;i++){	    			
+	    			total +=numbers[i];
+	    		}   		
+	    		
 
 	    		var busiestIndex = 0;
 	    		var largestDay = 0;	    		
@@ -219,16 +231,22 @@
 	    				busiestIndex = i;
 	    				largestDay = data[1][i];
 	    			}
-	    		}
-
-	    		return data[0][busiestIndex] +" with "+largestDay;
-	    		}
+	    		}   		
 
 	    		dates.unshift("x");		
 							
 				numbers.unshift('Number of Downloads');	    		
 					
-			    vm.downloadCount = [dates,numbers];
+			    vm.count ={
+			    	data:data,
+			    	description : "This line graph displays the number of downloads that occured on the requested days.",
+					title:"Download Count",
+					zoom:true,
+					total: total,
+					busiestDay:data[0][busiestIndex] +" with "+largestDay
+			    }
+
+			    
 
 					
 		    });
@@ -244,8 +262,7 @@
 
 		    	formattedDateArray.unshift("x")	    	
 		    	 
-		    	bandwidthData.push(formattedDateArray) 
-
+		    	bandwidthData.push(formattedDateArray)
 		    	
 		    	responseData.forEach( function(download){
 		    		var downloadArray = [];		    		
@@ -271,11 +288,18 @@
 		    			
 					});
 		    	
-		    	vm.downloadBandwidth = bandwidthData;  	
+		    	vm.bandwidth ={
+		    		data:bandwidthData,
+		    		highest:Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S",
+		    		lowest:Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S",
+		    		zoom :true,
+				    description : "This scatter graph displays the bandwidth of downloads in Megabytes. This is calculated by the download amount (Megabytes) over the time it took to complete.",
+				    title : "Download Bandwidth"
+
+		    	}  	
 		    	
 		    	
-		    	vm.highestBandwidth = Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
-		    	vm.lowestBandwidth  = Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
+		    	
 
 		    	
 
@@ -297,7 +321,9 @@
 				});
 
 				//Need to format the bytes into human readable format
-				var formattedData = byteArrayToSize(byteArray)			
+				var formattedData = byteArrayToSize(byteArray);	
+
+
 
 				
 		    	//Adding on to the beginning of the array to allow c3 to read the data
@@ -305,11 +331,35 @@
 							
 				var dataForGraph = formattedData[0];
 				dataForGraph.unshift(formattedData[1]);
-		
 
-	    		vm.downloadVolume = { 	
+				var total = 0;	    		
+	    		
+	    		for(var i=1;i<dataForGraph.length;i++){	
+	    		    var temp = dataForGraph[i];
+	    		    if(temp!=="null"){
+	    		    	total +=temp;
+	    		    }    			
+	    			
+	    		}   		
+	    		
+
+	    		var busiestIndex = 0;
+	    		var largestDay = 0;	    		
+	    		
+	    		for(var i=1;i<dataForGraph.length;i++){	    			
+	    			if(dataForGraph[i] > largestDay){
+	    				busiestIndex = i;
+	    				largestDay = dataForGraph[i];
+	    			}
+	    		} 
+				 
+				var byteFormat = formattedData[1];
+
+	    		vm.volume = { 	
 	    			data:[dates,dataForGraph],
-	    			byteFormat:formattedData[1]
+	    			byteFormat:byteFormat,
+	    			total:total +' '+byteFormat,
+	    			busiestDay:"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat
 
 	    		};
 	    	});

@@ -24,15 +24,15 @@
 
 				$scope.reset = function(){					
 					chart.unzoom();
-				}
+				}				
+				
+				
+				$scope.$watch('data', function(dataObject){
+					if(dataObject){	
 
-				
-				$scope.description = "This line graph displays the number of downloads that occured on the requested days.";
-				$scope.title = "Download Count";
-				$scope.zoom = true;
-				
-				$scope.$watch('data', function(data){
-					if(data){						
+						$scope.description = dataObject.description;
+						$scope.title = dataObject.title;
+						$scope.zoom = dataObject.zoom;					
 					
 						chart = c3.generate({
 							bindto:divElement[0],
@@ -40,7 +40,7 @@
 							data: {
 
 							 	 x:"x",				 	 
-				       			 columns : data,
+				       			 columns : dataObject.data,
 				       			 
 						    },
 						    legend: {

@@ -26,13 +26,14 @@
 					chart.unzoom();
 				}
 
-				$scope.zoom = true;
-				$scope.description = "This scatter graph displays the bandwidth of downloads in Megabytes. This is calculated by the download amount (Megabytes) over the time it took to complete."
-				$scope.title = "Download Bandwidth";
+				
 
-				$scope.$watch('data', function(data){
-					if(data){
-						
+				$scope.$watch('data', function(dataObject){
+					if(dataObject){
+					
+					$scope.zoom = dataObject.zoom;
+					$scope.description = dataObject.description;
+					$scope.title = dataObject.title;
 					
 					chart = c3.generate({
 						 bindto:divElement[0],
@@ -41,7 +42,7 @@
 						 data: {
 
 						 	 x:"x",				 	 
-			       			 columns : data,
+			       			 columns : dataObject.data,
 			       			 type:'spline'
 					    },
 					    transition: {duration: 0},

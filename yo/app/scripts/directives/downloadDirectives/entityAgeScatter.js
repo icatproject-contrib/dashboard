@@ -27,12 +27,14 @@
 					chart.unzoom();
 				}
 
-				$scope.description = "This scatter graph displays the number of datafiles that have been downloaded grouped by their age. The age of the datafile is calculated from its creation date subtracted by the date of the download. The age is displayed in days.";
-				$scope.title = "Download File Age";
-				$scope.zoom = true;
+				
 
-				$scope.$watch('data', function(data){
-					if(data){
+				$scope.$watch('data', function(dataObject){
+					if(dataObject){
+
+						$scope.description = dataObject.description;
+						$scope.title = dataObject.title;
+						$scope.zoom = dataObject.zoom;
 
 						chart = c3.generate({
 							
@@ -41,7 +43,7 @@
 							data: {
 
 							 	 x:"Days old",				 	 
-				       			 columns : data,
+				       			 columns : dataObject.data,
 				       			 type:'scatter'
 						    },
 						   
