@@ -583,7 +583,93 @@ public class DashboardREST {
             
             return container.toJSONString();
         }
-        
+
+
+        /***
+         * Returns the bandwidth of downloads within the provided dates. 
+         * @param sessionID SessionID for authentication.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+         * @param method type of download method.
+         * @return JSON object includes the start and end dates, download ID and bandwidth.
+         * @throws DashboardException 
+         */
+        @GET
+        @Path("download/bandwidth/isp")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getISPBandwidth(@QueryParam("sessionID")String sessionID,
+                                   @QueryParam("startDate")String startDate,
+                                   @QueryParam("endDate")String endDate,
+                                   @QueryParam("userName")String userName,
+                                   @QueryParam("method")String method) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");           }                       
+           
+          
+            
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));
+            
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);
+            
+            //Join between download and download location.
+            Join<Download, DownloadLocation> downloadJoin = download.join("location");           
+                 
+            Join<Download, ICATUser> downloadUserJoin = download.join("user");
+            
+           
+            query.multiselect(cb.avg(download.<Long>get("bandwidth")),cb.min(download.<Long>get("bandwidth")),cb.max(download.<Long>get("bandwidth")),downloadJoin.get("isp"));
+            
+            
+            Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
+            Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"),end);
+            Predicate betweenStart = cb.between(download.<Date>get("downloadStart"),start,end);
+            Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"),start,end);
+            
+            Predicate combineBetween = cb.or(betweenStart,betweenEnd);
+            Predicate combineGL = cb.and(startGreater,endLess);
+            Predicate finalPredicate = cb.or(combineBetween, combineGL);
+            
+            if(!("undefined".equals(method))&&!("".equals(method))){
+                Predicate methodPredicate = cb.equal(download.get("method"), method);
+                finalPredicate = cb.and(finalPredicate, methodPredicate);
+            }
+            
+            if(!("undefined".equals(userName))&&!(("").equals(userName))){                
+                Predicate userPredicate = cb.equal( downloadUserJoin.get("name"), userName);  
+                finalPredicate = cb.and(finalPredicate,userPredicate);
+            } 
+            
+            query.groupBy(downloadJoin.get("isp"));
+            
+            
+            query.where(finalPredicate);     
+                           
+            List<Object[]> downloads = manager.createQuery(query).getResultList();  
+            
+            JSONArray container = new JSONArray();
+            
+            for(Object[] singleDownload: downloads){
+                
+                JSONObject downloadData = new JSONObject();
+                downloadData.put("average", singleDownload[0]);
+                downloadData.put("min", singleDownload[1]);
+                downloadData.put("max", singleDownload[2]);
+                downloadData.put("isp", singleDownload[3]);
+                
+                container.add(downloadData);
+                                            
+            }
+            
+            return container.toJSONString();
+        }
 
         /**
          * Calculates the number of data that was downloaded over a set period of time.
