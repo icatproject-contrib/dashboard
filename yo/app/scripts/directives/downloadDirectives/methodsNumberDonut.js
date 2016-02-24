@@ -68,7 +68,7 @@
 				chart.unload();
 
 				var dataset = $scope.data[option];
-				console.log(dataset.title)
+				
 				
 				chart.load({
 					columns: dataset.data,

@@ -24,7 +24,7 @@
 
 
 				$scope.reset = function(){					
-					chart.unzoom();
+					chart.zoom([500, 1000]);
 				}
 
 				

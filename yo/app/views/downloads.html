@@ -72,23 +72,40 @@
 <div class="row">
 	<div class="col-lg-5 col-lg-offset-1">
 		<div class="box">
-			<p class="graph-title">Global Download Locations 
+			<p class="graph-title">Global Locations 
 				<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{download.globalLocationDescription}}"><i class=" fa fa-question-circle fa-lg"></i></button>
 			</p>
 
 			</p>
 				
-			<div google-chart chart="download.worldChart" >  	
+			<div google-chart  chart="download.worldChart" >  	
 		    </div>
 	    </div>
 	</div>    
+
 	<div class="col-lg-5">
 		<div class="box">
-			<p>Local Download Locations			
+			<p>Local Locations			
 			<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{download.localLocationDescription}}"><i class=" fa fa-question-circle fa-lg"></i></button>
+			<select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.europeOptions track by options.geoCode" > 		<option value="" disabled selected>Europe</option>
+		    </select>
+		    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.africaOptions track by options.geoCode" >       <option value="" disabled selected>Africa</option>
+		    </select>
+		    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.asiaOptions track by options.geoCode" >       <option value="" disabled selected>Asia</option>
+		    </select>
+		    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.americasOptions track by options.geoCode" >    <option value="" disabled selected>Americas</option>
+		    </select>
 			</p>	
 			<div google-chart chart="download.localChart">
-		</div>
+
+		</div>	
+		
+		
+
+    	
+        </select>
+		
+		
 	</div>
 </div>
 <div class="row">

@@ -141,7 +141,7 @@ html,body, .cotainer-fluid,.row  {
 }
 
 
-/* icon classes */
+/* icon classes/ graph buttons */
 
 
 
@@ -150,11 +150,13 @@ html,body, .cotainer-fluid,.row  {
   position: static;
   background-color: #808080;
   margin-left: 6px;
+  max-width: 120px;
 }
 
-.graph-options{
-  background-color: #808080;
-  margin-left: 6px;
+
+
+.region-options{
+  max-width: 100px;
 }
 
 

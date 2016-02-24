@@ -33,7 +33,36 @@
             this.isEndDateOpen = true;
         };	
 
+        vm.europeOptions = [
+        	{area:"Northern Europe", geoCode:"154"},
+			{area:"Western Europe", geoCode:"155"},
+		    {area:"Southern Europe", geoCode:"039"}
+        ];
+        vm.africaOptions = [
+        	{area:"All of Africa", geoCode:"002"},
+			{area:"Central Africa", geoCode:"017"},
+			{area:"Northern Africa", geoCode:"015"}, 
+			{area:"Southern Africa", geoCode:"018"}
+        ];
+        vm.americasOptions = [
+        	{area:"South America", geoCode:"005"},
+			{area:"Central America", geoCode:"013"},
+			{area:"North America", geoCode:"021"},
+			{area:"USA", geoCode:"US"}
+        ];
+        vm.asiaOptions = [
+        	{area:"Eastern Asia", geoCode:"030"},
+			{area:"Southern Asia", geoCode:"034"},
+			{area:"Asia/Pacific region", geoCode:"035"},
+			{area:"Oceania", geoCode:"009"},
+			{area:"Middle East", geoCode:"145"},
+			{area:"Central Asia", geoCode:"143"}, 
+			{area:"Northern Asia", geoCode:"151"}
+        ];
         
+    	console.log(vm.selectedRegion)
+
+
 
         var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
@@ -41,7 +70,7 @@
 
         		vm.downloadMethodTypes = responseData;
 
-        	});
+        });
 
 		vm.updatePage = function(){	
 
@@ -55,7 +84,8 @@
 						
 			var endDate = Date.parse(vm.endDate);
 			var userName = vm.userName;
-			var method = vm.selectedMethod;	
+			var method = vm.selectedMethod;				
+			
 
 			//Create the promises for the data.
 			var methodNumberPromise = downloadService.getDownloadMethodNumber(startDate,endDate, userName);			
@@ -149,7 +179,8 @@
  					dataTable.addColumn('number', 'Long'); 					
  					dataTable.addColumn('string', 'City');
     				dataTable.addColumn('number', 'number');
-    			
+    				
+
 
  					var dataArray = _.map(responseData, function(responseData){
 						return [responseData.latitude, responseData.longitude,responseData.city,responseData.number];
@@ -162,9 +193,15 @@
 				    localChart.type = "GeoChart";
 				    localChart.data = dataTable;
 				    localChart.options ={
-				    	region:'GB',				    	
+				    	region:'005',				    	
 				    	colorAxis: {colors: ['grey', '#e31b23']}
-				    };				   
+				    };	
+
+				   
+				    vm.changeRegion = function(){
+				    console.log(vm.selectedRegion)				    	
+				    	localChart.options.region = vm.selectedRegion.geoCode;
+				    }
 				    vm.localChart = localChart;
 					
 				});
@@ -175,27 +212,31 @@
 
 			downloadService.getGlobalDownloadLocation(startDate,endDate, userName, method).then(function(responseData){ 			   				  		
 				
+				googleChartApiPromise.then(function(){
+				    responseData = _.map(responseData, function(responseData){
+						return [responseData.countryCode, responseData.number];
+					});
+		    		
+		    		responseData.unshift(globalIdentifiers);
 
-			    responseData = _.map(responseData, function(responseData){
-					return [responseData.countryCode, responseData.number];
+		    		var worldChart = {};
+				    worldChart.type = "GeoChart";
+				    worldChart.data = responseData;
+				    worldChart.options = {
+				    	colorAxis: {colors: ['grey', '#e31b23']}
+				    };
+
+
+				   	
+
+				    vm.worldChart = worldChart;
 				});
-	    		
-	    		responseData.unshift(globalIdentifiers);
-
-	    		var worldChart = {};
-			    worldChart.type = "GeoChart";
-			    worldChart.data = responseData;
-			    worldChart.options = {
-			    	colorAxis: {colors: ['grey', '#e31b23']}
-			    };
-			   
-			    vm.worldChart = worldChart;
 			    
 			});
 
 
 
-			
+
 
 			
 
