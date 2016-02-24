@@ -5,7 +5,7 @@
 
 
 
-    app.directive('downloadSizeBar', function(){
+    app.directive('ispBandwidthBar', function(){
     	return {
 			restrict: 'EA',			
 			scope: {
@@ -39,23 +39,21 @@
 							bindto:divElement[0],
 
 							data: {
-
-							 	 x:"x",				 	 
+							 	 				 	 
 				       			 columns : dataObject.data,
 				       			 type:'bar',
 				       			 labels:true,
+				       			 groups:[['average','min','max']]
 						    },
 						    legend: {
 						    	show:false,
 						    },
 						    axis: {
-						        x: {
-						            type: 'timeseries',
-						            tick: {
-						                format: '%Y-%m-%d'
-						            },
+						    	x:{
+						    		type:'category',
+						    		categories:[dataObject.ispList],
 						            label: {
-						            	text: 'Dates',
+						            	text: 'ISP',
 						        		position: 'outer-center',
 						            },
 						            
@@ -72,8 +70,8 @@
 									
 								},
 							color:{
-								pattern: ['#2b2b2b'],
-							},	
+								pattern: ['#2b2b2b','#CF000F','#7f8c8d'],
+							},		
 						});					
 							}
 						});

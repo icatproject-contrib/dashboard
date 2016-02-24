@@ -64,7 +64,18 @@
 
 					getDownloadBandwidth : function(startDate, endDate, userName, method){
 
-						return $http.get(baseURL+"bandwidth?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
+						return $http.get(baseURL+"bandwidth/?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
+							.then(function(response){
+
+								return response.data;
+							
+							});
+
+					},
+
+					getDownloadISPBandwidth : function(startDate, endDate, userName, method){
+
+						return $http.get(baseURL+"bandwidth/isp?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
 							.then(function(response){
 
 								return response.data;

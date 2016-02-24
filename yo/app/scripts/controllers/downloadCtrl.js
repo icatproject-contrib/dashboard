@@ -60,9 +60,7 @@
 			{area:"Northern Asia", geoCode:"151"}
         ];
         
-    	console.log(vm.selectedRegion)
-
-
+    	
 
         var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
@@ -346,6 +344,36 @@
 
 		    });
 
+		     downloadService.getDownloadISPBandwidth(startDate,endDate, userName, method).then(function(responseData){
+		     		
+
+		     		var arrayData = _.map(responseData, function(data){
+		     			
+						return [[data.average],[data.min],[data.max]];
+					});
+
+					var ispArray = _.map(responseData, function(data){
+		     			
+						return data.isp;
+					});
+
+					var formattedData = arrayData[0];
+					
+					formattedData[0].unshift('average');
+					formattedData[1].unshift('min');
+					formattedData[2].unshift('max');
+
+					vm.ispBandwidth = {
+						data:formattedData,
+						ispList:ispArray,
+						zoom :false,
+				    	description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
+				    	title : "ISP Download Bandwidth"
+					};
+
+					
+		     });
+
 			
 	    	downloadService.getDownloadVolume(startDate,endDate, userName, method).then(function(responseData){
 
@@ -400,7 +428,10 @@
 	    			data:[dates,dataForGraph],
 	    			byteFormat:byteFormat,
 	    			total:total +' '+byteFormat,
-	    			busiestDay:"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat
+	    			busiestDay:"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat,
+	    			zoom :false,
+				    description : "This bar graph displays the volume of data that was downloaded during the requested period.",
+				    title : "Download Volume"
 
 	    		};
 	    	});
