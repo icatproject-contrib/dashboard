@@ -50,7 +50,7 @@ public class DownloadEntityAge extends EntityBaseBean implements Serializable {
     }
 
     public void setAmount(long number) {
-        this.amount = amount;
+        this.amount = number;
     }
     
     

@@ -11,7 +11,6 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.xml.bind.annotation.XmlRootElement;
 
 @Comment("A download location is the geolocation of where the download took place.")
 @NamedQueries({

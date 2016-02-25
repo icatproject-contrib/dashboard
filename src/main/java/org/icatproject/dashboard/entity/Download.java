@@ -6,10 +6,8 @@
 package org.icatproject.dashboard.entity;
 
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
