@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 @Stateless(name = "EntityBeanManager", mappedName = "ejb/EntityBeanManager")
 public class EntityBeanManager {
 
-    private boolean log;
+ 
 
     private static final Logger logger = LoggerFactory.getLogger(EntityBeanManager.class);
     
@@ -58,7 +58,7 @@ public class EntityBeanManager {
 
             try {
 
-                long time = log ? System.currentTimeMillis() : 0;
+               
                 manager.persist(session);
                 manager.flush();
                 String result = session.getId();
