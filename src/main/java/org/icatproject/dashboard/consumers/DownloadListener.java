@@ -68,8 +68,9 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),    
     @ActivationConfigProperty(propertyName="addressList", propertyValue="mq://idsdev2.isis.cclrc.ac.uk:7676"),    
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID4"),
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID3"),
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),
+    
     
 })
 
@@ -78,7 +79,7 @@ import org.slf4j.LoggerFactory;
  * DownloadListener is a Message driven bean that processes JMS messages from an IDS.
  * It deals with two types of messages the getData call and the prepareData call. 
  * The class deals with these messages by extracting all of the data from the JMS text body
- * and properties. It will then collect extra information from the ICAT and from the TopCat. 
+ * and properties. It will then collect extra information from the ICAT and then from TopCat. 
  * With all this information it then pushes the data to the database.
  */
 public class DownloadListener implements MessageListener {
@@ -198,10 +199,9 @@ public class DownloadListener implements MessageListener {
             }            
            
             
-        } catch (DashboardException | JMSException |  ParseException  | IcatException_Exception ex) {
+        } catch (DashboardException | JMSException |  ParseException | InterruptedException | IcatException_Exception ex) {
              logger.error("A Fatal Error has Occured",ex);
-        }
-
+        } 
     }
     
     /**
@@ -211,13 +211,21 @@ public class DownloadListener implements MessageListener {
      * @throws JMSException If there is an issue with accessing the JMS message properties.
      * @throws ParseException if there is an issue parsing the JSON message.
      */
-    private void checkDownload(TextMessage message) throws JMSException, ParseException, DashboardException, IcatException_Exception {
+    private void checkDownload(TextMessage message) throws JMSException, ParseException, DashboardException, IcatException_Exception, InterruptedException {
         
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(message.getText());
         JSONObject json = (JSONObject) obj;
-         
+       
         download = getDownload((String) json.get("preparedId"));
+        int waitCount = 0;
+        //To deal with the prepare and getData call coming at the same time.
+        while(download==null&&waitCount<4){
+            download = getDownload((String) json.get("preparedId"));
+            waitCount+=1;
+            Thread.sleep(30000);
+        }
+        
         long duration = message.getLongProperty("millis");   
         long startMilli = message.getLongProperty("start");
         
@@ -416,7 +424,7 @@ public class DownloadListener implements MessageListener {
             JSONParser parser = new JSONParser();
 
             Object obj = parser.parse(result);
-            JSONArray jsonArray = (JSONArray) obj;
+            JSONArray jsonArray = (JSONArray) obj;            
             topCatOutput = (JSONObject) jsonArray.get(0);
         }
         catch (IOException | ParseException ex) {
@@ -605,8 +613,11 @@ public class DownloadListener implements MessageListener {
         for(Map.Entry<Long,Long> entry : entityAgeMap.entrySet()){
             DownloadEntityAge dea = new DownloadEntityAge();
             
-            dea.setAge(entry.getKey());
-            dea.setAmount(entry.getValue());
+            long amount = entry.getValue();
+            long age = entry.getKey();
+            
+            dea.setAge(age);
+            dea.setAmount(amount);
             
             dea.preparePersist();
             dea.setDownload(download);
@@ -788,40 +799,44 @@ public class DownloadListener implements MessageListener {
      * into the dashboard database.
      */
     private Entity_ createEntity(Long id, String entityType) throws DashboardException {
+        //Check if entity already exists. 
         Entity_ entity = checkEntity(id, entityType);
         
-        if("investigation".equals(entityType)){        
-               
-            Investigation inv = getInvestigation(id);
-            entity.setICATID(id);
-            entity.setEntityName(inv.getName());
-            entity.setICATcreationTime(inv.getCreateTime().toGregorianCalendar().getTime());
-            entity.setEntitySize(getInvSize(id));                   
-                        }
-        else if("dataset".equals(entityType)){           
-                
-            Dataset ds = getDataset(id);
-            entity.setICATID(id);
-            entity.setEntityName(ds.getName());
-            entity.setICATcreationTime(ds.getCreateTime().toGregorianCalendar().getTime());
-            entity.setEntitySize(getDatasetSize(id));                   
-                
+        //If not found then create a new one.
+        if(entity.getId()==null){
+            if("investigation".equals(entityType)){        
+
+                Investigation inv = getInvestigation(id);
+                entity.setICATID(id);
+                entity.setEntityName(inv.getName());
+                entity.setICATcreationTime(inv.getCreateTime().toGregorianCalendar().getTime());
+                entity.setEntitySize(getInvSize(id));                   
+                            }
+            else if("dataset".equals(entityType)){           
+
+                Dataset ds = getDataset(id);
+                entity.setICATID(id);
+                entity.setEntityName(ds.getName());
+                entity.setICATcreationTime(ds.getCreateTime().toGregorianCalendar().getTime());
+                entity.setEntitySize(getDatasetSize(id));                   
+
+            }
+            else if("datafile".equals(entityType)){
+
+                Datafile df = getDatafile(id);
+                entity.setICATID(id);
+                entity.setEntityName(df.getName());
+                entity.setICATcreationTime(df.getCreateTime().toGregorianCalendar().getTime());
+                entity.setEntitySize(df.getFileSize());                    
+
+
+             }                
+
+            entity.setType(entityType);
+            entity.preparePersist();
+            downloadSize += entity.getEntitySize();
+            beanManager.create(entity, manager);
         }
-        else if("datafile".equals(entityType)){
-            
-            Datafile df = getDatafile(id);
-            entity.setICATID(id);
-            entity.setEntityName(df.getName());
-            entity.setICATcreationTime(df.getCreateTime().toGregorianCalendar().getTime());
-            entity.setEntitySize(df.getFileSize());                    
-                    
-                    
-         }                
-        
-        entity.setType(entityType);
-        entity.preparePersist();
-        downloadSize += entity.getEntitySize();
-        beanManager.create(entity, manager);
         return entity;
     }
 
