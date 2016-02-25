@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -48,6 +49,8 @@ import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.ForbiddenException;
 import org.icatproject.dashboard.exceptions.InternalException;
+import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDate;
+import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDateTime;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.icat.client.ICAT;
@@ -78,9 +81,11 @@ public class DashboardREST {
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
     
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+   
     
     private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    
+    private final DecimalFormat df = new DecimalFormat("#.##");
     
      
     private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);
@@ -217,8 +222,10 @@ public class DashboardREST {
             ICAT icat = new ICAT(icatURL);
             Map<String, String> credentials = new HashMap<>();
             
+            List<String> authorisedAccounts = properties.getAuthorisedAccounts();
+            
             String user;
-            String sessionID = null;
+            String sessionID;
             JSONObject obj = new JSONObject();
             String authenticator;
             
@@ -228,15 +235,20 @@ public class DashboardREST {
             
             Session session = icat.login(authenticator, credentials);
             
-            user = session.getUserName();
-            String auth = session.search("SELECT u FROM User u JOIN u.userGroups ug JOIN ug.grouping g WHERE u.name='"+user+"' AND g.name='Dashboard'");
+            user = session.getUserName();            
             session.logout();
-            if(!"[]".equals(auth)){
-                sessionID = beanManager.login(user, 120, manager);
+            
+            
+            for(String account: authorisedAccounts) {
+                if(account.trim().contains(user)){
+                    sessionID = beanManager.login(user, 120, manager);
+                    obj.put("sessionID", sessionID);
+                    return obj.toString();
+                }
+            }               
                 
-                obj.put("sessionID", sessionID);
-                return obj.toString();
-            }
+                
+            
             
             throw new ForbiddenException("Access Denied");
         } catch (IcatException ex) {
@@ -270,6 +282,96 @@ public class DashboardREST {
         @Produces(MediaType.APPLICATION_JSON)
         public String getEntityCount(@QueryParam("sessionID")String sessionID,@QueryParam("EntityType")String type,@QueryParam("startDate")String startDate,@QueryParam("endDate")String endDate){
             return null;
+
+        }
+        
+         /**
+         * Returns all the information on downloads.
+         * @param sessionID SessionID for authentication.
+         * @param startDate Start point for downloads.
+         * @param endDate end points for downloads.
+         * @param userName name of the user to check against.
+     * @param method
+         * @return All the information on downloads.
+         * @throws BadRequestException Incorrect date formats or a invalid sessionID.
+         */
+        @GET
+        @Path("/download")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getDownloads(@QueryParam("sessionID")String sessionID,
+                                 @QueryParam("startDate")String startDate,
+                                 @QueryParam("endDate")String endDate,
+                                 @QueryParam("userName")String userName,                                 
+                                 @QueryParam("method")String method) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }  
+            
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));
+            
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);           
+                     
+                 
+            Join<Download, ICATUser> downloadUserJoin = download.join("user");
+            
+           
+            query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));
+            
+            
+            Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
+            Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"),end);
+            Predicate betweenStart = cb.between(download.<Date>get("downloadStart"),start,end);
+            Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"),start,end);
+            
+            Predicate combineBetween = cb.or(betweenStart,betweenEnd);
+            Predicate combineGL = cb.and(startGreater,endLess);
+            Predicate finalPredicate = cb.or(combineBetween, combineGL);
+            
+            if(!("undefined".equals(method))&&!("".equals(method))){
+                Predicate methodPredicate = cb.equal(download.get("method"), method);
+                finalPredicate = cb.and(finalPredicate, methodPredicate);
+            }
+            
+            if(!("undefined".equals(userName))&&!(("").equals(userName))){                
+                Predicate userPredicate = cb.equal( downloadUserJoin.get("name"), userName);  
+                finalPredicate = cb.and(finalPredicate,userPredicate);
+            }   
+           
+            
+            
+            query.where(finalPredicate);     
+            
+            List<Object[]> downloads = manager.createQuery(query).getResultList();
+
+            
+            JSONArray ary = new JSONArray();            
+                  
+            
+               
+            for(Object[] singleDownload: downloads){   
+               JSONObject obj = new JSONObject();
+               Download d = (Download)singleDownload[0];
+               obj.put("start",convertToLocalDateTime(d.getDownloadStart()).toString());
+               obj.put("end", convertToLocalDateTime(d.getDownloadEnd()).toString());
+               obj.put("size",d.getDownloadSize());
+               obj.put("method",d.getMethod());
+               obj.put("bandiwdth",d.getBandwidth());              
+               obj.put("fullName",singleDownload[2]);
+               obj.put("name",singleDownload[1]);
+               
+               ary.add(obj);
+               
+            }
+                     
+            
+            return ary.toJSONString();
 
         }
         
@@ -586,13 +688,13 @@ public class DashboardREST {
 
 
         /***
-         * Returns the bandwidth of downloads within the provided dates. 
+         * Returns the bandwidth of downloads within the provided dates grouped by the ISP. 
          * @param sessionID SessionID for authentication.
          * @param startDate Start point for downloads.
          * @param endDate end points for downloads.
          * @param userName name of the user to check against.
          * @param method type of download method.
-         * @return JSON object includes the start and end dates, download ID and bandwidth.
+         * @return JSON object includes the min, max and average of the ISP bandwidth during that period.
          * @throws DashboardException 
          */
         @GET
@@ -659,9 +761,9 @@ public class DashboardREST {
             for(Object[] singleDownload: downloads){
                 
                 JSONObject downloadData = new JSONObject();
-                downloadData.put("average", singleDownload[0]);
-                downloadData.put("min", singleDownload[1]);
-                downloadData.put("max", singleDownload[2]);
+                downloadData.put("average", df.format(Double.parseDouble(singleDownload[0].toString())));
+                downloadData.put("min", df.format(Double.parseDouble(singleDownload[1].toString())));
+                downloadData.put("max", df.format(Double.parseDouble(singleDownload[2].toString())));
                 downloadData.put("isp", singleDownload[3]);
                 
                 container.add(downloadData);
