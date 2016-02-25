@@ -34,7 +34,7 @@
 						
 						$scope.description = dataObject.description; 
 						$scope.title = dataObject.title; 
-						
+					
 						chart = c3.generate({
 							bindto:divElement[0],
 

@@ -196,7 +196,9 @@ html,body, .cotainer-fluid,.row  {
 
 
 /* Download CSS */
-
+.search-bar{
+  margin-bottom: 10px;
+}
 .chart-container{
   max-width: 98%;
 }

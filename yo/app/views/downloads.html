@@ -1,5 +1,5 @@
 <div class="row" ng-init="download.updatePage()">
-	<div class="col-lg-3 col-lg-offset-1">
+	<div class="col-lg-3 col-lg-offset-1 col-sm-4">
 		<div class="box">
 			<div class="text-format">					
 					<h2>Total Volume</h2>
@@ -9,7 +9,7 @@
 			</div>
 		</div>	
 	</div>
-	<div class="col-lg-4">
+	<div class="col-lg-4 col-sm-4">
 		<div class="box">
 			<div class="text-format">					
 					<h2>Total Downloads</h2>
@@ -19,7 +19,7 @@
 			</div>
 		</div>	
 	</div>
-	<div class="col-lg-3">
+	<div class="col-lg-3 col-sm-4">
 		<div class="box">	
 			<div class="text-format">					
 				<h2>Highest Bandwidth</h2>
@@ -42,7 +42,7 @@
                     </span>
                 </p>
             </div>
-            <div class="col-lg-2">    
+            <div class="col-lg-2 search-bar" >    
                 <p class="input-group">
                     <input type="text" tooltip-placement="top" uib-tooltip="End Date" uib-datepicker-popup="{{download.format}}" class="form-control" ng-model="download.endDate" is-open="download.isEndDateOpen" close-text="Close" placeholder="End Date" on-return-click-submit-button />
                     <span class="input-group-btn">
@@ -50,12 +50,13 @@
                     </span>
                 </p> 
            </div>        
-           <div class="col-lg-2">
+           <div class="col-lg-2 search-bar" class="search-bar">
                 <input type="text" class="form-control " ng-model="download.userName" placeholder="User"/>
             </div>            
-            <div class="col-lg-2">       	
+            <div class="col-lg-2 search-bar" class="search-bar">       	
 	            <select class="form-control" placeholder="Download Method" ng-model="download.selectedMethod" ng-options=" downloads.method as downloads.method for downloads in download.downloadMethodTypes">
 	            	<option value="" disabled selected>Download Method</option>
+
 	            </select>	                      
             </div>
             <div class="col-lg-2">   
@@ -70,7 +71,7 @@
 
 
 <div class="row">
-	<div class="col-lg-5 col-lg-offset-1">
+	<div class="col-lg-5 col-lg-offset-1 ">
 		<div class="box">
 			<p class="graph-title">Global Locations 
 				<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{download.globalLocationDescription}}"><i class=" fa fa-question-circle fa-lg"></i></button>
@@ -109,20 +110,20 @@
 	</div>
 </div>
 <div class="row">
-	<div class="col-lg-4 col-lg-offset-1">					
+	<div class="col-lg-4 col-lg-offset-1 ">					
 		<entity-Age-Scatter class="chart" data='download.entityAge'></entity-Age-Scatter>		
 	</div>
-	<div class="col-lg-6">		
+	<div class="col-lg-6 ">		
 		<download-count-line class="chart" data='download.count'></download-count-line>			
 	</div>
 </div>
 
 
 <div class="row">
-	<div class="col-lg-6 col-lg-offset-1">		
+	<div class="col-lg-6 col-lg-offset-1 ">		
 		<isp-bandwidth-bar class="chart" data='download.ispBandwidth'></isp-bandwidth-bar>	
 	</div>		
-	<div class="col-lg-4">		
+	<div class="col-lg-4 ">		
 		<methods-number-donut class="chart" data='download.method'></methods-number-donut>			
 	</div>	
 </div>	
@@ -130,6 +131,17 @@
 <div class="row">
 	<div class="col-lg-10 col-lg-offset-1">		
 		<download-size-bar class="chart" data='download.volume'></download-size-bar>
+</div>
+
+<div class="row">
+	<div class="col-lg-10 col-lg-offset-1">	
+		<div class="box">
+			<p>Downloads Table</p>
+			<div ui-grid="download.gridOptions" ></div>
+        
+      		</div>
+  
+		</div>
 	</div>
 
 </div>

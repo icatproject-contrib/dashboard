@@ -59,13 +59,32 @@
 			{area:"Central Asia", geoCode:"143"}, 
 			{area:"Northern Asia", geoCode:"151"}
         ];
+
+        vm.gridOptions = {};
+        vm.gridOptions.columnDefs = [
+
+        	{field: 'fullName', displayName: 'Full Name'},
+        	{field: 'name', displayName: 'Name'},
+        	{field: 'bandiwdth', type:"number",displayName: 'Bandwidth (MB/S)',width:160},
+        	{field: 'size', type:"number", width:100,displayName: 'Size',cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.size|bytes}}</div>'},
+        	{field: 'method',  displayName: 'Method',width:80},
+        	{field: 'start',  displayName: 'Start',cellFilter:'date:"medium"'},
+        	{field: 'end', displayName:'End',cellFilter:'date:"medium"'},
+    
+    		
+    	];
+
+    	vm.gridOptions.enableFiltering = true;
+
+
         
     	
 
         var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
         	downloadMethodTypes.then(function(responseData){
-
+        		
+        		responseData.push({method:"All"});
         		vm.downloadMethodTypes = responseData;
 
         });
@@ -82,7 +101,7 @@
 						
 			var endDate = Date.parse(vm.endDate);
 			var userName = vm.userName;
-			var method = vm.selectedMethod;				
+			var method = vm.selectedMethod === "All"?"":vm.selectedMethod;				
 			
 
 			//Create the promises for the data.
@@ -191,13 +210,14 @@
 				    localChart.type = "GeoChart";
 				    localChart.data = dataTable;
 				    localChart.options ={
-				    	region:'005',				    	
-				    	colorAxis: {colors: ['grey', '#e31b23']}
+				    	region:'155',				    	
+				    	colorAxis: {colors: ['grey', '#e31b23']},
+				    	legend:'none'
 				    };	
 
 				   
 				    vm.changeRegion = function(){
-				    console.log(vm.selectedRegion)				    	
+				    				    	
 				    	localChart.options.region = vm.selectedRegion.geoCode;
 				    }
 				    vm.localChart = localChart;
@@ -230,6 +250,14 @@
 				    vm.worldChart = worldChart;
 				});
 			    
+			});
+
+			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){				
+
+					
+				vm.gridOptions.data = responseData;
+				
+				
 			});
 
 
@@ -281,8 +309,8 @@
 			    	description : "This line graph displays the number of downloads that occured on the requested days.",
 					title:"Download Count",
 					zoom:true,
-					total: total,
-					busiestDay:data[0][busiestIndex] +" with "+largestDay
+					total: total=== 0 ? "No Downloads":total,
+					busiestDay:largestDay===0 ? "No Downloads":data[0][busiestIndex] +" with "+largestDay
 			    }
 
 			    
@@ -326,11 +354,14 @@
 	    			bandwidthData.push(downloadArray)
 		    			
 					});
+
+		    	var highest = Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
+		    	var lowest =  Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
 		    	
 		    	vm.bandwidth ={
 		    		data:bandwidthData,
-		    		highest:Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S",
-		    		lowest:Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S",
+		    		highest:highest === "-InfinityMB/S" ? "No Downloads": highest,
+		    		lowest:lowest === "InfinityMB/S" ? "No Downloads": lowest,
 		    		zoom :true,
 				    description : "This scatter graph displays the bandwidth of downloads in Megabytes. This is calculated by the download amount (Megabytes) over the time it took to complete.",
 				    title : "Download Bandwidth"
@@ -346,7 +377,7 @@
 
 		     downloadService.getDownloadISPBandwidth(startDate,endDate, userName, method).then(function(responseData){
 		     		
-
+		     		
 		     		var arrayData = _.map(responseData, function(data){
 		     			
 						return [[data.average],[data.min],[data.max]];
@@ -359,16 +390,21 @@
 
 					var formattedData = arrayData[0];
 					
-					formattedData[0].unshift('average');
-					formattedData[1].unshift('min');
-					formattedData[2].unshift('max');
+					if (typeof formattedData !== "undefined") {
+						formattedData[0].unshift('average');
+						formattedData[1].unshift('min');
+						formattedData[2].unshift('max');
+					}else{
+						formattedData=[['average',0],['min',0],['max',0]];
+					}
+					
 
 					vm.ispBandwidth = {
 						data:formattedData,
 						ispList:ispArray,
 						zoom :false,
 				    	description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
-				    	title : "ISP Download Bandwidth"
+				    	title : "ISP Download Bandwidth (MB/S)"
 					};
 
 					
@@ -427,8 +463,8 @@
 	    		vm.volume = { 	
 	    			data:[dates,dataForGraph],
 	    			byteFormat:byteFormat,
-	    			total:total +' '+byteFormat,
-	    			busiestDay:"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat,
+	    			total:total === 0 ? "No Downloads": total+' '+byteFormat,
+	    			busiestDay:largestDay ===0 ?"No Downloads":"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat,
 	    			zoom :false,
 				    description : "This bar graph displays the volume of data that was downloaded during the requested period.",
 				    title : "Download Volume"

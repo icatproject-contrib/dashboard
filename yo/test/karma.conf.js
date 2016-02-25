@@ -38,12 +38,10 @@ module.exports = function(config) {
       'bower_components/angular-inform/dist/angular-inform.js',
       'bower_components/angular-loading-bar/build/loading-bar.js',
       'bower_components/moment/moment.js',
-      'bower_components/momentjs/moment.js',
-      'bower_components/bootstrap-daterangepicker/daterangepicker.js',
-      'bower_components/ng-bs-daterangepicker/src/ng-bs-daterangepicker.js',
       'bower_components/jasmine-core/lib/jasmine-core/jasmine.js',
       'bower_components/angular-google-chart/ng-google-chart.js',
       'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
+      'bower_components/angular-ui-grid/ui-grid.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
       "bower_components/angular-ui-router/release/angular-ui-router.js",

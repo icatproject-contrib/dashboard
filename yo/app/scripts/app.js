@@ -17,9 +17,11 @@ angular
     'ngResource',
     'ngSanitize',
     'inform', 
-    'angular-loading-bar',
-    'ngBootstrap',
-    'googlechart'
+    'angular-loading-bar',    
+    'googlechart',
+    'ui.grid',    
+    'bytes',
+
     
 
   ])
