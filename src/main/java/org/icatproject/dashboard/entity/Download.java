@@ -71,11 +71,35 @@ public class Download extends EntityBaseBean implements Serializable {
     
     @Comment("The duration of the download in milliseconds")
     private long duriation;
+    
+    @Comment("The current status of the download e.g. preparing,started,failed,completed")
+    private String status;
+    
+    @Comment("The transferID of the download to help identify its uniqueness in the IDS calls.")
+    private long transferID;
 
     public Download() {
 
     }
 
+    public long getTransferID() {
+        return transferID;
+    }
+
+    public void setTransferID(long transferID) {
+        this.transferID = transferID;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    
+    
     public void setDownloadEntityAges(List<DownloadEntityAge> downloadEntityAges) {
         this.downloadEntityAges = downloadEntityAges;
     }
