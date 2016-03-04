@@ -41,8 +41,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.icatproject.dashboard.entity.Download;
+import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
 import org.icatproject.dashboard.entity.DownloadLocation;
+import org.icatproject.dashboard.entity.Entity_;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
@@ -89,6 +91,15 @@ public class DashboardREST {
     
      
     private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);
+    
+    
+    //Constants for download statuses,
+    
+    private final String preparing = "preparing";
+    private final String inProgress = "inProgress";
+    private final String finished = "finished";
+    private final String failed = "failed";
+  
     
     
         @PostConstruct
@@ -288,10 +299,11 @@ public class DashboardREST {
          /**
          * Returns all the information on downloads.
          * @param sessionID SessionID for authentication.
+         * @param status
          * @param startDate Start point for downloads.
          * @param endDate end points for downloads.
          * @param userName name of the user to check against.
-     * @param method
+         * @param method
          * @return All the information on downloads.
          * @throws BadRequestException Incorrect date formats or a invalid sessionID.
          */
@@ -299,6 +311,7 @@ public class DashboardREST {
         @Path("/download")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloads(@QueryParam("sessionID")String sessionID,
+                                 @QueryParam("status")String status,
                                  @QueryParam("startDate")String startDate,
                                  @QueryParam("endDate")String endDate,
                                  @QueryParam("userName")String userName,                                 
@@ -318,8 +331,10 @@ public class DashboardREST {
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
             Root<Download> download = query.from(Download.class);           
                      
-                 
+            //User Join     
             Join<Download, ICATUser> downloadUserJoin = download.join("user");
+            
+            
             
            
             query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));
@@ -361,8 +376,10 @@ public class DashboardREST {
                obj.put("start",convertToLocalDateTime(d.getDownloadStart()).toString());
                obj.put("end", convertToLocalDateTime(d.getDownloadEnd()).toString());
                obj.put("size",d.getDownloadSize());
+               obj.put("id",d.getId());
                obj.put("method",d.getMethod());
-               obj.put("bandiwdth",d.getBandwidth());              
+               obj.put("bandwidth",d.getBandwidth()); 
+               obj.put("status",d.getStatus());
                obj.put("fullName",singleDownload[2]);
                obj.put("name",singleDownload[1]);
                
@@ -373,6 +390,44 @@ public class DashboardREST {
             
             return ary.toJSONString();
 
+        }
+        
+        @GET
+        @Path("download/entities")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getDownloadEntties(@QueryParam("sessionID")String sessionID,
+                                        @QueryParam("downloadId")Long downloadId ) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }              
+            
+       
+            
+            //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);           
+                     
+            //User Join     
+            Join<Download, ICATUser> downloadUserJoin = download.join("user");
+            //Entity Joins
+            Join<Download, DownloadEntity> downloadEntityJoin = download.join("downloadEntities");
+            Join<DownloadEntity, Entity_> entityJoin = downloadEntityJoin.join("entity");
+            
+            
+           
+            query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));
+            
+            
+           
+            
+            
+            //query.where(download.get("id").equals(downloadId));     
+            
+            return null;   
         }
         
         /**
@@ -451,6 +506,67 @@ public class DashboardREST {
 
         }
         
+        /**
+         * Calculates the number of failed and successful downloads.
+         * @param sessionID For authentication
+         * @param startDate Start time in a Unix timestamp.
+         * @param endDate End time in a Unix timestamp.
+         * @param userName Unique name of the user. Corresponds to name in the ICAT user table.
+         * @param method the method of download 
+         * @return A JSON object of how many have failed and how many have been successful.
+         * @throws DashboardException 
+         */
+        @GET
+        @Path("download/status/number")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getDownloadStatusNumber(@QueryParam("sessionID")String sessionID,
+                                @QueryParam("startDate")String startDate,
+                                @QueryParam("endDate")String endDate,
+                                @QueryParam("userName")String userName,
+                                @QueryParam("method")String method) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }              
+                    
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));     
+            
+             //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);           
+                        
+            //Get methods and count how many their are.
+            query.multiselect(download.get("status"),cb.count(download));    
+            
+            
+            Predicate finalPredicate = cb.and(createDownloadPredicate(cb,start,end,download,userName, method));     
+            
+            query.where(finalPredicate); 
+            
+            query.groupBy(download.get("status"));
+            
+           
+            List<Object[]> downloadStatusCount = manager.createQuery(query).getResultList();
+                      
+            JSONArray result = new JSONArray();            
+            for(Object[] downloadStatus : downloadStatusCount){
+                JSONObject obj = new JSONObject();
+                obj.put("status",downloadStatus[0]);
+                obj.put("number",downloadStatus[1]);
+                result.add(obj);               
+                
+            }  
+            
+            
+                     
+            
+            return  result.toString();
+
+        }
         
         
         /**
