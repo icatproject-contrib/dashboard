@@ -28,6 +28,16 @@
 
 					},	
 
+
+					getDownloadStatusNumber :function(startDate,endDate, userName, method){
+						return $http.get(baseURL+"/status/number?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
+							.then(function(response){
+
+								return response.data; 
+							});
+
+					},	
+
 					getDownloadMethodTypes :function(){
 						return $http.get(baseURL+"/method/types?sessionID="+ $sessionStorage.sessionData.sessionID)
 							.then(function(response){

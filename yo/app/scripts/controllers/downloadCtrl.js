@@ -4,11 +4,9 @@
 
 	angular.module('dashboardApp').controller('DownloadCtrl', DownloadCtrl);
 
-	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise','$q'];
+	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise','$q','$filter'];	
 
-	
-
-	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q){	
+	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q,$filter){	
 
 		var vm=this;
 
@@ -65,7 +63,7 @@
 
         	{field: 'fullName', displayName: 'Full Name'},
         	{field: 'name', displayName: 'Name'},
-        	{field: 'bandiwdth', type:"number",displayName: 'Bandwidth (MB/S)',width:160},
+        	{field: 'bandiwdth', type:"number",displayName: 'Bandwidth',width:160,cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.bandwidth|bytes}}</div>'},
         	{field: 'size', type:"number", width:100,displayName: 'Size',cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.size|bytes}}</div>'},
         	{field: 'method',  displayName: 'Method',width:80},
         	{field: 'start',  displayName: 'Start',cellFilter:'date:"medium"'},
@@ -74,11 +72,7 @@
     		
     	];
 
-    	vm.gridOptions.enableFiltering = true;
-
-
-        
-    	
+    	vm.gridOptions.enableFiltering = true;  	
 
         var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
@@ -97,12 +91,10 @@
 			startDate.set('hour','00');
 			startDate.set('minute','00');
 			startDate.set('second','00');
-
 						
 			var endDate = Date.parse(vm.endDate);
 			var userName = vm.userName;
 			var method = vm.selectedMethod === "All"?"":vm.selectedMethod;				
-			
 
 			//Create the promises for the data.
 			var methodNumberPromise = downloadService.getDownloadMethodNumber(startDate,endDate, userName);			
@@ -126,7 +118,7 @@
 				});
 
 				//Conver the data to human readable format.
-				var formattedVolume = byteArrayToSize(volumeRaw);
+				var formattedVolume = $filter('bytes')(volumeRaw);
 				var formattedVolumeData = formattedVolume[0];
 
 				var byteFormat = formattedVolume[1]; 
@@ -136,7 +128,6 @@
 				    return [volumeMethods[index], formattedVolumeData[index]];
 				});
 				
-
 				vm.method = {
 					datasets:["number","volume"],
 					number : {
@@ -151,16 +142,15 @@
 				    title :"Download Methods"
 				};
 
-			});
-
+			});			
 			
-			
+			downloadService.getDownloadStatusNumber(startDate, endDate, userName,method).then(function(responseData){
+				console.log(responseData);
 
-			
+			});			
 
-			downloadService.getDownloadEntityAge(startDate,endDate,userName,method).then(function(responseData){					
+			downloadService.getDownloadEntityAge(startDate,endDate,userName,method).then(function(responseData){
 
-				
 				var age  = _.map(responseData, function(responseData){
 					return responseData.age;
 				});
@@ -178,14 +168,9 @@
 					description : "This scatter graph displays the number of datafiles that have been downloaded grouped by their age. The age of the datafile is calculated from its creation date subtracted by the date of the download. The age is displayed in days.",
 				    title : "Download File Age",
 				    zoom : true
-				} 
+				} 				
 				
-				
-
 			});
-
-
-
 
 			downloadService.getLocalDownloadLocation(startDate,endDate, userName, method).then(function(responseData){
 				
@@ -196,8 +181,6 @@
  					dataTable.addColumn('number', 'Long'); 					
  					dataTable.addColumn('string', 'City');
     				dataTable.addColumn('number', 'number');
-    				
-
 
  					var dataArray = _.map(responseData, function(responseData){
 						return [responseData.latitude, responseData.longitude,responseData.city,responseData.number];
@@ -214,7 +197,6 @@
 				    	colorAxis: {colors: ['grey', '#e31b23']},
 				    	legend:'none'
 				    };	
-
 				   
 				    vm.changeRegion = function(){
 				    				    	
@@ -223,10 +205,8 @@
 				    vm.localChart = localChart;
 					
 				});
-
 				
 			});
-
 
 			downloadService.getGlobalDownloadLocation(startDate,endDate, userName, method).then(function(responseData){ 			   				  		
 				
@@ -242,34 +222,22 @@
 				    worldChart.data = responseData;
 				    worldChart.options = {
 				    	colorAxis: {colors: ['grey', '#e31b23']}
-				    };
-
-
-				   	
+				    };				   	
 
 				    vm.worldChart = worldChart;
 				});
 			    
 			});
 
-			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){				
-
+			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){							
 					
-				vm.gridOptions.data = responseData;
+				vm.gridOptions.data = responseData;				
 				
-				
-			});
-
-
-
-
-
-			
+			});			
 
 		    downloadService.getDownloadFrequency(startDate,endDate, userName, method).then(function(responseData){
 
-		    	var data = responseData;
-		    	
+		    	var data = responseData;		    	
 
 		    	var dates  = _.map(data, function(data){
 					return data.date;
@@ -311,9 +279,7 @@
 					zoom:true,
 					total: total=== 0 ? "No Downloads":total,
 					busiestDay:largestDay===0 ? "No Downloads":data[0][busiestIndex] +" with "+largestDay
-			    }
-
-			    
+			    } 
 
 					
 		    });
@@ -355,8 +321,8 @@
 		    			
 					});
 
-		    	var highest = Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
-		    	var lowest =  Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}))+"MB/S";
+		    	var highest = Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}));
+		    	var lowest =  Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}));
 		    	
 		    	vm.bandwidth ={
 		    		data:bandwidthData,
@@ -365,18 +331,11 @@
 		    		zoom :true,
 				    description : "This scatter graph displays the bandwidth of downloads in Megabytes. This is calculated by the download amount (Megabytes) over the time it took to complete.",
 				    title : "Download Bandwidth"
-
-		    	}  	
-		    	
-		    	
-		    	
-
-		    	
+		    	}		    	
 
 		    });
 
-		     downloadService.getDownloadISPBandwidth(startDate,endDate, userName, method).then(function(responseData){
-		     		
+		    downloadService.getDownloadISPBandwidth(startDate,endDate, userName, method).then(function(responseData){		     		
 		     		
 		     		var arrayData = _.map(responseData, function(data){
 		     			
@@ -388,7 +347,15 @@
 						return data.isp;
 					});
 
-					var formattedData = arrayData[0];
+
+					//Get the largest value in the result to set the correct bytes format.
+					var largestValue = Math.max.apply(Math,arrayData[0][2]);
+					
+					var formattedData = arrayData[0]; 
+
+					for(var i =0;i<formattedData.length;i++){
+						formattedData[i] = $filter('bytes')(formattedData[i],largestValue);
+					}				
 					
 					if (typeof formattedData !== "undefined") {
 						formattedData[0].unshift('average');
@@ -404,12 +371,9 @@
 						ispList:ispArray,
 						zoom :false,
 				    	description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
-				    	title : "ISP Download Bandwidth (MB/S)"
-					};
-
-					
+				    	title : "ISP Download Bandwidth MB/S"
+					};					
 		     });
-
 			
 	    	downloadService.getDownloadVolume(startDate,endDate, userName, method).then(function(responseData){
 
@@ -426,12 +390,9 @@
 				});
 
 				//Need to format the bytes into human readable format
-				var formattedData = byteArrayToSize(byteArray);	
+				var formattedData = $filter('bytes')(byteArray);
 
-
-
-				
-		    	//Adding on to the beginning of the array to allow c3 to read the data
+			   	//Adding on to the beginning of the array to allow c3 to read the data
 				dates.unshift("x");		
 							
 				var dataForGraph = formattedData[0];
@@ -445,8 +406,7 @@
 	    		    	total +=temp;
 	    		    }    			
 	    			
-	    		}   		
-	    		
+	    		}	    		
 
 	    		var busiestIndex = 0;
 	    		var largestDay = 0;	    		
@@ -470,80 +430,19 @@
 				    title : "Download Volume"
 
 	    		};
-	    	});
+	    	});			
 
-			
+		};
 
-		};	
 		vm.globalLocationDescription = "This map displays the number of downloads that have occured within each country during the requested period.";
 		vm.localLocationDescription = "This map displays the number of downloads that have occured within the selected area. The circles center position is based on the longitude and latitude of the download.";
-		
-	
-
-		
-		
-		
- 
-	}
-
-
-	function bytesToSize(bytes) {
-   		var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-   		if (bytes == 0) return '0 Byte';
-
-   		var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-
-   		return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
-};
-
-
-	/*
-	 * Function to convert an array of bytes into an array human readable form bytes. 
-	 *
-	 */
-	 
-	function byteArrayToSize(byteArray) {
-   		var sizes = ['Bytes', 'Kilobytes', 'Megabytes', 'Gigabytes', 'Terabytes'];
-
-   		
-
-   		var max = 0;
-   		var formattedArray = [];
-   		
-   		//Find the highest bytes value to use as a marker to convert the rest of the bytes into. Quicker to use a for loop then Math.max.
-   		for(var i=0;i<byteArray.length;i++){
-   			var bytes = byteArray[i];
-   			if(bytes>max){
-   				max = bytes;
-   			}
-   		}
-   		
-   		//This then selects what type of byte it should be e.g. byte or KB. byteFormat refers to the position in the sizes array.
-   		var byteFormat = parseInt(Math.floor(Math.log(max) / Math.log(1024)));
-
-
-   		//With the known type of byte we now need to format each one and add it to the array.
-   		for(var i=0;i<byteArray.length;i++){
-   			var bytes = byteArray[i];
-   			   			
-   			if(parseInt(bytes) === 0){
-   				//Null is placed so that c3 ignores those values
-   				formattedArray.push("null");
-   			}
-   			else{
-   				//Convert it to the correct byte value and then round to 2 decimal places.
-   				formattedArray.push((Math.round(bytes / Math.pow(1024, byteFormat)*100)/100));
-   			}
-   		}
-
-   		   		   
-   		return [formattedArray,sizes[byteFormat]];
-};
-
+			
+ 	}	
 	
 	function getDateArray(startDate,stopDate) {
 		var dateArray = [];
 	    var currentDate = moment(startDate);
+
 	    while (currentDate.isBefore(stopDate) || currentDate.isSame(stopDate)) {
 	        dateArray.push( moment(currentDate) )
 	        currentDate = moment(currentDate).add(1, 'days');
@@ -554,16 +453,13 @@
 	function getFormattedDateArray(startDate,stopDate){
 		var dateArray = [];
 	    var currentDate = moment(startDate);
+
 	    while (currentDate.isBefore(stopDate) || currentDate.isSame(stopDate)) {
 	        dateArray.push( moment(currentDate).format("YYYY-MM-DD") )
 	        currentDate = moment(currentDate).add(1, 'days');
 	    }
 	    return dateArray;
-
 	}
-
-	
-
 
 
 })();
