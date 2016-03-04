@@ -6,6 +6,7 @@ and open the template in the editor.
 -->
 
 <glassfish-ejb-jar>
+  <endpoint-address-uri>/</endpoint-address-uri>
   <enterprise-beans>
     <ejb>
       <ejb-name>DownloadListener</ejb-name>
