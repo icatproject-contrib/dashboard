@@ -35,7 +35,7 @@ if arg == "INSTALL":
 
         actions.asadmin("create-jdbc-resource --connectionpoolid dashboard jdbc/dashboard")      
 
-        actions.deploy("Dashboard-*.war", contextroot=props["dashboardUrlRoot"],  deploymentorder=140)
+        actions.deploy("dashboard-*.war", contextroot=props["dashboardUrlRoot"],  deploymentorder=140)
 
         
         
