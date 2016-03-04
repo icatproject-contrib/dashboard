@@ -426,8 +426,9 @@ public class DashboardREST {
             
             
             //query.where(download.get("id").equals(downloadId));     
-            
-            return null;   
+            JSONObject t = new JSONObject();
+            t.put("test","test");
+            return t.toJSONString();   
         }
         
         /**

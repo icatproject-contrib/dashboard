@@ -19,6 +19,14 @@
 
 				var services = {
 
+					getDownloadEntities: function(downloadId){
+						return $http.get(baseURL+"/entities?sessionID="+ $sessionStorage.sessionData.sessionID+"&downloadId="+downloadId)
+							.then(function(response){
+
+								return response.data; 
+							});
+					},
+
 					getDownloads :function(startDate,endDate, userName, method){
 						return $http.get(baseURL+"?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
 							.then(function(response){

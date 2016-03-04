@@ -4,9 +4,9 @@
 
 	angular.module('dashboardApp').controller('DownloadCtrl', DownloadCtrl);
 
-	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise','$q','$filter'];	
+	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise','$q','$filter','$uibModal'];	
 
-	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q,$filter){	
+	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q,$filter, $uibModal){	
 
 		var vm=this;
 
@@ -60,7 +60,7 @@
 
         vm.gridOptions = {};
         vm.gridOptions.columnDefs = [
-
+        	{field: 'id', displayName: 'ID', width:80, cellTemplate:'<button class="btn primary" ng-click="grid.appScope.loadPopUp(row.entity.id)">{{row.entity.id}}</button>' },
         	{field: 'fullName', displayName: 'Full Name'},
         	{field: 'name', displayName: 'Name'},
         	{field: 'bandiwdth', type:"number",displayName: 'Bandwidth',width:160,cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.bandwidth|bytes}}</div>'},
@@ -68,9 +68,27 @@
         	{field: 'method',  displayName: 'Method',width:80},
         	{field: 'start',  displayName: 'Start',cellFilter:'date:"medium"'},
         	{field: 'end', displayName:'End',cellFilter:'date:"medium"'},
-    
+    		{field: 'status', displayName:'Status',width:80},	
     		
     	];
+
+
+
+    	//Unfortunately have to use $scope to allow the isolate scope access with Angular Grid UI.
+    	$scope.loadPopUp = function(downloadId){
+       		
+
+       		var modalInstance = $uibModal.open({
+       			templateUrl :'views/downloadModal.html',
+       			controller:'DownloadModalCtrl',
+       			resolve :{
+       				data :function(){
+       					return downloadService.getDownloadEntities(downloadId);
+       				}
+       			}
+
+       		});
+       	}
 
     	vm.gridOptions.enableFiltering = true;  	
 
@@ -82,6 +100,9 @@
         		vm.downloadMethodTypes = responseData;
 
         });
+
+
+        
 
 		vm.updatePage = function(){	
 
