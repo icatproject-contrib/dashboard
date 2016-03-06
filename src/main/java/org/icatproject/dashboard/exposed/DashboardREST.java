@@ -51,7 +51,6 @@ import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.ForbiddenException;
 import org.icatproject.dashboard.exceptions.InternalException;
-import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDate;
 import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDateTime;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.PropsManager;
@@ -373,15 +372,19 @@ public class DashboardREST {
             for(Object[] singleDownload: downloads){   
                JSONObject obj = new JSONObject();
                Download d = (Download)singleDownload[0];
-               obj.put("start",convertToLocalDateTime(d.getDownloadStart()).toString());
-               obj.put("end", convertToLocalDateTime(d.getDownloadEnd()).toString());
+               obj.put("start",convertToLocalDateTime(d.getDownloadStart()).toString());               
                obj.put("size",d.getDownloadSize());
                obj.put("id",d.getId());
-               obj.put("method",d.getMethod());
-               obj.put("bandwidth",d.getBandwidth()); 
-               obj.put("status",d.getStatus());
+               obj.put("method",d.getMethod());              
+               obj.put("status",d.getStatus());              
                obj.put("fullName",singleDownload[2]);
                obj.put("name",singleDownload[1]);
+               
+               //To deal with unfinished downloads as it wont have bandiwdth or end date.
+               if("finished".equals(d.getStatus())){
+                   obj.put("end", convertToLocalDateTime(d.getDownloadEnd()).toString());
+                   obj.put("bandwidth",d.getBandwidth()); 
+               }
                
                ary.add(obj);
                
@@ -395,40 +398,48 @@ public class DashboardREST {
         @GET
         @Path("download/entities")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getDownloadEntties(@QueryParam("sessionID")String sessionID,
+        public String getDownloadEntities(@QueryParam("sessionID")String sessionID,
                                         @QueryParam("downloadId")Long downloadId ) throws DashboardException{
             if(sessionID==null){
                 throw new BadRequestException("A SessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
-            }              
-            
-       
+            }
             
             //Criteria objects.
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<Download> download = query.from(Download.class);           
+            Root<Entity_> entity = query.from(Entity_.class);    
                      
-            //User Join     
-            Join<Download, ICATUser> downloadUserJoin = download.join("user");
-            //Entity Joins
-            Join<Download, DownloadEntity> downloadEntityJoin = download.join("downloadEntities");
-            Join<DownloadEntity, Entity_> entityJoin = downloadEntityJoin.join("entity");
             
-            
+            //Entity Joins            
+            Join<Entity_, DownloadEntity> downloadEntityJoin = entity.join("downloadEntities");  
+            Join<DownloadEntity,Download> downloadJoin = downloadEntityJoin.join("download");
            
-            query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));
+            query.multiselect(entity);
             
+            query.where(cb.equal(downloadJoin.get("id"), downloadId));
             
+            Object[] entities = manager.createQuery(query).getResultList().toArray();
            
             
+            JSONArray result = new JSONArray();
             
-            //query.where(download.get("id").equals(downloadId));     
+        for (Object e : entities) {
             JSONObject t = new JSONObject();
-            t.put("test","test");
-            return t.toJSONString();   
+            Entity_ entityResult = (Entity_)e;
+            t.put("name", entityResult.getEntityName());
+            t.put("size",entityResult.getEntitySize());
+            t.put("icatId",entityResult.getICATID());
+            t.put("type", entityResult.getType());
+            t.put("creationTime",entityResult.getICATcreationTime().toString());
+            result.add(t);
+        }  
+            
+            
+            
+            return result.toJSONString();   
         }
         
         /**
@@ -485,7 +496,14 @@ public class DashboardREST {
             for(Object[] singleDownload: downloads){               
                             
                 LocalDate downloadBeginning = RestUtility.convertToLocalDate((Date)singleDownload[0]);
-                LocalDate downloadEnd = RestUtility.convertToLocalDate((Date)singleDownload[1]);
+                LocalDate downloadEnd;
+                //To deal with downloads still currently going. Just set it to the current date
+                if(singleDownload[1]==null){
+                    downloadEnd = LocalDate.now();
+                }
+                else{
+                    downloadEnd = RestUtility.convertToLocalDate((Date)singleDownload[1]);
+                }
                 
                 //Bring the download date up to the requested start date.
                 while(downloadBeginning.isBefore(startRange)){
@@ -778,11 +796,14 @@ public class DashboardREST {
             //Get methods and count how many their are.
             query.multiselect(download.get("downloadStart"),download.get("downloadEnd"), download.get("bandwidth"),download.get("id"));
             
+            //Create a where clause that deals with the provided query params.
+            Predicate generalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);
             
-            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);           
+            //Make sure only finished downloads are collected as they will have a bandwidth.
+            Predicate finishedPrecicate = cb.equal(download.get("status"), finished);
             
             
-            query.where(finalPredicate);     
+            query.where(cb.and(generalPredicate,finishedPrecicate));     
           
             
             List<Object[]> downloads = manager.createQuery(query).getResultList();                
@@ -935,12 +956,16 @@ public class DashboardREST {
             query.multiselect(download.get("downloadStart"),download.get("downloadEnd"), download.get("downloadSize"));
             
             
-            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);          
+            //Create a where clause that deals with the provided query params.
+            Predicate generalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);
+            
+            //Make sure only finished downloads are collected as the volume downloaded is unknown.
+            Predicate finishedPrecicate = cb.equal(download.get("status"), finished);
             
             
-            query.where(finalPredicate);     
-          
-            
+            query.where(cb.and(generalPredicate,finishedPrecicate));     
+                        
+                       
             List<Object[]> downloads = manager.createQuery(query).getResultList();                      
             
             

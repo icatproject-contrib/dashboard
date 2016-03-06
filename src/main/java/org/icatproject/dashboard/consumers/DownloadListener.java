@@ -68,9 +68,7 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/IDS/log"),
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),    
-    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID4"),
-    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),
+    
     
    
     
@@ -208,7 +206,7 @@ public class DownloadListener implements MessageListener {
         try {
             download = getDownload((Long)messageValues.get("transferId"));
             download.setDownloadEnd(endDate);
-            download.setBandwidth(calculateBandwidth(duration ,download.getDownloadSize()));
+           
             download.setDuriation(duration);
            
             if(messageValues.containsKey("exceptionClass")){
@@ -216,6 +214,8 @@ public class DownloadListener implements MessageListener {
             }
             else{
                  download.setStatus(finished);
+                 //Don't want to set the bandiwdth if it failed as do not know how much was downloaded.
+                 download.setBandwidth(calculateBandwidth(duration ,download.getDownloadSize()));
             }
                
            
@@ -360,7 +360,7 @@ public class DownloadListener implements MessageListener {
             }
             
             if(json.containsKey("exceptionClass")){
-                messageValues.put("excpetionClass",(String)json.get("exceptionClass"));
+                messageValues.put("exceptionClass",(String)json.get("exceptionClass"));
             }
             
         } catch (ParseException ex) {

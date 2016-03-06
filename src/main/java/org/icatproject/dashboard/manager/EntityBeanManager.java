@@ -8,6 +8,7 @@ package org.icatproject.dashboard.manager;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import org.icatproject.dashboard.entity.Session;
 
 import javax.ejb.Stateless;
@@ -134,8 +135,7 @@ public class EntityBeanManager {
         
         bean.setModTime(new Date());
         manager.merge(bean);
-        manager.flush();
-        
+                
         
     }
     /**

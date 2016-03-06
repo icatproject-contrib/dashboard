@@ -31,9 +31,11 @@
 
 				$scope.$watch('data', function(dataObject){
 					if(dataObject){
+						console
 						
 						$scope.description = dataObject.description; 
 						$scope.title = dataObject.title; 
+						
 					
 						chart = c3.generate({
 							bindto:divElement[0],
@@ -51,7 +53,7 @@
 						    axis: {
 						    	x:{
 						    		type:'category',
-						    		categories:[dataObject.ispList],
+						    		categories:dataObject.ispList,
 						            label: {
 						            	text: 'ISP',
 						        		position: 'outer-center',
