@@ -222,3 +222,11 @@ html,body, .cotainer-fluid,.row  {
 }
 
 
+/*
+  Download Modal CSS
+*/
+.modal-button {
+  float:right;
+}
+
+

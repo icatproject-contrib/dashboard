@@ -72,7 +72,7 @@
     		
     	];
 
-
+    	vm.gridOptions.enableFiltering = true; 
 
     	//Unfortunately have to use $scope to allow the isolate scope access with Angular Grid UI.
     	$scope.loadPopUp = function(downloadId){
@@ -81,16 +81,23 @@
        		var modalInstance = $uibModal.open({
        			templateUrl :'views/downloadModal.html',
        			controller:'DownloadModalCtrl',
+       			controllerAs:'modalCtrl',
+       			size:'lg',
        			resolve :{
-       				data :function(){
-       					return downloadService.getDownloadEntities(downloadId);
+       				downloadData :function(){
+
+       				    return downloadService.getDownloadEntities(downloadId);
+       				},
+       				downloadId : function(){
+       					return downloadId;
        				}
+
        			}
 
        		});
        	}
 
-    	vm.gridOptions.enableFiltering = true;  	
+    	 	
 
         var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
@@ -250,7 +257,8 @@
 			    
 			});
 
-			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){							
+			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){		
+
 					
 				vm.gridOptions.data = responseData;				
 				
@@ -272,22 +280,26 @@
 
 			    //Calculate metrics: Total amount of downloads and the busiest Day.
 			 		    		
-	    		var total = 0;	    		
-	    		
-	    		for(var i=1;i<numbers.length;i++){	    			
-	    			total +=numbers[i];
-	    		}   		
-	    		
-
+	    		var total = 0;	 
 	    		var busiestIndex = 0;
-	    		var largestDay = 0;	    		
+	    		var largestDay = 0;	       		
 	    		
-	    		for(var i=1;i<data[1].length;i++){	    			
-	    			if(data[1][i] > largestDay){
+	    		for(var i=0;i<numbers.length;i++){
+	    			var current = numbers[i];	    			
+	    			total +=current;
+
+	    			if(current>largestDay){
 	    				busiestIndex = i;
-	    				largestDay = data[1][i];
+	    				largestDay = current;
 	    			}
 	    		}   		
+	    		console.log(busiestIndex)
+	    		console.log(dates)
+
+	    		var busiestDay = largestDay===0 ? "No Data":dates[busiestIndex] +" with "+largestDay;
+	    		var countTotal = total=== 0 ? "No Data":total;
+	    				
+	    				
 
 	    		dates.unshift("x");		
 							
@@ -298,8 +310,8 @@
 			    	description : "This line graph displays the number of downloads that occured on the requested days.",
 					title:"Download Count",
 					zoom:true,
-					total: total=== 0 ? "No Downloads":total,
-					busiestDay:largestDay===0 ? "No Downloads":data[0][busiestIndex] +" with "+largestDay
+					total: countTotal,
+					busiestDay: busiestDay
 			    } 
 
 					
@@ -345,10 +357,11 @@
 		    	var highest = Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}));
 		    	var lowest =  Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}));
 		    	
+		    	
 		    	vm.bandwidth ={
 		    		data:bandwidthData,
-		    		highest:highest === "-InfinityMB/S" ? "No Downloads": highest,
-		    		lowest:lowest === "InfinityMB/S" ? "No Downloads": lowest,
+		    		highest:highest === -Infinity ? "No Data": $filter('bytes')(highest),
+		    		lowest:lowest === Infinity ? "No Data": $filter('bytes')(lowest),
 		    		zoom :true,
 				    description : "This scatter graph displays the bandwidth of downloads in Megabytes. This is calculated by the download amount (Megabytes) over the time it took to complete.",
 				    title : "Download Bandwidth"
@@ -369,31 +382,32 @@
 					});
 
 
-					//Get the largest value in the result to set the correct bytes format.
-					var largestValue = Math.max.apply(Math,arrayData[0][2]);
-					
 					var formattedData = arrayData[0]; 
 
-					for(var i =0;i<formattedData.length;i++){
-						formattedData[i] = $filter('bytes')(formattedData[i],largestValue);
-					}				
-					
 					if (typeof formattedData !== "undefined") {
+						//Get the largest value in the result to set the correct bytes format.
+						var largestValue = Math.max.apply(Math,arrayData[0][2]);
+
+						for(var i =0;i<formattedData.length;i++){
+							formattedData[i] = $filter('bytes')(formattedData[i],largestValue)[0];
+						}
+
 						formattedData[0].unshift('average');
 						formattedData[1].unshift('min');
 						formattedData[2].unshift('max');
+
 					}else{
 						formattedData=[['average',0],['min',0],['max',0]];
-					}
+					}			
 					
-
 					vm.ispBandwidth = {
 						data:formattedData,
 						ispList:ispArray,
 						zoom :false,
 				    	description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
 				    	title : "ISP Download Bandwidth MB/S"
-					};					
+					};		
+						
 		     });
 			
 	    	downloadService.getDownloadVolume(startDate,endDate, userName, method).then(function(responseData){
@@ -418,16 +432,19 @@
 							
 				var dataForGraph = formattedData[0];
 				dataForGraph.unshift(formattedData[1]);
+			
 
 				var total = 0;	    		
 	    		
-	    		for(var i=1;i<dataForGraph.length;i++){	
-	    		    var temp = dataForGraph[i];
+	    		for(var i=1;i<byteArray.length;i++){	
+	    		    var temp = byteArray[i];
 	    		    if(temp!=="null"){
 	    		    	total +=temp;
 	    		    }    			
 	    			
-	    		}	    		
+	    		}	    	
+
+	    			
 
 	    		var busiestIndex = 0;
 	    		var largestDay = 0;	    		
@@ -444,8 +461,8 @@
 	    		vm.volume = { 	
 	    			data:[dates,dataForGraph],
 	    			byteFormat:byteFormat,
-	    			total:total === 0 ? "No Downloads": total+' '+byteFormat,
-	    			busiestDay:largestDay ===0 ?"No Downloads":"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat,
+	    			total:total === 0 ? "No Data":$filter('bytes')(total),
+	    			busiestDay:largestDay ===0 ?"No Data":"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat,
 	    			zoom :false,
 				    description : "This bar graph displays the volume of data that was downloaded during the requested period.",
 				    title : "Download Volume"
