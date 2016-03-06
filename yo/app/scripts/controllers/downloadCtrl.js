@@ -96,7 +96,6 @@
 
        		});
        	}
-
     	 	
 
         var downloadMethodTypes = downloadService.getDownloadMethodTypes();
@@ -293,9 +292,7 @@
 	    				largestDay = current;
 	    			}
 	    		}   		
-	    		console.log(busiestIndex)
-	    		console.log(dates)
-
+	    		
 	    		var busiestDay = largestDay===0 ? "No Data":dates[busiestIndex] +" with "+largestDay;
 	    		var countTotal = total=== 0 ? "No Data":total;
 	    				
@@ -436,15 +433,14 @@
 
 				var total = 0;	    		
 	    		
-	    		for(var i=1;i<byteArray.length;i++){	
+	    		for(var i=0;i<byteArray.length;i++){	
 	    		    var temp = byteArray[i];
 	    		    if(temp!=="null"){
 	    		    	total +=temp;
 	    		    }    			
 	    			
 	    		}	    	
-
-	    			
+	    			    			
 
 	    		var busiestIndex = 0;
 	    		var largestDay = 0;	    		
