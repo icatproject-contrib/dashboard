@@ -689,11 +689,14 @@ public class DashboardREST {
             //Get methods and count how many their are.
             query.multiselect(download.get("method"),cb.sum(download.<Long>get("downloadSize")));
             
+             //Create a where clause that deals with the provided query params.
+            Predicate generalPredicate = createDownloadPredicate(cb,start,end,download,userName, "");
             
-            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, "");            
+            //Make sure only finished downloads are collected as the volume downloaded is unknown.
+            Predicate finishedPrecicate = cb.equal(download.get("status"), finished);
             
             
-            query.where(finalPredicate);
+            query.where(cb.and(generalPredicate,finishedPrecicate));     
             
             //Finally group by the method
             query.groupBy(download.get("method"));
