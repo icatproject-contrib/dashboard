@@ -15,6 +15,7 @@ import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
@@ -31,16 +32,14 @@ import org.slf4j.LoggerFactory;
 
 
 @Singleton
+@Startup
 @DependsOn("PropsManager")
-public class ICATSessionManager {
-    
+public class ICATSessionManager {    
     
     @EJB 
-    private PropsManager properties;
+    private PropsManager properties;  
     
-    
-    private static final Logger log = LoggerFactory.getLogger(ICATSessionManager.class);
-   
+    private static final Logger log = LoggerFactory.getLogger(ICATSessionManager.class);  
   
     private String sessionID;
     private ICAT icat;
@@ -57,8 +56,10 @@ public class ICATSessionManager {
      */
     @PostConstruct
     public void init(){
-        createTimers(properties);
-        loginICAT(properties);
+        log.info("Initiating ICATSession Manager");
+        createTimers();
+        sessionID = loginICAT(properties);
+       
     }
      /**
      * Creates the timers with the TimerService object. Currently creates two.
@@ -68,7 +69,7 @@ public class ICATSessionManager {
      * @param properties The properties manager object that contains all the information
      * from the dashboard.properties file.
      */
-    private void createTimers(PropsManager properties){
+    private void createTimers(){
         
         TimerConfig refreshSession = new TimerConfig("refreshSession", false);
         timerService.createIntervalTimer(3600000,3600000,refreshSession);         
@@ -85,7 +86,7 @@ public class ICATSessionManager {
      */
     private String loginICAT(PropsManager properties){
         
-        
+        String session =null;
         try {
             URL hostUrl;
             
@@ -97,19 +98,19 @@ public class ICATSessionManager {
                                         
                     
         } catch (MalformedURLException ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+            log.error("Error connecting to the ICAT ",ex);
         }
         
        
         
         try {
-            sessionID = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
+            session = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
             log.info("Successfully Logged into ICAT");
         } catch (IcatException_Exception ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+            log.error("Error logging into the ICAT ",ex);
         }
         
-        return sessionID;
+        return session;
         
     }
     

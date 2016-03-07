@@ -76,11 +76,13 @@ public class PropsManager {
            userName = props.getProperty("userName");
            password = props.getProperty("password");
            collectTime = Integer.parseInt(props.getProperty("collect_Time"));           
-           topCatURL = props.getProperty("topCatURL");
+           topCatURL = props.getProperty("topCatURL");     
            
-           
-           idsAddress = props.getProperty("idsAddress");
-           
+           log.info("Functional accounts set as: ",functionalAccounts);
+           log.info("ICAT set as: ",ICATUrl);
+           log.info("TopCat set as: ",topCatURL);
+           log.info("Reader account set as ",userName);
+          
            
     }
     

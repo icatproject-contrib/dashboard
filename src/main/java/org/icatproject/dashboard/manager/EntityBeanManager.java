@@ -63,7 +63,6 @@ public class EntityBeanManager {
                 manager.persist(session);
                 manager.flush();
                 String result = session.getId();
-                logger.debug("Session " + result + " persisted.");
 
                 return result;
             } catch (Throwable e) {
@@ -86,11 +85,11 @@ public class EntityBeanManager {
      * @throws DashboardException The session cannot be found.
      */
     public void logout(String sessionId, EntityManager manager) throws DashboardException {
-        logger.debug("logout for sessionId " + sessionId);       
+              
         Session session = getSession(sessionId, manager);
         manager.remove(session);
         manager.flush();
-        logger.debug("Session " + session.getId() + " removed.");
+        
 
            
     }
@@ -214,7 +213,7 @@ public class EntityBeanManager {
      * @throws DashboardException If it is unable to refresh the sessionID
      */
     public void refresh(String sessionId, int lifetimeMinutes, EntityManager manager) throws DashboardException {
-        logger.info("Refreshing session: " + sessionId);
+   
         Session session = getSession(sessionId, manager);
         session.refresh(lifetimeMinutes);
        
