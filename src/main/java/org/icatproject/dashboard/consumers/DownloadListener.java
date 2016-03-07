@@ -67,11 +67,10 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName="maxSessions",propertyValue="1"),
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/IDS/log"),
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
-    @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),    
-    
-    
-   
-    
+    @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
+    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),   
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID3"),
+    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub") 
     
 })
 
