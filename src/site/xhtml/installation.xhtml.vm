@@ -1,0 +1,129 @@
+<html>
+<head>
+<title>Dashboard Installation</title>
+</head>
+<body>
+
+
+
+	<h1>Installation</h1>
+
+	<h2>Compatibility</h2>
+	<p>This will work with an ICAT version of 4.5.0 or greater, TopCat 2.0.0 and requires 
+		ids.server 1.6.0 or greater. </p>
+
+	<h2>Prerequisites</h2>
+
+	<ul>
+		<li>The dashboard distribution: <a
+			href="${repoUrl}/org/icatproject/ids.server/${project.version}/dashboar-${project.version}-distro.zip">dashboard-${project.version}-distro.zip</a>
+		</li>
+		
+		<li>A database as described in <a
+			href="http://icatproject.org/installation/database/">Database
+				installation instructions</a> installed on the server
+		</li>
+
+		<li>A suitable deployed container (here assumed to be glassfish
+			though tomcat should be sufficient) to support a web application.
+			Testing has been carried out with Glassfish 4.0. <a
+			href="http://icatproject.org/installation/glassfish/">Glassfish
+				installation instructions</a> are available.
+		</li>
+		
+
+		<li>Python (version 2.4 to 2.7) installed on the server.</li>
+	</ul>
+
+	<h2>Summary of steps</h2>
+
+
+	<ol>
+		<li>Please follow <a
+			href="http://icatproject.org/installation/component/"> the
+				generic installation instructions</a>
+		</li>
+
+		<li>Check that it works.</li>
+	</ol>
+
+	<h2>The dashboard-setup.properties file</h2>
+
+	<dl>
+		<dt>container</dt>
+		<dd>May be either glassfish or wildfly - though only glassfish is
+			working properly at the moment.</dd>
+		<dt>home</dt>
+		<dd>is the top level of the container installation. For
+			glasssfish it must contain "glassfish/domains" and for wildfly it
+			must contain jboss-modules.jar.</dd>
+		<dt>port</dt>
+		<dd>is the administration port of the container which is
+			typically 4848 for glassfish and 9990 for wildfly.</dd>
+		<dt>secure</dt>
+		<dd>must be set to true or false. If true then only https and not
+			http connections will be allowed.</dd>
+		<dt>db.vendor</dt>
+		<dd>This is the conventional name of the database: such as oracle
+			or mysql. Currently the only value that is significant is "oracle"
+			which should be used to mark such databases.</dd>
+		<dt>db.driver</dt>
+		<dd>is the name of the jdbc driver and must match the jar file
+			for your database that you stored in the previous step.</dd>
+		<dt>db.url</dt>
+		<dd>url to connect to your database. For example:
+			jdbc:mysql://localhost:3306/icat</dd>
+		<dt>db.username</dt>
+		<dd>username to connect to your database.</dd>
+		<dt>db.password</dt>
+		<dd>password to connect to your database.</dd>
+		<dt>ids.server</dt>
+		<dd>the url of the server that will send JMS messages to the dashboard.</dd>
+		
+	</dl>
+
+
+	<h2>The dashboard.properties file</h2>
+
+	<h3>General Properties</h3>
+
+	<dl>
+		<dt>icat.url</dt>
+		<dd>
+			The url of the machine hosting the icat service. It should normally
+			just have the scheme, the hostname and the port. For example:
+			<code>https://example.com:443</code>
+		</dd>
+
+		<dt>authenticator</dt>
+		<dd>The authenticator mnemonic for the ICAT reader account for the dashboard.</dd>
+
+		<dt>userName</dt>
+		<dd>Username of the ICAT reader account for the dashboard.</dd>
+
+		<dt>password</dt>
+		<dd>Password of the ICAT reader account for the dashboard.</dd>
+
+		<dt>authorised_accounts</dt>
+		<dd>List of accounts in the format mnemonic/name to be allowed access to the dashboard.</dd>
+
+		<dt>topCatURL</dt>
+		<dd>The URL of the TopCat to gather download statistics.</dd>
+
+		
+	</dl>
+
+	
+
+	<h2>Check that the dashboard works</h2>
+	<p>
+		Enter a url of the form
+		<code>https://example.com/api/v1/ping</code>
+		into a web browse and it should respond:
+		<code>The Dashboard is doing fine!</code>
+		
+	</p>
+
+</body>
+</html>
+

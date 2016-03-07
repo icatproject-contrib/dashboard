@@ -15,7 +15,7 @@
 			return !(_.isEmpty($sessionStorage.sessionData));
 		}
 
-		$rootScope.baseURL = 'https://localhost:8181/dashboard/api/v1/';
+		$rootScope.baseURL = '/api/v1/';
 
 		
 	}		   
