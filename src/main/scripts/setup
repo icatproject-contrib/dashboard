@@ -1,53 +1,57 @@
 #!/usr/bin/env python
 from setup_utils import *
 import os
+import socket
 
-# Dashboard Setup Script
+# icat.server
 
-def uninstall():
-    if not actions.isInstalled(): return
+def uninstall():    
     app = actions.getAppName("dashboard")
-    if app: actions.asadmin("undeploy " + app)
+    if app: actions.undeploy(app)
+    actions.unregisterDB("dashboard")
+    actions._asadmin("set server.jms-service.type=EMBEDDED")
+    actions._asadmin("set configs.config.server-config.jms-service.jms-host.default_JMS_host.host=localhost")
 
-    actions.asadmin("delete-jdbc-resource jdbc/dashboard", tolerant=True)
-    actions.asadmin("delete-jdbc-connection-pool dashboard", tolerant=True)
 
     
+actions, arg, props = getActions("dashboard-setup.properties", ["db.vendor", "db.driver", "db.url", "db.username", "db.password","ids.address"])
 
-actions, options, arg = getActions()
-props = actions.getGlassfish("dashboard-setup.properties", ["dbProperties", "glassfish", "driver", "port"])
 
 prop_name = "dashboard.properties"
+prop_list = []
 
-if arg == "INSTALL":
-    actions.installFile(prop_name)
+if arg in ["CONFIGURE", "INSTALL"]: actions.configure(prop_name, prop_list) 
+dashboardProperties = getProperties(prop_name, prop_list)
 
-    try:
-        uninstall()        
 
+if arg in ["CONFIGURE", "INSTALL"]:
+    
+    actions.checkNoErrors()
+	
+
+if arg == "INSTALL": 
+    
+    actions.installFile("dashboard.properties")
+    
+    
+    try: 
+                  
+        uninstall()
+        actions.registerDB("dashboard", props["db.vendor"], props["db.driver"], props["db.url"], props["db.username"], props["db.password"])
+	actions._asadmin("set server.jms-service.type=REMOTE")
+	actions._asadmin("set configs.config.server-config.jms-service.jms-host.default_JMS_host.host="+props["ids.address"])
+        actions._asadmin("restart-domain")
+	actions.deploy()   
         
-        actions.asadmin("delete-jdbc-resource jdbc/dashboard", tolerant=True)
-        actions.asadmin("delete-jdbc-connection-pool dashboard", tolerant=True)
-
-        actions.asadmin('create-jdbc-connection-pool --datasourceclassname ' + props["driver"] +
-                ' --restype javax.sql.DataSource --failconnection=true --steadypoolsize 2' +
-                ' --ping --property ' + props["dbProperties"] + ' dashboard', printOutput=True)
-
-        actions.asadmin("create-jdbc-resource --connectionpoolid dashboard jdbc/dashboard")      
-
-        actions.deploy("dashboard-*.war", contextroot=props["dashboardUrlRoot"],  deploymentorder=140)
-
-        
-        
-
     except Exception, e:
         abort(str(e))
-
-else:  # UNINSTALL
+                
+if arg == "UNINSTALL":        
     actions.removeFile(prop_name)
-
+    
+    
     try:
-        uninstall();
-
+        uninstall()
+        
     except Exception, e:
-        abort(str(e))
+        abort(str(e))       
