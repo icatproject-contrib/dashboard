@@ -140,6 +140,10 @@ html,body, .cotainer-fluid,.row  {
   min-height: 0px;
 }
 
+.internal-row {
+  background-color: #fff !important;  
+}
+
 
 /* icon classes/ graph buttons */
 

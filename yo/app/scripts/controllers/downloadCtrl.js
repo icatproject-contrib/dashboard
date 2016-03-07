@@ -172,8 +172,42 @@
 			});			
 			
 			downloadService.getDownloadStatusNumber(startDate, endDate, userName,method).then(function(responseData){
-				console.log(responseData);
+				
 
+				var failedTemp;
+				var inProgressTemp;
+				var finishedTemp;
+
+				//Gather the specific data e.g. amount of failed, inProgress etc...
+				responseData.forEach(function(stat){
+					console.log(stat)				
+
+					if(stat.status==="failed"){
+						failedTemp=stat.number;
+					}
+					else if(stat.status==="finished"){
+						finishedTemp = stat.number;
+					}
+					else if(stat.status==="inProgress"){
+						inProgressTemp = stat.number;
+					}
+
+				});
+
+				var failed = failedTemp === undefined ? 0 : failedTemp;
+				var inProgress  = inProgressTemp === undefined ? 0 : inProgressTemp;
+				var finished = finishedTemp === undefined ? 0 : finishedTemp;			
+
+				var successRate = ['Success percentage',$filter('number')((finished/(failed+finished))*100,1)];
+				
+				vm.statusNumber = {
+					data:successRate,
+					description: "This gauge chart displays the percentage of successful downloads to failed downloads.",
+					title:"Download Success Rate",
+					inProgress:inProgress,
+					failed:failed,
+					successful:finished
+				}
 			});			
 
 			downloadService.getDownloadEntityAge(startDate,endDate,userName,method).then(function(responseData){
@@ -256,8 +290,7 @@
 			    
 			});
 
-			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){		
-
+			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){	
 					
 				vm.gridOptions.data = responseData;				
 				
@@ -294,8 +327,7 @@
 	    		}   		
 	    		
 	    		var busiestDay = largestDay===0 ? "No Data":dates[busiestIndex] +" with "+largestDay;
-	    		var countTotal = total=== 0 ? "No Data":total;
-	    				
+	    		var countTotal = total=== 0 ? "No Data":total;    				
 	    				
 
 	    		dates.unshift("x");		
@@ -313,58 +345,7 @@
 
 					
 		    });
-
-		    downloadService.getDownloadBandwidth(startDate,endDate, userName, method).then(function(responseData){
-		    	
-		    	vm.rawBandwidthData = responseData;
-
-		    	var bandwidthData = [];
-
-		    	var dateArray = getDateArray(startDate,endDate)
-		    	var formattedDateArray = getFormattedDateArray(startDate,endDate)
-
-		    	formattedDateArray.unshift("x")	    	
-		    	 
-		    	bandwidthData.push(formattedDateArray)
-		    	
-		    	responseData.forEach( function(download){
-		    		var downloadArray = [];		    		
-
-		    		var start = moment(download.startDate, "YYYY-MM-DD HH:mm:ss");
-		    		var end = moment(download.endDate , "YYYY-MM-DD HH:mm:ss");
-
-	    			for(var i = 0; i< dateArray.length; i++){
-	    				var current = dateArray[i];
-
-	    				if((current.isAfter(start,'day') || current.isSame(start,'day'))&&(current.isBefore(end,'day') || current.isSame(end,'day'))){
-	    					
-	    					downloadArray.push(download.bandwidth)
-	    				}
-	    				else{
-	    					downloadArray.push("null")
-	    				}	    			    
-	    			}
-
-	    			downloadArray.unshift(download.id)
-	    			   
-	    			bandwidthData.push(downloadArray)
-		    			
-					});
-
-		    	var highest = Math.max.apply(Math,responseData.map(function(data){return data.bandwidth;}));
-		    	var lowest =  Math.min.apply(Math,responseData.map(function(data){return data.bandwidth;}));
-		    	
-		    	
-		    	vm.bandwidth ={
-		    		data:bandwidthData,
-		    		highest:highest === -Infinity ? "No Data": $filter('bytes')(highest),
-		    		lowest:lowest === Infinity ? "No Data": $filter('bytes')(lowest),
-		    		zoom :true,
-				    description : "This scatter graph displays the bandwidth of downloads in Megabytes. This is calculated by the download amount (Megabytes) over the time it took to complete.",
-				    title : "Download Bandwidth"
-		    	}		    	
-
-		    });
+		    
 
 		    downloadService.getDownloadISPBandwidth(startDate,endDate, userName, method).then(function(responseData){		     		
 		     		

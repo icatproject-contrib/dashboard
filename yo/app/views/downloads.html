@@ -9,25 +9,21 @@
 			</div>
 		</div>	
 	</div>
-	<div class="col-lg-4 col-sm-4">
+	
+	<div class="col-lg-4 col-sm-4">									
+		<success-gauge class="chart" data='download.statusNumber'></success-gauge>
+	</div>						
+		
+		
+	<div class="col-lg-3 col-sm-4">
 		<div class="box">
 			<div class="text-format">					
-					<h2>Total Downloads</h2>
-					<h3>{{download.count.total}}</h3>					
-					<h2>Busiest Day</h2>
-					<h3>{{download.count.busiestDay}}</h3>
+				<h2>Total Downloads</h2>
+				<h3>{{download.count.total}}</h3>					
+				<h2>Busiest Day</h2>
+				<h3>{{download.count.busiestDay}}</h3>
 			</div>
 		</div>	
-	</div>
-	<div class="col-lg-3 col-sm-4">
-		<div class="box">	
-			<div class="text-format">					
-				<h2>Highest Bandwidth</h2>
-				<h3>{{download.bandwidth.highest }}</h3>					
-				<h2>Lowest Bandwidth</h2>
-				<h3>{{download.bandwidth.lowest }}</h3>
-			</div>
-		</div>
 	</div>
 </div>
 
@@ -59,10 +55,8 @@
 
 	            </select>	                      
             </div>
-            <div class="col-lg-2">   
-                
-                <button type="submit" class="form-control btn btn-default" ng-click="download.updatePage()" > Search</button>
-                </form>  
+            <div class="col-lg-2">                
+                <button type="submit" class="form-control btn btn-default" ng-click="download.updatePage()" > Search</button>                
             </div>                                                
         </div>
     </div>                        
@@ -75,40 +69,46 @@
 		<div class="box">
 			<p class="graph-title">Global Locations 
 				<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{download.globalLocationDescription}}"><i class=" fa fa-question-circle fa-lg"></i></button>
-			</p>
-
-			</p>
+			</p>			
 				
-			<div google-chart  chart="download.worldChart" >  	
-		    </div>
+			<div google-chart  chart="download.worldChart" ></div>
 	    </div>
 	</div>    
 
 	<div class="col-lg-5">
 		<div class="box">
-			<p>Local Locations			
-			<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{download.localLocationDescription}}"><i class=" fa fa-question-circle fa-lg"></i></button>
-			<select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.europeOptions track by options.geoCode" > 		<option value="" disabled selected>Europe</option>
-		    </select>
-		    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.africaOptions track by options.geoCode" >       <option value="" disabled selected>Africa</option>
-		    </select>
-		    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.asiaOptions track by options.geoCode" >       <option value="" disabled selected>Asia</option>
-		    </select>
-		    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.americasOptions track by options.geoCode" >    <option value="" disabled selected>Americas</option>
-		    </select>
-			</p>	
-			<div google-chart chart="download.localChart">
+			<div class="internal-row row">
+				<div class="col-lg-2">
+					<p>Local</p>
+				</div>
 
-		</div>	
-		
-		
-
-    	
-        </select>
-		
-		
+				<div class="col-lg-2">
+					<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{download.localLocationDescription}}"><i class=" fa fa-question-circle fa-lg"></i></button>
+				</div>
+				<div class="col-lg-2">
+					<select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.europeOptions track by options.geoCode" > 		<option value="" disabled selected>Europe</option>
+			    	</select>
+			    </div>	
+			    <div class="col-lg-2">
+				    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.africaOptions track by options.geoCode" >       <option value="" disabled selected>Africa</option>
+				    </select>
+				</div>
+				<div class="col-lg-2">    
+				    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.asiaOptions track by options.geoCode" >       <option value="" disabled selected>Asia</option>
+				    </select>
+			    </div>
+			    <div class="col-lg-2">
+				    <select class="sub-menu btn btn-primary btn-sm" ng-change="download.changeRegion()" ng-model="download.selectedRegion" ng-options="options.area for options in download.americasOptions track by options.geoCode" >    <option value="" disabled selected>Americas</option>
+				    </select>
+				</div>
+			</div>
+			<div class="row">
+				<div google-chart chart="download.localChart"></div>
+			</div>
+		</div>
 	</div>
 </div>
+
 <div class="row">
 	<div class="col-lg-4 col-lg-offset-1 ">					
 		<entity-Age-Scatter class="chart" data='download.entityAge'></entity-Age-Scatter>		
@@ -116,7 +116,8 @@
 	<div class="col-lg-6 ">		
 		<download-count-line class="chart" data='download.count'></download-count-line>			
 	</div>
-</div>
+</div> 
+
 
 
 <div class="row">
@@ -137,13 +138,9 @@
 	<div class="col-lg-10 col-lg-offset-1">	
 		<div class="box">
 			<p>Downloads Table</p>
-			<div ui-grid="download.gridOptions" ></div>
-        
-      		</div>
-  
-		</div>
+			<div ui-grid="download.gridOptions" ></div>        
+      	</div>  
 	</div>
-
 </div>
 
 
