@@ -180,7 +180,7 @@
 
 				//Gather the specific data e.g. amount of failed, inProgress etc...
 				responseData.forEach(function(stat){
-					console.log(stat)				
+									
 
 					if(stat.status==="failed"){
 						failedTemp=stat.number;
@@ -344,27 +344,38 @@
 			    } 
 
 					
-		    });
-		    
+		    });		    
 
 		    downloadService.getDownloadISPBandwidth(startDate,endDate, userName, method).then(function(responseData){		     		
 		     		
-		     		var arrayData = _.map(responseData, function(data){
+		     		var average = _.map(responseData, function(data){
 		     			
-						return [[data.average],[data.min],[data.max]];
+						return data.average;
 					});
+
+					var min = _.map(responseData, function(data){
+		     			
+						return data.min;
+					});
+
+					var max = _.map(responseData, function(data){
+		     			
+						return data.max;
+					});
+
 
 					var ispArray = _.map(responseData, function(data){
 		     			
 						return data.isp;
 					});
+					
 
-
-					var formattedData = arrayData[0]; 
+					var formattedData = [average,min,max];
+					console.log(formattedData) 
 
 					if (typeof formattedData !== "undefined") {
 						//Get the largest value in the result to set the correct bytes format.
-						var largestValue = Math.max.apply(Math,arrayData[0][2]);
+						var largestValue = Math.max.apply(Math,formattedData[2]);
 
 						for(var i =0;i<formattedData.length;i++){
 							formattedData[i] = $filter('bytes')(formattedData[i],largestValue)[0];
@@ -377,7 +388,8 @@
 					}else{
 						formattedData=[['average',0],['min',0],['max',0]];
 					}			
-					
+					console.log(ispArray)
+					console.log(formattedData)
 					vm.ispBandwidth = {
 						data:formattedData,
 						ispList:ispArray,
@@ -386,10 +398,9 @@
 				    	title : "ISP Download Bandwidth MB/S"
 					};		
 						
-		     });
+		    });
 			
 	    	downloadService.getDownloadVolume(startDate,endDate, userName, method).then(function(responseData){
-
 
 	    		var data = responseData;
 
@@ -409,8 +420,8 @@
 				dates.unshift("x");		
 							
 				var dataForGraph = formattedData[0];
-				dataForGraph.unshift(formattedData[1]);
-			
+
+				dataForGraph.unshift(formattedData[1]);			
 
 				var total = 0;	    		
 	    		

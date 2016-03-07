@@ -22,8 +22,7 @@
 
 
 				$scope.$watch('data', function(dataObject){
-					if(dataObject){
-						console.log(dataObject)
+					if(dataObject){						
 						
 						$scope.description =  dataObject.description;						
 						$scope.title = dataObject.title;
