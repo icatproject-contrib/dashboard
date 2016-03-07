@@ -19,46 +19,6 @@
     <!-- build:css(.tmp) styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
-    </head>
-    <body ng-app="dashboardApp" ng-controller="IndexController as ic">
-     <!-- Begin page content -->
-    <!--[if lte IE 8]>
-    <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-    <![endif]-->
-
-    <!-- Add your site or application content here -->          
-
-
-    <div id="inform" inform class="inform-fixed inform-shadow"></div>
-
-<div class="container-fluid ">
-    <div id="header" class="row">
-        <div class="col-lg-8"> 
-          <p class="navbar-brand"><span class="fa fa-bar-chart lg"></span> Dashboard</p>                 
-        </div>
-        <div class="sidebar-wrapper" >                          
-              <ul class="nav nav-pills">
-                <a ng-if="ic.isLoggedIn()" ui-sref="logout"><li class="fa fa-unlock" ></li> Logout</a>
-                <a ng-if="!ic.isLoggedIn()" ui-sref="login"><li class="fa fa-lock"></li> Login</a>                
-                    
-                <a ng-if="ic.isLoggedIn()" ui-sref="entities"><li class="fa fa-archive"></li> Entities</a>
-                <a ng-if="ic.isLoggedIn()" ui-sref="downloads"><li class="fa fa-download"></li> Downloads</a>
-                
-              </ul> 
-
-            </div>
-        
-    </div> 
-    <div id="main-row" class="row">     
-        <div id="main-box" ng-class="col-lg-12" >                
-                <div ui-view=""></div>   
-            </div>                
-        </div>
-        
-    </div>      
-
-
-
 
     <!-- build:js(.) scripts/vendor.js -->
     <!-- bower:js -->
@@ -110,15 +70,56 @@
     <script src="scripts/directives/downloadDirectives/entityAgeScatter.js"></script>
     <script src="scripts/directives/downloadDirectives/ispBandwidthBar.js"></script>
     <script src="scripts/directives/downloadDirectives/successGauge.js"></script>
-    <!-- Filters -->
+    <!-- Filters -->    
     <script src="scripts/filters/byteFilter.js"></script>
     
-   
-    
-
     <!-- Additional -->
    
 
      <!-- endbuild -->
+    </head>
+    <body ng-app="dashboardApp" ng-controller="IndexController as ic">
+     <!-- Begin page content -->
+    <!--[if lte IE 8]>
+    <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+    <!-- Add your site or application content here -->          
+
+
+    <div id="inform" inform class="inform-fixed inform-shadow"></div>
+
+<div class="container-fluid " ng-cloak>
+    <div id="header" class="row">
+        <div class="col-lg-8"> 
+          <p class="navbar-brand"><span class="fa fa-bar-chart lg"></span> Dashboard</p>                 
+        </div>
+        <div class="sidebar-wrapper" >                          
+              <ul class="nav nav-pills">
+                <a ng-if="ic.isLoggedIn()" ui-sref="logout"><li class="fa fa-unlock" ></li> Logout</a>
+                <a ng-if="!ic.isLoggedIn()" ui-sref="login"><li class="fa fa-lock"></li> Login</a>         
+                <a ng-if="ic.isLoggedIn()" ui-sref="downloads"><li class="fa fa-download"></li> Downloads</a>
+                
+              </ul> 
+
+            </div>
+        
+    </div> 
+    <div id="main-row" class="row">     
+        <div id="main-box" ng-class="col-lg-12" >                
+                <div ui-view=""></div>   
+            </div>                
+        </div>
+        
+    </div>      
+
+
+
+
+    
+    
+   
+    
+
     </body>
     </html>
