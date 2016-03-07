@@ -566,8 +566,7 @@ public class DashboardREST {
             
             query.where(finalPredicate); 
             
-            query.groupBy(download.get("status"));
-            
+            query.groupBy(download.get("status"));            
            
             List<Object[]> downloadStatusCount = manager.createQuery(query).getResultList();
                       
@@ -578,10 +577,7 @@ public class DashboardREST {
                 obj.put("number",downloadStatus[1]);
                 result.add(obj);               
                 
-            }  
-            
-            
-                     
+            }   
             
             return  result.toString();
 
@@ -618,15 +614,12 @@ public class DashboardREST {
             //Criteria objects.
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<Download> download = query.from(Download.class);
-            
+            Root<Download> download = query.from(Download.class);           
                         
             //Get methods and count how many their are.
-            query.multiselect(download.get("method"),cb.count(download.get("method")));
+            query.multiselect(download.get("method"),cb.count(download.get("method")));            
             
-            
-            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, "");            
-            
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, "");   
             
             query.where(finalPredicate);
             
@@ -634,11 +627,8 @@ public class DashboardREST {
             query.groupBy(download.get("method"));
             
             List<Object[]> methods = manager.createQuery(query).getResultList();
-
             
-            JSONArray ary = new JSONArray();            
-                  
-            
+            JSONArray ary = new JSONArray();
                
             for(Object[] result: methods){   
                JSONObject obj = new JSONObject();
@@ -647,8 +637,7 @@ public class DashboardREST {
                obj.put("number", number);
                obj.put("method",method);              
                ary.add(obj);
-            }
-                     
+            }             
             
             return ary.toJSONString();
 
@@ -702,11 +691,8 @@ public class DashboardREST {
             query.groupBy(download.get("method"));
             
             List<Object[]> methods = manager.createQuery(query).getResultList();
-
             
-            JSONArray ary = new JSONArray();            
-                  
-            
+            JSONArray ary = new JSONArray();          
                
             for(Object[] result: methods){   
                JSONObject obj = new JSONObject();
@@ -756,77 +742,8 @@ public class DashboardREST {
             }
             
             return ary.toJSONString();
-        }
-
-      
-        /***
-         * Returns the bandwidth of downloads within the provided dates. 
-         * @param sessionID SessionID for authentication.
-         * @param startDate Start point for downloads.
-         * @param endDate end points for downloads.
-         * @param userName name of the user to check against.
-         * @param method type of download method.
-         * @return JSON object includes the start and end dates, download ID and bandwidth.
-         * @throws DashboardException 
-         */
-        @GET
-        @Path("download/bandwidth")
-        @Produces(MediaType.APPLICATION_JSON)
-        public String getBandwidth(@QueryParam("sessionID")String sessionID,
-                                   @QueryParam("startDate")String startDate,
-                                   @QueryParam("endDate")String endDate,
-                                   @QueryParam("userName")String userName,
-                                   @QueryParam("method")String method) throws DashboardException{
-            if(sessionID==null){
-                throw new BadRequestException("A SessionID must be provided");
-            }
-            if(!(beanManager.checkSessionID(sessionID, manager))){
-                throw new AuthenticationException("An invalid sessionID has been provided");           }                       
-           
-          
-            Date start = new Date(Long.valueOf(startDate));
-            Date end = new Date(Long.valueOf(endDate));           
-                       
-             
-            JSONArray container = new JSONArray();
-            
-            //Criteria objects.
-            CriteriaBuilder cb = manager.getCriteriaBuilder();
-            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<Download> download = query.from(Download.class);
-            
-                        
-            //Get methods and count how many their are.
-            query.multiselect(download.get("downloadStart"),download.get("downloadEnd"), download.get("bandwidth"),download.get("id"));
-            
-            //Create a where clause that deals with the provided query params.
-            Predicate generalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);
-            
-            //Make sure only finished downloads are collected as they will have a bandwidth.
-            Predicate finishedPrecicate = cb.equal(download.get("status"), finished);
-            
-            
-            query.where(cb.and(generalPredicate,finishedPrecicate));     
-          
-            
-            List<Object[]> downloads = manager.createQuery(query).getResultList();                
-            
-            
-            for(Object[] singleDownload: downloads){
-                
-                JSONObject downloadData = new JSONObject();
-                
-                downloadData.put("startDate", dateTimeFormat.format(singleDownload[0]));
-                downloadData.put("endDate",dateTimeFormat.format(singleDownload[1]));
-                downloadData.put("bandwidth", singleDownload[2].toString());
-                downloadData.put("id",singleDownload[3].toString());              
-                
-               container.add(downloadData);                               
-            }
-            
-            return container.toJSONString();
-        }
-
+        }     
+       
 
         /***
          * Returns the bandwidth of downloads within the provided dates grouped by the ISP. 
