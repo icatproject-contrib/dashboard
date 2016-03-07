@@ -70,7 +70,7 @@ public class PropsManager {
 
            }
            functionalAccounts = Arrays.asList(props.getProperty("functional_accounts").split("\\s+"));
-           ICATUrl = props.getProperty("ICAT");
+           ICATUrl = props.getProperty("icat.url");
            loginAuth = props.getProperty("authenticator");
            authorisedAccounts = Arrays.asList(props.getProperty("authorised_accounts").split("\\s+"));
            userName = props.getProperty("userName");
