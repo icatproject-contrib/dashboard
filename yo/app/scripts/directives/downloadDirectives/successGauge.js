@@ -35,7 +35,15 @@
 							data:{
 								columns : [dataObject.data],							
 								type: 'gauge'
-								},					
+							},
+							color: {
+						        pattern:['#2b2b2b','#CF000F'], // the three color levels for the percentage values.
+						        threshold: {
+						//            unit: 'value', // percentage is default
+						//            max: 200, // 100 is default
+						            values: [30, 90]
+						        }
+						    },
 														
 						});
 					}
