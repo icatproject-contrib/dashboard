@@ -8,7 +8,9 @@ package org.icatproject.dashboard.consumers;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
+import javax.ejb.MessageDriven;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.jms.JMSException;
@@ -25,7 +27,18 @@ import org.icatproject.dashboard.exceptions.InternalException;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.slf4j.LoggerFactory;
    
-@TransactionManagement(TransactionManagementType.BEAN)
+@MessageDriven(activationConfig = {
+    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
+    @ActivationConfigProperty(propertyName="maxSessions",propertyValue="1"),
+    @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/IDS/log"),
+    @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
+    @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
+    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),   
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID4"),
+    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub") 
+    
+})
+
 public class ICATListener implements MessageListener {
     
     @EJB
@@ -33,14 +46,11 @@ public class ICATListener implements MessageListener {
     
     @EJB
     private UserCollector userCollector;
-     
-
     
-   private static final org.slf4j.Logger log = LoggerFactory.getLogger(ICATListener.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(ICATListener.class);
     
     @PersistenceContext(unitName="dashboard")
-    private EntityManager manager;
-    
+    private EntityManager manager;   
 
     
     /**
@@ -63,10 +73,8 @@ public class ICATListener implements MessageListener {
             createQuery(icatQuery);          
             
             
-        } catch (JMSException ex) {
-            Logger.getLogger(ICATListener.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InternalException ex) {
-            Logger.getLogger(ICATListener.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (JMSException | InternalException ex) {
+            log.error("Issue with processing the ICAT message");
         }
     }
     
