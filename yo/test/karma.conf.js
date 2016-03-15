@@ -3,8 +3,32 @@
 // Generated on 2015-12-11 using
 // generator-karma 1.0.1
 
+
 module.exports = function(config) {
   'use strict';
+
+  var osBrowsers; 
+  var osPlugins;
+  var os = require("os");
+
+    if(os.type()==='Linux'){
+      osBrowsers = ["Chrome","Firefox"]; 
+      osPlugins = [
+      "karma-phantomjs-launcher",
+      "karma-jasmine",
+      "karma-chrome-launcher",      
+      "karma-firefox-launcher"];  
+
+    }else if(os.type()==='Windows_NT'){
+      osBrowsers = ["Chrome","Firefox","IE"];
+      osPlugins = [
+      "karma-phantomjs-launcher",
+      "karma-jasmine",
+      "karma-ie-launcher",
+      "karma-chrome-launcher",    
+      "karma-firefox-launcher"]; 
+
+    }
 
   config.set({
     // enable / disable watching file and executing tests whenever any file changes
@@ -65,21 +89,13 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: [
-      "Chrome",
-	  "Firefox",
-	  "IE"
-	  
-    ],
+
+    
+    browsers: osBrowsers,
+     
 
     // Which plugins to enable
-    plugins: [
-      "karma-phantomjs-launcher",
-      "karma-jasmine",
-	  "karma-chrome-launcher",
-	  "karma-ie-launcher",
-	  "karma-firefox-launcher",
-    ],
+    plugins: osPlugins,
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
