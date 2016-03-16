@@ -135,34 +135,7 @@ public class DataCollector {
         return icat;
     }
 
-    private void setupUserCollection() throws InternalException {
-
-        List<Object> earliestUser = null;
-        LocalDate earliestDashboard = getEarliestDashboard();
-        try {
-            earliestUser = icat.search(sessionID, "SELECT MIN(u.modTime) FROM User u");
-            if (earliestUser.get(0) != null) {
-
-                if (earliestDashboard == null) {
-                    log.info("Initial Entity Collection Required.");
-                    userCollector.collectUsers(dateConversion((XMLGregorianCalendar) earliestUser.get(0)), LocalDate.now());
-                } 
-                else if(earliestDashboard.isBefore(LocalDate.now())){
-                    log.info("Top up initiated");
-                    userCollector.collectUsers(earliestDashboard, LocalDate.now());
-                }
-            }
-            else{
-                log.info("No data collection required.");
-            }
-                    
-        } catch (IcatException_Exception ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
-
+   
     
     
     /**

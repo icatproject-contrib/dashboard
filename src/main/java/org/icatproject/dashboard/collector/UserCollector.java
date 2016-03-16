@@ -24,7 +24,6 @@ import javax.xml.namespace.QName;
 import org.icatproject.dashboard.entity.CollectionType;
 import static org.icatproject.dashboard.entity.CollectionType.UserUpdate;
 import org.icatproject.dashboard.entity.ICATUser;
-import org.icatproject.dashboard.entity.IntegrityCheck;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.ICATSessionManager;
@@ -66,52 +65,7 @@ public class UserCollector  {
         sessionID = session.getSessionID();
     }
     
-    /**
-     * Goes through the set of dates provided and collects the users for each day from ICAT.
-     * 
-     * @param start date to check from for users.
-     * @param end  date to check up to for users.
-     */
-    public void collectUsers(LocalDate start, LocalDate end){
-        List<Object> users = new ArrayList();
-        
-         while(!start.isAfter(end)){
-            try {
-                boolean complete = true;
-                        
-                String query = "SELECT u FROM User U WHERE u.modTime >={ts "+ start.format(format) +" 00:00:00 } AND u.modTime <= {ts "+start.format(format)+" 23:59:59 }";
-                users = icat.search(sessionID,query);
-                
-                for(Object temp : users){
-                    User user = (User)temp;
-                    
-                    ICATUser dashBoardUser = new ICATUser();
-                    
-                    dashBoardUser.setUserICATID(user.getId());
-                    dashBoardUser.setFullName(user.getFullName());
-                    dashBoardUser.setName(user.getName());
-                    
-                    //Failed for the day do not wish to continue
-                    if(!(complete = insertUser(dashBoardUser))){                        
-                        break;
-                    }                    
-                }
-                if(complete){
-                    integerityUpdate(start, true,UserUpdate);
-                    start = start.plusDays(1);
-                }
-                else{
-                    integerityUpdate(start, false,UserUpdate);
-                    start = start.plusDays(1);
-                }
-                        
-            } catch (IcatException_Exception ex) {
-                Logger.getLogger(UserCollector.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-        }
-        
-    }
+    
     /**
      * Creates an ICATservice object which can be used to communicate with an ICAT.
      * @return An ICAT object.
@@ -175,26 +129,6 @@ public class UserCollector  {
         return true;
     }
     
-     /**
-     * Inserts a integrity value for the Integrity table. 
-     * @param date Date the collection went over.
-     * @param passed If it was successful or not.
-     * @param type the type of collection e.g. User update or entity count.
-     */
-
-   
-    public void integerityUpdate(LocalDate date, boolean passed, CollectionType type) {
-        IntegrityCheck ic = new IntegrityCheck();
-        ic.setCollectionType(type);
-        ic.setDate(java.sql.Date.valueOf(date));
-        ic.setPassed(passed);
-        
-        try {
-            beanManager.create(ic, manager);
-        } catch (DashboardException ex) {
-            Logger.getLogger(UserCollector.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
     
     
    
