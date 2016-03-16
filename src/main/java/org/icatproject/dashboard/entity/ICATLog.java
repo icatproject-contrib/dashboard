@@ -51,7 +51,7 @@ public class ICATLog extends EntityBaseBean implements Serializable {
     private Date logTime;
     
     @Comment("A user can have a location")
-    @JoinColumn(name="LOGLOCATION_ID")
+    @JoinColumn(name="GEOLOCATION_ID")
     @ManyToOne(fetch = FetchType.LAZY)
     private GeoLocation location;
     

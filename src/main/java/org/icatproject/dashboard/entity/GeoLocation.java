@@ -8,9 +8,15 @@ package org.icatproject.dashboard.entity;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 
 @Comment("A geoLocation of where an activity such as a download took place.")
+@NamedQueries({    
+    @NamedQuery(name="GeoLocation.check",
+                query="SELECT ge FROM GeoLocation ge WHERE ge.longitude = :longitude AND ge.latitude = :latitude"), 
+})
 @Entity
 public class GeoLocation extends EntityBaseBean {
     
@@ -26,8 +32,7 @@ public class GeoLocation extends EntityBaseBean {
     private double longitude;
     
     @Comment("The latitude of a download")    
-    private double latitude;    
-    
+    private double latitude;
     
     @Comment("The country code of the location.")
     private String countryCode;
@@ -38,14 +43,15 @@ public class GeoLocation extends EntityBaseBean {
     @Comment("The ISP at this location.")
     private String isp;
 
+    
+    
     public List<ICATLog> getLogs() {
         return logs;
     }
 
     public void setLogs(List<ICATLog> logs) {
         this.logs = logs;
-    }
-    
+    }   
     
 
     public String getIsp() {
