@@ -58,7 +58,7 @@ public class GeoTool {
         String countryCode = (String) result.get("country");
         String isp = (String) result.get("isp");
         List<GeoLocation> locations;
-        locations = manager.createNamedQuery("DownloadLocation.check").setParameter("longitude", longitude).setParameter("latitude", latitude).getResultList();
+        locations = manager.createNamedQuery("GeoLocation.check").setParameter("longitude", longitude).setParameter("latitude", latitude).getResultList();
         if (locations.size() > 0) {
             gl = locations.get(0);
         } else {

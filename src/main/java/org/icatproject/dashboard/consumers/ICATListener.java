@@ -5,13 +5,14 @@
  */
 package org.icatproject.dashboard.consumers;
 
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import javax.interceptor.Interceptors;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -31,15 +32,14 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
    
 @MessageDriven(activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
-    @ActivationConfigProperty(propertyName="maxSessions",propertyValue="1"),
+    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),  
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/ICAT/log"),
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),   
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID4"),
-    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub") ,
-    @ActivationConfigProperty(propertyName = "addressList",propertyValue="icatdev.isis.cclrc.ac.uk")
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "icatDashboard"),
+    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),   
+  
     
 })
 
@@ -73,15 +73,16 @@ public class ICATListener implements MessageListener {
         log = parseJMSMessage(text);
         
         updateUserInfo(log);
+        
         addLocation(log);
         
-       /*
+       
         try {
-            beanManager.create(icatLog, manager);
+            beanManager.create(log, manager);
         } catch (DashboardException ex) {
-           logger.error("Issue insert ICATLog into the dashboard ",ex);
+           logger.error("Issue inserting ICATLog into the dashboard ",ex);
         }
-        */
+        
     }
     
     /**
@@ -92,21 +93,15 @@ public class ICATListener implements MessageListener {
      */
     private void addLocation(ICATLog log){
         
-        List<String> functionalAccounts = properties.getAuthorisedAccounts();
-        
-        Boolean addLocation = false;
+        List<String> functionalAccounts = properties.getAuthorisedAccounts();    
         
         for(String account : functionalAccounts ){
             if(account.equals(log.getUser().getName())){
-                addLocation = true;
+                log.setLocation(GeoTool.getDownloadLocation(log.getIpAddress(), manager, beanManager));
+                break;
             }
-        }
-        
-        if(addLocation){
-            log.setLocation(GeoTool.getDownloadLocation(log.getIpAddress(), manager, beanManager));
         }       
-        
-        
+       
     }
     
     /**
@@ -164,7 +159,9 @@ public class ICATListener implements MessageListener {
            
            icatLog.setDuration(messageBody.getLongProperty("millis"));
            
-           icatLog.setOp(messageBody.getStringProperty("operation"));           
+           icatLog.setOp(messageBody.getStringProperty("operation"));   
+           
+           icatLog.setLogTime(new Date(messageBody.getLongProperty("start")));
            
             
         } catch (ParseException | JMSException | InternalException ex) {

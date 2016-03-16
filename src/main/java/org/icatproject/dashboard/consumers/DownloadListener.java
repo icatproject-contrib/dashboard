@@ -160,7 +160,7 @@ public class DownloadListener implements MessageListener {
             }
 
         } catch (JMSException | ParseException ex) {
-            logger.debug("An error has occured", ex);
+            logger.error("An error has occured", ex);
         }
     }
 
