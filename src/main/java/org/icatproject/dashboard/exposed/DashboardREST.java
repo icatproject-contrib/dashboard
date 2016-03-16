@@ -145,17 +145,10 @@ public class DashboardREST {
                     mnemonic.put("mnemonic",temp.get("mnemonic"));
                     
                     mnemonicArray.add(mnemonic);
-                }       
-                
-                
-
-
-
+                }    
             } catch (IOException | ParseException ex) {
-                throw new InternalException("Issues with generating Authenticator List." +ex);
-            }
-       
-            
+                throw new InternalException("Issues with generating Authenticator List: "+ex);
+            }     
        
             
             
@@ -199,10 +192,7 @@ public class DashboardREST {
             }
            
             return obj.toString();
-	}
-	
-	
-        
+	}  
         
          
        
@@ -331,13 +321,9 @@ public class DashboardREST {
             Root<Download> download = query.from(Download.class);           
                      
             //User Join     
-            Join<Download, ICATUser> downloadUserJoin = download.join("user");
-            
-            
-            
+            Join<Download, ICATUser> downloadUserJoin = download.join("user");           
            
-            query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));
-            
+            query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));            
             
             Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
             Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"),end);
@@ -384,6 +370,10 @@ public class DashboardREST {
                if("finished".equals(d.getStatus())){
                    obj.put("end", convertToLocalDateTime(d.getDownloadEnd()).toString());
                    obj.put("bandwidth",d.getBandwidth()); 
+               }
+               else{
+                   //Bandiwdth is unknown so should return 0.
+                   obj.put("bandwidth",0);
                }
                
                ary.add(obj);
