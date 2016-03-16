@@ -45,9 +45,9 @@ public class Download extends EntityBaseBean implements Serializable {
     private List<DownloadEntityAge> downloadEntityAges;
     
     @Comment("A download is associated with a geolocation")
-    @JoinColumn(name="DOWNLOADLOCATION_ID")
+    @JoinColumn(name="GEOLOCATION_ID")
     @ManyToOne(fetch = FetchType.LAZY)
-    private DownloadLocation location;
+    private GeoLocation location;
 
     @Comment("The preparedID from TopCAT")
     private String preparedID;
@@ -108,7 +108,7 @@ public class Download extends EntityBaseBean implements Serializable {
         this.duriation = duriation;
     }
 
-    public void setLocation(DownloadLocation location) {
+    public void setLocation(GeoLocation location) {
         this.location = location;
     }
 
@@ -178,7 +178,7 @@ public class Download extends EntityBaseBean implements Serializable {
         return downloadSize;
     }
 
-    public DownloadLocation getLocation() {
+    public GeoLocation getLocation() {
         return location;
     }
 

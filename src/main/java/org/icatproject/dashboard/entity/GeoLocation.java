@@ -8,23 +8,19 @@ package org.icatproject.dashboard.entity;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 
-@Comment("A download location is the geolocation of where the download took place.")
-@NamedQueries({
-    @NamedQuery(name="DownloadLocation.global",
-                query="SELECT dl.countryCode, count(dl.countryCode) FROM DownloadLocation dl JOIN dl.downloads d WHERE d.downloadStart > :startDate AND d.downloadEnd <=:endDate AND dl.countryCode IS NOT NULL GROUP BY dl.countryCode "), 
-    @NamedQuery(name="DownloadLocation.check",
-                query="SELECT dl FROM DownloadLocation dl WHERE dl.longitude = :longitude AND dl.latitude = :latitude"), 
-})
+@Comment("A geoLocation of where an activity such as a download took place.")
 @Entity
-public class DownloadLocation extends EntityBaseBean {
+public class GeoLocation extends EntityBaseBean {
     
     @Comment("A geolocation has many downloads")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "location")    
     private List<Download> downloads;
+    
+    @Comment("A geolocation has many ICATLogs")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "location")    
+    private List<ICATLog> logs;
     
     @Comment("The longtitude of a download")
     private double longitude;
@@ -41,6 +37,16 @@ public class DownloadLocation extends EntityBaseBean {
     
     @Comment("The ISP at this location.")
     private String isp;
+
+    public List<ICATLog> getLogs() {
+        return logs;
+    }
+
+    public void setLogs(List<ICATLog> logs) {
+        this.logs = logs;
+    }
+    
+    
 
     public String getIsp() {
         return isp;

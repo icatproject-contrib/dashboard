@@ -56,13 +56,9 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     
     @Comment("A user can perform queries.")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
-    private List<Query> queries = new ArrayList<Query>();
+    private List<ICATLog> queries = new ArrayList<ICATLog>();
     
-    @Comment("A user can have a location")
-    @JoinColumn(name="USERLOCATION_ID")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private UserLocation location;
-    
+        
     @Comment("A user can either be logged in or out.")
     private boolean logged;
     
@@ -78,10 +74,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     
     @Comment("Ip address of the user the last time they used the ICAT.")
     private InetAddress ipAddress;
-    
-    @Comment("When they last logged in")
-    @Temporal(value = TemporalType.TIMESTAMP)
-    private Date lastLoggedIn;
+   
     
     public ICATUser(){
         
@@ -99,7 +92,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
         this.downloads = downloads;
     }
 
-    public void setQueries(List<Query> queries) {
+    public void setQueries(List<ICATLog> queries) {
         this.queries = queries;
     }
 
@@ -110,11 +103,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     public void setFullName(String name) {
         this.fullName = name;
     }
-
-    public void setLastLoggedIn(Date lastLoggedIn) {
-        this.lastLoggedIn = lastLoggedIn;
-    }   
-    
+      
     public void setName(String name) {
         this.name = name;
     }
@@ -124,7 +113,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     }
     
     @XmlTransient
-    public List<Query> getQueries() {
+    public List<ICATLog> getQueries() {
         return queries;
     }
 
@@ -145,10 +134,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
         return name;
     }
 
-    public Date getLastLoggedIn() {
-        return lastLoggedIn;
-    } 
-      
+          
     @XmlTransient
     public List<Download> getDownloads(){
         return downloads;
