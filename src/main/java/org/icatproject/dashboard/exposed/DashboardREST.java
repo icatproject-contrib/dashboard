@@ -43,7 +43,7 @@ import javax.ws.rs.core.MediaType;
 import org.icatproject.dashboard.entity.Download;
 import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
-import org.icatproject.dashboard.entity.DownloadLocation;
+import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.Entity_;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
@@ -80,17 +80,11 @@ public class DashboardREST {
     PropsManager properties;
     
     @PersistenceContext(unitName = "dashboard")
-    private EntityManager manager;
+    private EntityManager manager; 
     
-   
-    
-    private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    
-    private final DecimalFormat df = new DecimalFormat("#.##");
-    
+    private final DecimalFormat df = new DecimalFormat("#.##");    
      
-    private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);
-    
+    private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);    
     
     //Constants for download statuses,
     
@@ -770,7 +764,7 @@ public class DashboardREST {
             Root<Download> download = query.from(Download.class);
             
             //Join between download and download location.
-            Join<Download, DownloadLocation> downloadJoin = download.join("location");           
+            Join<Download, GeoLocation> downloadJoin = download.join("location");           
                  
             Join<Download, ICATUser> downloadUserJoin = download.join("user");
             
@@ -1000,20 +994,20 @@ public class DashboardREST {
             //Criteria objects.
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<DownloadLocation> downloadLocation = query.from(DownloadLocation.class);           
+            Root<GeoLocation> geoLocation = query.from(GeoLocation.class);           
             
             //Join between downloads and location.
-            Join<Download, DownloadLocation> downloadLocationJoin = downloadLocation.join("downloads");
+            Join<Download, GeoLocation> downloadLocationJoin = geoLocation.join("downloads");
             
             //Get methods and count how many their are.
-            query.multiselect(downloadLocation.get("countryCode"),cb.count(downloadLocation.get("countryCode")));            
+            query.multiselect(geoLocation.get("countryCode"),cb.count(geoLocation.get("countryCode")));            
             
             Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,downloadLocationJoin,userName, method);     
             
             query.where(finalPredicate);  
             
             //Finally group by the method
-            query.groupBy(downloadLocation.get("countryCode"));          
+            query.groupBy(geoLocation.get("countryCode"));          
             
             List<Object[]> downloadGlobalLocations = manager.createQuery(query).getResultList();
             
@@ -1068,16 +1062,16 @@ public class DashboardREST {
             //Criteria objects.
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<DownloadLocation> downloadLocation = query.from(DownloadLocation.class); 
+            Root<GeoLocation> downloadLocation = query.from(GeoLocation.class); 
             
-            Join<Download, DownloadLocation> downloadLocationJoin = downloadLocation.join("downloads"); 
+            Join<Download, GeoLocation> downloadLocationJoin = downloadLocation.join("downloads"); 
             
             Predicate finalPredicate = createDownloadLocationPredicate(cb,  start, end, downloadLocationJoin,  userName, method);    
                         
             //Get methods and count how many their are.
             query.multiselect(downloadLocation,cb.count(downloadLocationJoin));            
             
-            //Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,downloadLocation,userName, method);     
+            //Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,geoLocation,userName, method);     
             
             query.where(finalPredicate);  
             
@@ -1091,9 +1085,9 @@ public class DashboardREST {
             for(Object[] download: downloadLocalLocations){
                 JSONObject obj = new JSONObject();
                 obj.put("number",download[1]);
-                obj.put("city",((DownloadLocation) download[0]).getCity());
-                obj.put("longitude",((DownloadLocation) download[0]).getLongitude());
-                obj.put("latitude", ((DownloadLocation) download[0]).getLatitude());
+                obj.put("city",((GeoLocation) download[0]).getCity());
+                obj.put("longitude",((GeoLocation) download[0]).getLongitude());
+                obj.put("latitude", ((GeoLocation) download[0]).getLatitude());
                 resultArray.add(obj);
                 
             }
@@ -1163,7 +1157,7 @@ public class DashboardREST {
          * @return a predicate object that contains restrictions to gather all downloadLocations during the start
          * and end date.
          */
-        private Predicate createDownloadLocationPredicate(CriteriaBuilder cb, Date start, Date end, Join<Download, DownloadLocation> downloadLocationJoin, String userName, String method){
+        private Predicate createDownloadLocationPredicate(CriteriaBuilder cb, Date start, Date end, Join<Download, GeoLocation> downloadLocationJoin, String userName, String method){
             
             Predicate startGreater = cb.greaterThan(downloadLocationJoin.<Date>get("downloadStart"), start);
             Predicate endLess = cb.lessThan(downloadLocationJoin.<Date>get("downloadEnd"),end);
