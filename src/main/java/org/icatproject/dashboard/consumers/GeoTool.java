@@ -38,7 +38,7 @@ public class GeoTool {
      * @param beanManager
      * @return DownloadLocation object with its filled in variables.
      */
-    public static GeoLocation getDownloadLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) {
+    public static GeoLocation getGeoLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) {
 
         GeoLocation gl;
         JSONObject result =null;

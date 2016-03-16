@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import javax.interceptor.Interceptors;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -97,7 +96,7 @@ public class ICATListener implements MessageListener {
         
         for(String account : functionalAccounts ){
             if(account.equals(log.getUser().getName())){
-                log.setLocation(GeoTool.getDownloadLocation(log.getIpAddress(), manager, beanManager));
+                log.setLocation(GeoTool.getGeoLocation(log.getIpAddress(), manager, beanManager));
                 break;
             }
         }       

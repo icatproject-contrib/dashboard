@@ -403,7 +403,7 @@ public class DownloadListener implements MessageListener {
      * @param ipAddress The idAddress to have its GeoLocation resolved.
      */
     private GeoLocation getLocation(String ipAddress) {
-        GeoLocation location = GeoTool.getDownloadLocation(ipAddress, manager, beanManager);      
+        GeoLocation location = GeoTool.getGeoLocation(ipAddress, manager, beanManager);      
 
         return location;
     }
