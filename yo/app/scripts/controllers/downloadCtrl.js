@@ -291,7 +291,7 @@
 			});
 
 			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){	
-					
+				console.log(responseData)	
 				vm.gridOptions.data = responseData;				
 				
 			});			

@@ -8,20 +8,14 @@ package org.icatproject.dashboard.entity;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.OneToMany;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -40,9 +34,6 @@ import javax.xml.bind.annotation.XmlTransient;
                 query="SELECT u.fullName FROM ICATUser u WHERE u.logged=1"),
     @NamedQuery(name="Users.LoggedOut",
                 query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"), 
-    @NamedQuery(name="Users.download.location",
-                query="SELECT u.fullName, dl, d.id FROM ICATUser u JOIN u.downloads d JOIN d.location dl "
-                        + "WHERE (d.downloadStart BETWEEN :startDate AND :endDate OR d.downloadEnd BETWEEN :startDate AND :endDate) OR (:startDate < d.downloadStart AND :endDate > d.downloadEnd) "),
     
     
 })
@@ -56,13 +47,9 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     
     @Comment("A user can perform queries.")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
-    private List<Query> queries = new ArrayList<Query>();
+    private List<ICATLog> queries = new ArrayList<ICATLog>();
     
-    @Comment("A user can have a location")
-    @JoinColumn(name="USERLOCATION_ID")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private UserLocation location;
-    
+        
     @Comment("A user can either be logged in or out.")
     private boolean logged;
     
@@ -78,10 +65,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     
     @Comment("Ip address of the user the last time they used the ICAT.")
     private InetAddress ipAddress;
-    
-    @Comment("When they last logged in")
-    @Temporal(value = TemporalType.TIMESTAMP)
-    private Date lastLoggedIn;
+   
     
     public ICATUser(){
         
@@ -99,7 +83,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
         this.downloads = downloads;
     }
 
-    public void setQueries(List<Query> queries) {
+    public void setQueries(List<ICATLog> queries) {
         this.queries = queries;
     }
 
@@ -110,11 +94,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     public void setFullName(String name) {
         this.fullName = name;
     }
-
-    public void setLastLoggedIn(Date lastLoggedIn) {
-        this.lastLoggedIn = lastLoggedIn;
-    }   
-    
+      
     public void setName(String name) {
         this.name = name;
     }
@@ -124,7 +104,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     }
     
     @XmlTransient
-    public List<Query> getQueries() {
+    public List<ICATLog> getQueries() {
         return queries;
     }
 
@@ -145,10 +125,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
         return name;
     }
 
-    public Date getLastLoggedIn() {
-        return lastLoggedIn;
-    } 
-      
+          
     @XmlTransient
     public List<Download> getDownloads(){
         return downloads;

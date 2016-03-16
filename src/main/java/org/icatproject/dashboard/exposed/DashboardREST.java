@@ -12,7 +12,6 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -43,7 +42,7 @@ import javax.ws.rs.core.MediaType;
 import org.icatproject.dashboard.entity.Download;
 import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
-import org.icatproject.dashboard.entity.DownloadLocation;
+import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.Entity_;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
@@ -80,17 +79,11 @@ public class DashboardREST {
     PropsManager properties;
     
     @PersistenceContext(unitName = "dashboard")
-    private EntityManager manager;
+    private EntityManager manager; 
     
-   
-    
-    private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    
-    private final DecimalFormat df = new DecimalFormat("#.##");
-    
+    private final DecimalFormat df = new DecimalFormat("#.##");    
      
-    private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);
-    
+    private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);    
     
     //Constants for download statuses,
     
@@ -145,17 +138,10 @@ public class DashboardREST {
                     mnemonic.put("mnemonic",temp.get("mnemonic"));
                     
                     mnemonicArray.add(mnemonic);
-                }       
-                
-                
-
-
-
+                }    
             } catch (IOException | ParseException ex) {
-                throw new InternalException("Issues with generating Authenticator List." +ex);
-            }
-       
-            
+                throw new InternalException("Issues with generating Authenticator List: "+ex);
+            }     
        
             
             
@@ -164,13 +150,13 @@ public class DashboardREST {
                 
                 
         /**
-         * Gets the name of users which are currently logged into the ICAT
+         * Gets the full name of users which are currently logged into the ICAT
          * @param sessionID Session ID
          * @return Names of users currently logged into ICAT.
          * @throws DashboardException 
          */
 	@GET
-	@Path("user/login")
+	@Path("user/logged")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getUsersLogInfo(@QueryParam("sessionID")String sessionID) throws DashboardException{
             
@@ -181,30 +167,54 @@ public class DashboardREST {
                 throw new AuthenticationException("An invalid sessionID has been provided");
             }
             List<String> users;
-            JSONObject obj = new JSONObject();
-            String loginMessage;           
+            
+            JSONArray ary = new JSONArray();                     
 
-            users = manager.createNamedQuery("Users.LoggedIn").getResultList();
-            loginMessage = "Logged in";
-           
+            users = manager.createNamedQuery("Users.LoggedIn").getResultList();        
             
             if(users.size()>0){
-                for(int i=0;i<users.size();i++){
-                    obj.put(users.get(i), loginMessage);                
-                }
-                return obj.toString();
+                
+                for(String user: users){
+                    JSONObject obj = new JSONObject();
+                    obj.put("fullName",user);  
+                    ary.add(obj);
+                }                
             }
             else{             
-                 obj.put("Users ", "0");
+                 return "No users currently logged in";
             }
            
-            return obj.toString();
-	}
-	
-	
+            return ary.toString();
+	}  
         
+        /**
+         * Returns the location of currently logged in users.
+         * @param sessionID SessionID for authentication.     
+         * @param userName name of the user to check against.        
+         * @return All the information on downloads.
+         * @throws BadRequestException Incorrect date formats or a invalid sessionID.
+         */
+        @GET
+        @Path("user/logged/location")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getDownloads(@QueryParam("sessionID")String sessionID,                                 
+                                   @QueryParam("userName")String userName) throws DashboardException{
+            
+            if(sessionID == null){
+                throw new BadRequestException("sessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }
+            List<String> users;
+            
+            JSONArray ary = new JSONArray();                     
+
+            users = manager.createNamedQuery("Users.LoggedIn").getResultList();    
         
-         
+            
+            return null;
+        } 
        
         /**
          * Post login to the dashboard. Authentication is done via the ICAT.
@@ -331,13 +341,9 @@ public class DashboardREST {
             Root<Download> download = query.from(Download.class);           
                      
             //User Join     
-            Join<Download, ICATUser> downloadUserJoin = download.join("user");
-            
-            
-            
+            Join<Download, ICATUser> downloadUserJoin = download.join("user");           
            
-            query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));
-            
+            query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));            
             
             Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
             Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"),end);
@@ -384,6 +390,10 @@ public class DashboardREST {
                if("finished".equals(d.getStatus())){
                    obj.put("end", convertToLocalDateTime(d.getDownloadEnd()).toString());
                    obj.put("bandwidth",d.getBandwidth()); 
+               }
+               else{
+                   //Bandiwdth is unknown so should return 0.
+                   obj.put("bandwidth",0);
                }
                
                ary.add(obj);
@@ -453,7 +463,7 @@ public class DashboardREST {
          * @throws DashboardException 
          */
         @GET
-        @Path("download/frequency")
+        @Path("download/frequency;;")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloadFrequency(@QueryParam("sessionID")String sessionID,
                                 @QueryParam("startDate")String startDate,
@@ -780,7 +790,7 @@ public class DashboardREST {
             Root<Download> download = query.from(Download.class);
             
             //Join between download and download location.
-            Join<Download, DownloadLocation> downloadJoin = download.join("location");           
+            Join<Download, GeoLocation> downloadJoin = download.join("location");           
                  
             Join<Download, ICATUser> downloadUserJoin = download.join("user");
             
@@ -1010,20 +1020,20 @@ public class DashboardREST {
             //Criteria objects.
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<DownloadLocation> downloadLocation = query.from(DownloadLocation.class);           
+            Root<GeoLocation> geoLocation = query.from(GeoLocation.class);           
             
             //Join between downloads and location.
-            Join<Download, DownloadLocation> downloadLocationJoin = downloadLocation.join("downloads");
+            Join<Download, GeoLocation> downloadLocationJoin = geoLocation.join("downloads");
             
             //Get methods and count how many their are.
-            query.multiselect(downloadLocation.get("countryCode"),cb.count(downloadLocation.get("countryCode")));            
+            query.multiselect(geoLocation.get("countryCode"),cb.count(geoLocation.get("countryCode")));            
             
             Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,downloadLocationJoin,userName, method);     
             
             query.where(finalPredicate);  
             
             //Finally group by the method
-            query.groupBy(downloadLocation.get("countryCode"));          
+            query.groupBy(geoLocation.get("countryCode"));          
             
             List<Object[]> downloadGlobalLocations = manager.createQuery(query).getResultList();
             
@@ -1078,16 +1088,16 @@ public class DashboardREST {
             //Criteria objects.
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<DownloadLocation> downloadLocation = query.from(DownloadLocation.class); 
+            Root<GeoLocation> downloadLocation = query.from(GeoLocation.class); 
             
-            Join<Download, DownloadLocation> downloadLocationJoin = downloadLocation.join("downloads"); 
+            Join<Download, GeoLocation> downloadLocationJoin = downloadLocation.join("downloads"); 
             
             Predicate finalPredicate = createDownloadLocationPredicate(cb,  start, end, downloadLocationJoin,  userName, method);    
                         
             //Get methods and count how many their are.
             query.multiselect(downloadLocation,cb.count(downloadLocationJoin));            
             
-            //Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,downloadLocation,userName, method);     
+            //Predicate finalPredicate = createDownloadLocationPredicate(cb,start,end,geoLocation,userName, method);     
             
             query.where(finalPredicate);  
             
@@ -1101,9 +1111,9 @@ public class DashboardREST {
             for(Object[] download: downloadLocalLocations){
                 JSONObject obj = new JSONObject();
                 obj.put("number",download[1]);
-                obj.put("city",((DownloadLocation) download[0]).getCity());
-                obj.put("longitude",((DownloadLocation) download[0]).getLongitude());
-                obj.put("latitude", ((DownloadLocation) download[0]).getLatitude());
+                obj.put("city",((GeoLocation) download[0]).getCity());
+                obj.put("longitude",((GeoLocation) download[0]).getLongitude());
+                obj.put("latitude", ((GeoLocation) download[0]).getLatitude());
                 resultArray.add(obj);
                 
             }
@@ -1173,7 +1183,7 @@ public class DashboardREST {
          * @return a predicate object that contains restrictions to gather all downloadLocations during the start
          * and end date.
          */
-        private Predicate createDownloadLocationPredicate(CriteriaBuilder cb, Date start, Date end, Join<Download, DownloadLocation> downloadLocationJoin, String userName, String method){
+        private Predicate createDownloadLocationPredicate(CriteriaBuilder cb, Date start, Date end, Join<Download, GeoLocation> downloadLocationJoin, String userName, String method){
             
             Predicate startGreater = cb.greaterThan(downloadLocationJoin.<Date>get("downloadStart"), start);
             Predicate endLess = cb.lessThan(downloadLocationJoin.<Date>get("downloadEnd"),end);

@@ -100,7 +100,7 @@ public class PropsManager {
         return authorisedAccounts;
     }    
     
-    public List<String> getAccounts(){
+    public List<String> getFunctionalAccounts(){
         return functionalAccounts;
     }
     

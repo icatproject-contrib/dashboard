@@ -39,7 +39,6 @@ import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.dashboard.collector.UserCollector;
 import org.icatproject.dashboard.entity.Download;
 import org.icatproject.dashboard.entity.DownloadEntity;
-import org.icatproject.dashboard.entity.DownloadLocation;
 import org.icatproject.dashboard.entity.Entity_;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.DashboardException;
@@ -54,6 +53,7 @@ import org.icatproject.ICATService;
 import org.icatproject.IcatException_Exception;
 import org.icatproject.Investigation;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
+import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.manager.DashboardSessionManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -69,7 +69,7 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),   
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID3"),
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID4"),
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub") 
     
 })
@@ -160,7 +160,7 @@ public class DownloadListener implements MessageListener {
             }
 
         } catch (JMSException | ParseException ex) {
-            logger.debug("An error has occured", ex);
+            logger.error("An error has occured", ex);
         }
     }
 
@@ -402,8 +402,8 @@ public class DownloadListener implements MessageListener {
      *
      * @param ipAddress The idAddress to have its GeoLocation resolved.
      */
-    private DownloadLocation getLocation(String ipAddress) {
-        DownloadLocation location = GeoTool.getDownloadLocation(ipAddress, manager, beanManager);      
+    private GeoLocation getLocation(String ipAddress) {
+        GeoLocation location = GeoTool.getDownloadLocation(ipAddress, manager, beanManager);      
 
         return location;
     }

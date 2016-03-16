@@ -19,7 +19,10 @@
 
                 if(args.length==1){
                     var value = args[0];
-
+                    
+                    if(value===0){
+                        return 0;
+                    }
                     if(value instanceof Array){
                         result = byteArrayToSize(value);
                         
