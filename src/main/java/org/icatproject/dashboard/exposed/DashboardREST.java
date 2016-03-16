@@ -12,7 +12,6 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -151,13 +150,13 @@ public class DashboardREST {
                 
                 
         /**
-         * Gets the name of users which are currently logged into the ICAT
+         * Gets the full name of users which are currently logged into the ICAT
          * @param sessionID Session ID
          * @return Names of users currently logged into ICAT.
          * @throws DashboardException 
          */
 	@GET
-	@Path("user/login")
+	@Path("user/logged")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getUsersLogInfo(@QueryParam("sessionID")String sessionID) throws DashboardException{
             
@@ -168,27 +167,54 @@ public class DashboardREST {
                 throw new AuthenticationException("An invalid sessionID has been provided");
             }
             List<String> users;
-            JSONObject obj = new JSONObject();
-            String loginMessage;           
+            
+            JSONArray ary = new JSONArray();                     
 
-            users = manager.createNamedQuery("Users.LoggedIn").getResultList();
-            loginMessage = "Logged in";
-           
+            users = manager.createNamedQuery("Users.LoggedIn").getResultList();        
             
             if(users.size()>0){
-                for(int i=0;i<users.size();i++){
-                    obj.put(users.get(i), loginMessage);                
-                }
-                return obj.toString();
+                
+                for(String user: users){
+                    JSONObject obj = new JSONObject();
+                    obj.put("fullName",user);  
+                    ary.add(obj);
+                }                
             }
             else{             
-                 obj.put("Users ", "0");
+                 return "No users currently logged in";
             }
            
-            return obj.toString();
+            return ary.toString();
 	}  
         
-         
+        /**
+         * Returns the location of currently logged in users.
+         * @param sessionID SessionID for authentication.     
+         * @param userName name of the user to check against.        
+         * @return All the information on downloads.
+         * @throws BadRequestException Incorrect date formats or a invalid sessionID.
+         */
+        @GET
+        @Path("user/logged/location")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getDownloads(@QueryParam("sessionID")String sessionID,                                 
+                                   @QueryParam("userName")String userName) throws DashboardException{
+            
+            if(sessionID == null){
+                throw new BadRequestException("sessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }
+            List<String> users;
+            
+            JSONArray ary = new JSONArray();                     
+
+            users = manager.createNamedQuery("Users.LoggedIn").getResultList();    
+        
+            
+            return null;
+        } 
        
         /**
          * Post login to the dashboard. Authentication is done via the ICAT.
@@ -437,7 +463,7 @@ public class DashboardREST {
          * @throws DashboardException 
          */
         @GET
-        @Path("download/frequency")
+        @Path("download/frequency;;")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloadFrequency(@QueryParam("sessionID")String sessionID,
                                 @QueryParam("startDate")String startDate,
