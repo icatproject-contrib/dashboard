@@ -209,7 +209,7 @@
                 <configuration>
                     <webResources>
                         <resource>
-                            <directory>yo\dist</directory>
+                            <directory>yo/dist</directory>
                         </resource>
                     </webResources>
                 </configuration>
