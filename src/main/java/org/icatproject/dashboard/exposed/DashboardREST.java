@@ -341,29 +341,11 @@ public class DashboardREST {
             Root<Download> download = query.from(Download.class);           
                      
             //User Join     
-            Join<Download, ICATUser> downloadUserJoin = download.join("user");           
+            Join<Download, ICATUser> userJoin = download.join("user");           
            
-            query.multiselect(download,downloadUserJoin.get("name"),downloadUserJoin.get("fullName"));            
+            query.multiselect(download,userJoin.get("name"),userJoin.get("fullName"));  
             
-            Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
-            Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"),end);
-            Predicate betweenStart = cb.between(download.<Date>get("downloadStart"),start,end);
-            Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"),start,end);
-            
-            Predicate combineBetween = cb.or(betweenStart,betweenEnd);
-            Predicate combineGL = cb.and(startGreater,endLess);
-            Predicate finalPredicate = cb.or(combineBetween, combineGL);
-            
-            if(!("undefined".equals(method))&&!("".equals(method))){
-                Predicate methodPredicate = cb.equal(download.get("method"), method);
-                finalPredicate = cb.and(finalPredicate, methodPredicate);
-            }
-            
-            if(!("undefined".equals(userName))&&!(("").equals(userName))){                
-                Predicate userPredicate = cb.equal( downloadUserJoin.get("name"), userName);  
-                finalPredicate = cb.and(finalPredicate,userPredicate);
-            }   
-           
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userJoin,userName, method);
             
             
             query.where(finalPredicate);     
@@ -463,7 +445,7 @@ public class DashboardREST {
          * @throws DashboardException 
          */
         @GET
-        @Path("download/frequency;;")
+        @Path("download/frequency")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloadFrequency(@QueryParam("sessionID")String sessionID,
                                 @QueryParam("startDate")String startDate,
@@ -491,12 +473,13 @@ public class DashboardREST {
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
             Root<Download> download = query.from(Download.class);
+            Join<Download, ICATUser> userJoin = download.join("user");
             
                         
             //Get methods and count how many their are.
             query.multiselect(download.get("downloadStart"),download.get("downloadEnd"));            
             
-            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);     
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userJoin,userName, method);     
             
             query.where(finalPredicate);         
             
@@ -536,6 +519,78 @@ public class DashboardREST {
         }
         
         /**
+         * Calculates the amount of downloads per person.
+         * @param sessionID For authentication
+         * @param startDate Start time in a Unix timestamp.
+         * @param endDate End time in a Unix timestamp.
+         * @param method the method of download 
+         * @return A JSON array of JSON Objects containing the name of the user 
+         * and the number of downloads.
+         * @throws DashboardException 
+         */
+        @GET
+        @Path("download/frequency/users")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getUserDownloadFrequency(@QueryParam("sessionID")String sessionID,
+                                @QueryParam("startDate")String startDate,
+                                @QueryParam("endDate")String endDate,                                
+                                @QueryParam("method")String method) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }              
+           
+         
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));            
+            
+            
+             //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);
+            Join<Download, ICATUser> userJoin = download.join("user");
+            
+                        
+            //Get methods and count how many their are.
+            query.multiselect(cb.count(download),userJoin.get("name"));            
+            
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userJoin,"", method);     
+            
+            query.where(finalPredicate);     
+            
+            query.groupBy(userJoin.get("name"));
+            
+            List<Object[]> users = manager.createQuery(query).getResultList();
+                    
+            
+            JSONArray result = new JSONArray();
+                        
+            for(Object[] user: users){
+                JSONObject temp = new JSONObject();
+                
+                String name = (String) user[1];
+                Long count =  (Long) user[0];
+                //Need to get the fullName of the user.
+                temp.put("fullName",RestUtility.getFullName(name, manager));
+                temp.put("name",name);
+                temp.put("count",count);
+                
+                result.add(temp);           
+                            
+                
+            }        
+            
+            
+                     
+            
+            return  result.toJSONString();
+
+        }
+        
+        /**
          * Calculates the number of failed and successful downloads.
          * @param sessionID For authentication
          * @param startDate Start time in a Unix timestamp.
@@ -566,13 +621,14 @@ public class DashboardREST {
              //Criteria objects.
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<Download> download = query.from(Download.class);           
+            Root<Download> download = query.from(Download.class); 
+            Join<Download, ICATUser> userJoin = download.join("user");
                         
             //Get methods and count how many their are.
             query.multiselect(download.get("status"),cb.count(download));    
             
             
-            Predicate finalPredicate = cb.and(createDownloadPredicate(cb,start,end,download,userName, method));     
+            Predicate finalPredicate = cb.and(createDownloadPredicate(cb,start,end,download,userJoin,userName, method));     
             
             query.where(finalPredicate); 
             
@@ -624,12 +680,13 @@ public class DashboardREST {
             //Criteria objects.
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<Download> download = query.from(Download.class);           
+            Root<Download> download = query.from(Download.class); 
+            Join<Download, ICATUser> userJoin = download.join("user");
                         
             //Get methods and count how many their are.
             query.multiselect(download.get("method"),cb.count(download.get("method")));            
             
-            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userName, "");   
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download, userJoin, userName, "");   
             
             query.where(finalPredicate);
             
@@ -683,13 +740,14 @@ public class DashboardREST {
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
             Root<Download> download = query.from(Download.class);
+            Join<Download, ICATUser> userJoin = download.join("user");
             
                         
             //Get methods and count how many their are.
             query.multiselect(download.get("method"),cb.sum(download.<Long>get("downloadSize")));
             
              //Create a where clause that deals with the provided query params.
-            Predicate generalPredicate = createDownloadPredicate(cb,start,end,download,userName, "");
+            Predicate generalPredicate = createDownloadPredicate(cb,start,end,download,userJoin,userName, "");
             
             //Make sure only finished downloads are collected as the volume downloaded is unknown.
             Predicate finishedPrecicate = cb.equal(download.get("status"), finished);
@@ -715,6 +773,78 @@ public class DashboardREST {
                      
             
             return ary.toJSONString();
+
+        }
+        
+        /**
+         * Calculates the amount of downloads per person.
+         * @param sessionID For authentication
+         * @param startDate Start time in a Unix timestamp.
+         * @param endDate End time in a Unix timestamp.
+         * @param method the method of download 
+         * @return A JSON array of JSON Objects containing the name of the user 
+         * and the number of downloads.
+         * @throws DashboardException 
+         */
+        @GET
+        @Path("download/method/volume/user")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getUserDownloadVolume(@QueryParam("sessionID")String sessionID,
+                                @QueryParam("startDate")String startDate,
+                                @QueryParam("endDate")String endDate,                                
+                                @QueryParam("method")String method) throws DashboardException{
+            if(sessionID==null){
+                throw new BadRequestException("A SessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }              
+           
+         
+            Date start = new Date(Long.valueOf(startDate));
+            Date end = new Date(Long.valueOf(endDate));            
+            
+            
+             //Criteria objects.
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
+            Root<Download> download = query.from(Download.class);
+            Join<Download, ICATUser> userJoin = download.join("user");
+            
+                        
+            //Get methods and count how many their are.
+            query.multiselect(cb.sum(download.<Long>get("downloadSize")),userJoin.get("name"));            
+            
+            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userJoin,"", method);     
+            
+            query.where(finalPredicate);     
+            
+            query.groupBy(userJoin.get("name"));
+            
+            List<Object[]> users = manager.createQuery(query).getResultList();
+                    
+            
+            JSONArray result = new JSONArray();
+                        
+            for(Object[] user: users){
+                JSONObject temp = new JSONObject();
+                
+                String name = (String) user[1];
+                Long volume =  (Long) user[0];
+                //Need to get the fullName of the user.
+                temp.put("fullName",RestUtility.getFullName(name, manager));
+                temp.put("name",name);
+                temp.put("volume",volume);
+                
+                result.add(temp);           
+                            
+                
+            }        
+            
+            
+                     
+            
+            return  result.toJSONString();
 
         }
         
@@ -803,9 +933,11 @@ public class DashboardREST {
             Predicate betweenStart = cb.between(download.<Date>get("downloadStart"),start,end);
             Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"),start,end);
             
+            Predicate completeDownload = cb.equal(download.get("status"), finished);
+            
             Predicate combineBetween = cb.or(betweenStart,betweenEnd);
             Predicate combineGL = cb.and(startGreater,endLess);
-            Predicate finalPredicate = cb.or(combineBetween, combineGL);
+            Predicate finalPredicate = cb.and(completeDownload, cb.or(combineBetween, combineGL));
             
             if(!("undefined".equals(method))&&!("".equals(method))){
                 Predicate methodPredicate = cb.equal(download.get("method"), method);
@@ -880,14 +1012,14 @@ public class DashboardREST {
             CriteriaBuilder cb = manager.getCriteriaBuilder();
             CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
             Root<Download> download = query.from(Download.class);
-            
+            Join<Download, ICATUser> userJoin = download.join("user");
                         
             //Get methods and count how many their are.
             query.multiselect(download.get("downloadStart"),download.get("downloadEnd"), download.get("downloadSize"));
             
             
             //Create a where clause that deals with the provided query params.
-            Predicate generalPredicate = createDownloadPredicate(cb,start,end,download,userName, method);
+            Predicate generalPredicate = createDownloadPredicate(cb,start,end,download,userJoin,userName, method);
             
             //Make sure only finished downloads are collected as the volume downloaded is unknown.
             Predicate finishedPrecicate = cb.equal(download.get("status"), finished);
@@ -1145,7 +1277,7 @@ public class DashboardREST {
          * @return a predicate object that contains restrictions to gather all downloads during the start
          * and end date.
          */
-        private Predicate createDownloadPredicate(CriteriaBuilder cb, Date start, Date end, Root<Download> download,  String userName, String method){
+        private Predicate createDownloadPredicate(CriteriaBuilder cb, Date start, Date end, Root<Download> download, Join<Download, ICATUser> userJoin,  String userName, String method){
             
             Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
             Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"),end);
@@ -1161,9 +1293,8 @@ public class DashboardREST {
                 finalPredicate = cb.and(finalPredicate, methodPredicate);
             }
             
-            if(!("undefined".equals(userName))&&!(("").equals(userName))){
-                Join<ICATUser, Download> downloadJoin = download.join("user"); 
-                Predicate userPredicate = cb.equal(downloadJoin.get("name"), userName);  
+            if(!("undefined".equals(userName))&&!(("").equals(userName))){                
+                Predicate userPredicate = cb.equal(userJoin.get("name"), userName);  
                 finalPredicate = cb.and(finalPredicate,userPredicate);
             }           
            
@@ -1210,6 +1341,10 @@ public class DashboardREST {
             
             return finalPredicate;
         }
+        
+        
+         
+        
 
        
 

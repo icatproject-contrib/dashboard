@@ -13,6 +13,14 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import org.icatproject.dashboard.entity.Download;
+import org.icatproject.dashboard.entity.ICATUser;
+import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -85,11 +93,11 @@ public class RestUtility {
      * @return A JSON array with objects that have "date" and "value" keys.
      */
     public static JSONArray convertMapToJSON(TreeMap<LocalDate, Long> mapToBeConverted){
-        JSONObject obj = new JSONObject();
+       
         JSONArray ary = new JSONArray();
             
         for(Map.Entry<LocalDate,Long> entry : mapToBeConverted.entrySet()) {
-            obj = new JSONObject();
+             JSONObject obj = new JSONObject();
 
             LocalDate key = entry.getKey();
             Long value = entry.getValue();
@@ -104,5 +112,29 @@ public class RestUtility {
         return ary;
 
     }
+    
+     /**
+         * Gets the full name of a user.
+         * @param name of the user in the ICAT. This is the unique name e.g. uows/123456
+         * @return the full name of the user provided.
+         */
+        public static String getFullName(String name, EntityManager manager){
+                 
+            CriteriaBuilder cb = manager.getCriteriaBuilder();
+            CriteriaQuery<String>  query = cb.createQuery(String.class);
+            Root<ICATUser> user = query.from(ICATUser.class);     
+            
+            query.multiselect(user.get("fullName"));
+            
+            query.where(cb.equal(user.get("name"), name));
+            
+            String fullName = manager.createQuery(query).getSingleResult();
+            
+            
+            return fullName;
+        
+        
+        }
+          
     
 }
