@@ -74,8 +74,7 @@ public class PropsManager {
            loginAuth = props.getProperty("authenticator");
            authorisedAccounts = Arrays.asList(props.getProperty("authorised_accounts").split("\\s+"));
            userName = props.getProperty("userName");
-           password = props.getProperty("password");
-           collectTime = Integer.parseInt(props.getProperty("collect_Time"));           
+           password = props.getProperty("password");                      
            topCatURL = props.getProperty("topCatURL");     
            
            log.info("Functional accounts set as: ",functionalAccounts);
