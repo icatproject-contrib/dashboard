@@ -33,7 +33,7 @@ public class PropsManager {
     private String loginAuth;
     private String userName;
     private String password;
-    private int collectTime;
+    
     private List<String> authorisedAccounts;
     
     private String topCatURL;    
@@ -115,9 +115,6 @@ public class PropsManager {
     public String getReaderPassword(){
         return password; 
     }
-    public int getCollectTime(){
-        return collectTime;
-    }
-
+    
     
 }

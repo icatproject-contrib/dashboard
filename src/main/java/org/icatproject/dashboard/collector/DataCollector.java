@@ -91,12 +91,7 @@ public class DataCollector {
 
     }
 
-    private void createTimers(PropsManager properties) {
-
-        TimerConfig dataCollect = new TimerConfig("dataCollect", false);
-        timerService.createCalendarTimer(new ScheduleExpression().hour(properties.getCollectTime()), dataCollect);
-
-    }
+   
 
     /**
      * Handles the timers. If statement inside decides what timer was called and
