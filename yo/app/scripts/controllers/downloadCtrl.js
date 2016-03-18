@@ -123,12 +123,67 @@
 			var userName = vm.userName;
 			var method = vm.selectedMethod === "All"?"":vm.selectedMethod;				
 
-			//Create the promises for the data.
+			//Create the promises for the user download data.
+			var userFrequencyPromise = downloadService.getUsersDownloadFrequency(startDate,endDate, method);
+			var userVolumePromise = downloadService.getUsersDownloadVolume(startDate,endDate, method);
+
+			//Combine the user promises together.
+			var userDownloadData = $q.all([userVolumePromise,userFrequencyPromise]);
+
+			userDownloadData.then(function(responseData){
+
+				var volumeRaw = _.map(responseData[0], function(data){
+						return data.volume;
+				});
+
+				var userName = _.map(responseData[1], function(data){
+						return data.fullName;
+
+				});
+
+				var frequency = _.map(responseData[1], function(data){
+						return [data.fullName,data.count];
+				});
+
+				var largestVolume = Math.max.apply(Math,volumeRaw);
+
+				var filteredData = $filter('bytes')(volumeRaw,largestVolume);	
+				
+				var formattedVolume = filteredData[0];
+				var byteFormat = filteredData[1]; 			
+
+				//Combine the data into one array for the c3.js donut.
+				var volume =  formattedVolume.map(function(value,index){
+				    return [userName[index], formattedVolume[index]];
+				});
+
+				vm.users = {
+					datasets:["number","volume"],
+					number : {
+						"data":frequency,
+						"title":"Number of downloads per user"
+					},
+					volume : {
+						"data":volume,
+						"title":"Volume per user ("+byteFormat+")"
+					},					
+					description :  "This donut chart displays the number and volume of downloads per user.",
+				    title :"User Downloads"
+				};
+
+			});
+
+			
+
+		    
+
+			//Create the promises for the download method data.
 			var methodNumberPromise = downloadService.getDownloadMethodNumber(startDate,endDate, userName);			
 			var methodVolumePromise = downloadService.getDownloadMethodVolume(startDate,endDate, userName);
 
 			//Combine the promises for multiple datasets per graph
 			var downloadMethod = $q.all([methodNumberPromise,methodVolumePromise]);
+
 
 			downloadMethod.then(function(responseData){
 				//Extract the data from the response.
@@ -141,11 +196,13 @@
 				});
 
 				var volumeRaw = _.map(responseData[1], function(data){
-						return [data.volume];
+						return data.volume;
 				});
 
+				var largestVolume = Math.max.apply(Math,volumeRaw);
+
 				//Conver the data to human readable format.
-				var formattedVolume = $filter('bytes')(volumeRaw);
+				var formattedVolume = $filter('bytes')(volumeRaw,largestVolume);
 				var formattedVolumeData = formattedVolume[0];
 
 				var byteFormat = formattedVolume[1]; 
@@ -291,7 +348,7 @@
 			});
 
 			downloadService.getDownloads(startDate,endDate, userName, method).then(function(responseData){	
-				console.log(responseData)	
+					
 				vm.gridOptions.data = responseData;				
 				
 			});			
@@ -344,7 +401,9 @@
 			    } 
 
 					
-		    });		    
+		    });	
+
+		    
 
 		    downloadService.getDownloadISPBandwidth(startDate,endDate, userName, method).then(function(responseData){		     		
 		     		
@@ -371,7 +430,7 @@
 					
 
 					var formattedData = [average,min,max];
-					console.log(formattedData) 
+					
 
 					if (typeof formattedData !== "undefined") {
 						//Get the largest value in the result to set the correct bytes format.
@@ -388,8 +447,7 @@
 					}else{
 						formattedData=[['average',0],['min',0],['max',0]];
 					}			
-					console.log(ispArray)
-					console.log(formattedData)
+					
 					vm.ispBandwidth = {
 						data:formattedData,
 						ispList:ispArray,

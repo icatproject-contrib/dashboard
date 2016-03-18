@@ -89,6 +89,26 @@
 							});
 					},
 
+					getUsersDownloadFrequency : function(startDate,endDate, userName, method){
+
+						return $http.get(baseURL+"/frequency/users?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
+							.then(function(response){
+
+								return response.data;
+							
+							});
+					},
+
+					getUsersDownloadVolume : function(startDate,endDate, userName, method){
+
+						return $http.get(baseURL+"/method/volume/user?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
+							.then(function(response){
+
+								return response.data;
+							
+							});
+					},
+
 					getDownloadBandwidth : function(startDate, endDate, userName, method){
 
 						return $http.get(baseURL+"/bandwidth/?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
