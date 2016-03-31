@@ -13,19 +13,27 @@
 
 			function userService ($http, $sessionStorage, $q,$rootScope){
 
-				var baseURL = $rootScope.baseURL+'/download';
+				var baseURL = $rootScope.baseURL;
 
 					
 
 				var services = {
 
-					getLoggedUsers: function(downloadId){
-						return $http.get(baseURL+"/users/logged?sessionID="+ $sessionStorage.sessionData.sessionID)
+					getLoggedUsers: function(){
+						return $http.get(baseURL+"users/logged?sessionID="+ $sessionStorage.sessionData.sessionID)
 							.then(function(response){
 
 								return response.data; 
 							});
-					}
+					},
+
+					getIcatLogs:function(queryConstraint, initialLimit, maxLimit, canceller){
+						return $http.get(baseURL+"icat/logs?sessionID="+ $sessionStorage.sessionData.sessionID+"&queryConstraint="+encodeURIComponent(queryConstraint)+"&initalLimit="+initialLimit+"&maxLimit="+maxLimit,{timeout:canceller.promise})
+							.then(function(response){
+								
+								return response.data; 
+							});
+					},
 					
 				    
 				}
