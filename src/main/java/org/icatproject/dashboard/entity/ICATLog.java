@@ -8,6 +8,7 @@ package org.icatproject.dashboard.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -35,6 +36,7 @@ public class ICATLog extends EntityBaseBean implements Serializable {
     private String op;
     
     @Comment("The query performed if there was one.")
+    @Column(length = 4000)
     private String query;   
     
     @Comment("The id of the entity that modified/searched for.")
