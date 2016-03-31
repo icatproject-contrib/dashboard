@@ -1,3 +1,39 @@
-<div id ="user" class="row">
-	<h1> User Information </h1>	
+<div class="row" >  
+    <div class="col-lg-10 col-lg-offset-1 "> 
+        <div class="box search-box col-lg-12">
+            <div class="col-lg-3">
+                <p class="input-group">
+                    <input type="text" tooltip-placement="top" uib-tooltip="Start Date" uib-datepicker-popup="{{user.format}}" class="form-control" ng-model="user.startDate" is-open="user.isStartDateOpen" close-text="Close" placeholder="Start Date" on-return-click-submit-button />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="user.openStartDate()"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                </p>
+            </div>
+            <div class="col-lg-3 search-bar" >    
+                <p class="input-group">
+                    <input type="text" tooltip-placement="top" uib-tooltip="End Date" uib-datepicker-popup="{{user.format}}" class="form-control" ng-model="user.endDate" is-open="user.isEndDateOpen" close-text="Close" placeholder="End Date" on-return-click-submit-button />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="user.openEndDate()"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                </p> 
+           </div>        
+           <div class="col-lg-3 search-bar" class="search-bar">
+                <input type="text" class="form-control " ng-model="user.userName" placeholder="User"/>
+            </div>            
+            
+            <div class="col-lg-3">                
+                <button type="submit" class="form-control btn btn-default" ng-click="user.updatePage()" > Search</button>                
+            </div>                                                
+        </div>
+    </div>                        
+</div> 
+
+<div class="row">
+	<div class="col-lg-10 col-lg-offset-1">	
+		<div class="box">
+			<p>Log Table</p>
+			<div ui-grid="user.gridOptions" ui-grid-infinite-scroll ></div>        
+      	</div>  
+	</div>
 </div>
+
