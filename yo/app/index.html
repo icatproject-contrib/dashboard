@@ -48,11 +48,7 @@
     <!-- build:js({.tmp,app}) scripts/scripts.js -->
     <script src="//localhost:35729/livereload.js"></script>
     <script src="scripts/app.js"></script> 
-    <!-- Services -->       
-    <script src="scripts/services/loginService.js"></script>
-    <script src="scripts/services/downloadService.js"></script>
-    <script src="scripts/services/httpInterceptorService.js"></script>
-    <script src="scripts/services/authenticateService.js"></script>
+    
     <!-- Controllers -->
     <script src="scripts/controllers/loginCtrl.js"></script>
     <script src="scripts/controllers/downloadCtrl.js"></script>   
@@ -70,8 +66,16 @@
     <script src="scripts/directives/downloadDirectives/entityAgeScatter.js"></script>
     <script src="scripts/directives/downloadDirectives/ispBandwidthBar.js"></script>
     <script src="scripts/directives/downloadDirectives/successGauge.js"></script>
+    <script src="scripts/directives/generalDirectives/dateTimeDirective.js"></script>
     <!-- Filters -->    
     <script src="scripts/filters/byteFilter.js"></script>
+    <!-- Services -->       
+    <script src="scripts/services/loginService.js"></script>
+    <script src="scripts/services/downloadService.js"></script>
+    <script src="scripts/services/httpInterceptorService.js"></script>
+    <script src="scripts/services/authenticateService.js"></script>
+    <script src="scripts/services/helperService.js"></script>
+    <script src="scripts/services/userService.js"></script>
     
     <!-- Additional -->
    
@@ -99,7 +103,7 @@
                 <a ng-if="ic.isLoggedIn()" ui-sref="logout"><li class="fa fa-unlock" ></li> Logout</a>
                 <a ng-if="!ic.isLoggedIn()" ui-sref="login"><li class="fa fa-lock"></li> Login</a> 
                 <a ng-if="ic.isLoggedIn()" ui-sref="downloads"><li class="fa fa-download"></li> Downloads</a>
-                
+                <a ng-if="ic.isLoggedIn()" ui-sref="users"><li class="fa fa-download"></li> Users</a>
                 
               </ul> 
 
