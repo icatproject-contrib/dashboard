@@ -5,6 +5,7 @@
  */
 package org.icatproject.dashboard.exposed;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -44,6 +45,7 @@ import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.Entity_;
+import org.icatproject.dashboard.entity.ICATLog;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
@@ -146,6 +148,56 @@ public class DashboardREST {
             
             
            return mnemonicArray.toJSONString();
+        }
+        
+        @GET
+        @Path("icat/logs")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getIcatLogs(@QueryParam("sessionID")String sessionID,
+                                  @QueryParam("queryConstraint")String queryConstraint,
+                                  @QueryParam("initialLimit")int initialLimit,
+                                  @QueryParam("maxLimit")int maxLimit) throws DashboardException{
+            
+            if(sessionID == null){
+                throw new BadRequestException("sessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }   
+            
+            
+            JSONArray ary = new JSONArray(); 
+            
+            String query = "SELECT log, user.fullName from ICATLog log JOIN log.user user ";
+            
+            //Check status of passed paramaters and build query.
+            if(!("".equals(queryConstraint))){
+                query += queryConstraint;
+            }
+            
+            
+            List<Object[]> logs = manager.createQuery(query).setFirstResult(initialLimit).setMaxResults(maxLimit).getResultList();
+            
+            JSONArray result = new JSONArray();
+
+            for(Object[] log: logs) {
+                JSONObject obj = new JSONObject();
+                ICATLog tempLog = (ICATLog) log[0];
+                obj.put("fullName",log[1]);
+                obj.put("id", tempLog.getId());
+                obj.put("entityId",tempLog.getEntityId());
+                obj.put("entityType",tempLog.getEntityType());
+                obj.put("ipAddress",tempLog.getIpAddress());
+                obj.put("logTime",tempLog.getLogTime().toString());
+                obj.put("op", tempLog.getOp());
+                obj.put("query", tempLog.getQuery());
+                obj.put("duration", tempLog.getDuration());
+                result.add(obj);
+                
+                
+            }    
+            
+            return result.toJSONString();
         }
                 
                 
@@ -317,7 +369,7 @@ public class DashboardREST {
          * @throws BadRequestException Incorrect date formats or a invalid sessionID.
          */
         @GET
-        @Path("/download")
+        @Path("download")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloads(@QueryParam("sessionID")String sessionID,
                                  @QueryParam("status")String status,
