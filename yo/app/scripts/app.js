@@ -19,7 +19,12 @@ angular
     'inform', 
     'angular-loading-bar',    
     'googlechart',
-    'ui.grid',    
+    'ui.grid',
+    'ui.grid.infiniteScroll',
+    'ui.grid.selection',
+    'ui.grid.saveState',
+    'ui.grid.resizeColumns',
+    'ui.grid.moveColumns',    
     'bytes',
     
 
