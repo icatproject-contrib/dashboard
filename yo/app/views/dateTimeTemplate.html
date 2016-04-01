@@ -1,10 +1,19 @@
-<div>
-    <p class="input-group"> 
-        <input datepicker-append-to-body=true uib-datepicker-popup="{{format}}" class="form-control" ng-model="dateTime" is-open="isDateOpen" close-text="Close" ng-change=update() />
-        <span class="input-group-btn">
-            <button type="button" class="btn btn-default" ng-click="openDate()"><i class="glyphicon glyphicon-calendar"></i></button>
-        </span>  
-    </p>
-</div>    
-                                          
-       
+<div class="input-group datetime-picker-input" uib-dropdown dropdown-append-to-body>
+    
+    <input type="text" class="form-control input-sm" ng-model="value" >
+    <span class="input-group-btn">
+        <button type="button" class="btn btn-default input-sm" uib-dropdown-toggle><i class="glyphicon glyphicon-calendar"></i></button>
+    </span>
+    <div  uib-dropdown-menu role="menu" aria-labelledby="btn-append-to-body" ng-click="$event.stopPropagation()" class="datetime-picker dropdown-menu-right">
+
+        <uib-datepicker ng-model="datetimePickerController.datetime" min-date="minDate" show-weeks="true" class="date" ng-change="datetimePickerController.ok()"></uib-datepicker>
+        
+        <uib-timepicker ng-model="datetimePickerController.datetime" class="time" show-meridian="false" show-seconds="true" second-step="1"></uib-timepicker>
+
+        <div class="buttons">
+            <button type="button" class="btn btn-danger btn-sm pull-left" ng-click="datetimePickerController.clear()">Clear</button>
+            <button type="button" class="btn btn-primary btn-sm" ng-click="datetimePickerController.submit()">Submit</button>
+            <button type="button" class="btn btn-warning btn-sm" ng-click="datetimePickerController.close()">Close</button>
+        </div>
+    </div>
+</div>

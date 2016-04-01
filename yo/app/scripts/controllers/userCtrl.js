@@ -2,10 +2,10 @@
 	  'use strict';
 angular.module('dashboardApp').controller('UsersCtrl', UsersCtrl);
 
-UsersCtrl.$inject= ['$scope','googleChartApiPromise','$q', 'uiGridConstants','userService','$timeout'];	
+UsersCtrl.$inject= ['$scope','googleChartApiPromise','$q', 'uiGridConstants','userService','$timeout','uiGridService'];	
 
 
-function UsersCtrl($scope,googleChartApiPromise,$q, uiGridConstants, userService, $timeout){		
+function UsersCtrl($scope,googleChartApiPromise,$q, uiGridConstants, userService, $timeout,uiGridService){		
 		
 		var vm=this;		
 		
@@ -35,7 +35,7 @@ function UsersCtrl($scope,googleChartApiPromise,$q, uiGridConstants, userService
         //Page for the limit
         var page = 1;
 
-        //Amount of items per page;
+        //Amount of results per page;
         var pageSize = 100;
 
         //Used to stop calls when changes in the table occur.
@@ -44,35 +44,24 @@ function UsersCtrl($scope,googleChartApiPromise,$q, uiGridConstants, userService
         //Stores sorted columns
         var sortColumns = [];
 
-         var filters = "";
+        var filters = "";
 
-        vm.gridOptions = {
-        	infiniteScrollUp: true,
-    		infiniteScrollDown: true,
-    		enableColumnResizing: true,
-        };
+        vm.gridOptions = {}
+        
         vm.gridOptions.columnDefs = [
         	{field: 'id', displayName: 'ID', type:'string', width:80 },
-        	{field: 'entityId', type:'string', displayName: 'Entity ID', width:80,cellTemplate:'<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.entityId}}>{{row.entity.entityId}}</div>'},
-        	{field: 'entityType',  type:"string", displayName: 'Entity Type', width:140, cellTemplate:'<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.entityType}}>{{row.entity.entityType}}</div>'},        	
-        	{field: 'ipAddress', type:"string", displayName: 'ipAddress', width:120, cellTemplate:'<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.ipAddress}}>{{row.entity.ipAddress}}</div>'},   	
-        	
-        	{field: 'duration', type:'string', displayName:'Duration', width:110, cellTemplate:'<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.duration}}>{{row.entity.duration}}</div>'},
-        	{field: 'op',  type:"string", displayName:'Operation', width:100, cellTemplate:'<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.op}}>{{row.entity.op}}</div>'},
-    		{field: 'query', type:"string", displayName:'Query', cellTemplate:'<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.query}}>{{row.entity.query}}</div>'},
-    		{field: 'fullName',  type:"string", displayName:'User', width:110, cellTemplate:'<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.fullName}}>{{row.entity.fullName}}</div>'},
-    		{field: 'logTime',  type:"date", displayName: 'Start Time',width:160, 
-    			cellTemplate:'<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.logTime}}>{{row.entity.logTime}}</div>',
-    			filterHeaderTemplate :'<div class="ui-grid-filter-container" date-time-picker ng-model="col.filters[0].term"></div>',   			
-    			
-    			
-    		},	
+        	{field: 'entityId', type:'string', displayName: 'Entity ID', width:80},
+        	{field: 'entityType',  type:"string", displayName: 'Entity Type', width:140},        	
+        	{field: 'ipAddress', type:"string", displayName: 'ipAddress', width:120 },        	
+        	{field: 'duration', type:'string', displayName:'Duration', width:110 },
+        	{field: 'op',  type:"string", displayName:'Operation', width:100 },
+    		  {field: 'query', type:"string", displayName:'Query' },
+    		  {field: 'fullName',  type:"string", displayName:'User', width:110},
+    		  {field: 'logTime',  type:"date", displayName: 'Log Time',width:160}	
     		
     	];
 
-    	vm.gridOptions.useExternalSorting=true;
-
-    	vm.gridOptions.enableFiltering = true; 
+      vm.gridOptions = uiGridService.setupGrid(vm.gridOptions);   	
 
 
 
@@ -90,7 +79,7 @@ function UsersCtrl($scope,googleChartApiPromise,$q, uiGridConstants, userService
 
     			updateTable().then(function(result){
     				vm.gridOptions.data = result;
-    				updateScroll(result.length);
+    				
 
        			});
 
@@ -149,13 +138,16 @@ function UsersCtrl($scope,googleChartApiPromise,$q, uiGridConstants, userService
   				
 
 				if(columnDef.colDef.type == 'date' &&  columnDef.filters){
+					console.log(columnDef.filters)
 					
 					var from = columnDef.filters[0].term || '';
+				
                     
                     if(from != ''){
-                        //from = helper.completePartialFromDate(from);
+                        
                        
                         console.log(from)
+                        
                         
                     }
 

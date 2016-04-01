@@ -7,43 +7,56 @@
 
     app.directive('dateTimePicker', function(){
     	return {
-			restrict: 'A',			
+			restrict: 'EA',			
 			scope: {
 				value: '=ngModel',					
 
 			},
 
 			templateUrl : 'views/dateTimeTemplate.html',
+		    controller: "DatetimePickerController as datetimePickerController",
+		            scope: {
+		                value: '=ngModel'
+		            }
 
-			link:function($scope,$element){
-				
-				$scope.dateTime;
-					
-			
-				$scope.format =  'yyyy-MM-dd';
+		        };
+		    });
 
-        		$scope.isDateOpen = false;
-		      
+		    app.controller('DatetimePickerController', function($scope, $element, $attrs){
+		        var that = this;
+		        var dropdownElement = $($element).find('.datetime-picker');		       
+		        this.datetime = new Date();
+		       
 
-		        $scope.openDate = function(){
-		            $scope.isDateOpen = true;
+		        $scope.$watch('value', function(){
+		            if($scope.value){
+		                
+		             
+
+		                that.datetime = new Date(Date.parse($scope.value));
+		            } else {
+		                that.datetime = new Date();
+		            }
+
+		        }, true);
+
+		        this.clear = function(){
+		            $scope.value = "";
+		            this.close();
+		        };
+
+		        this.submit = function(){               
+
+		            console.log("work")
+		            $scope.value = this.datetime;
 		            
-		        };		      
+		            this.close();
+		        };
 
-		       	$scope.update = function(){	
-			        $scope.value = $scope.dateTime;		  
-
-				    
-
-				 }
-				       	
-		        
+		        this.close = function(){
+		            $(dropdownElement).css('display', 'none');
+		        };
+		    });
 
 
-			}
-			
-		};
-
-	});	
-})();
-
+		})();
