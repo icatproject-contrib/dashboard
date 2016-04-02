@@ -188,7 +188,7 @@ public class DashboardREST {
                 obj.put("entityId",tempLog.getEntityId());
                 obj.put("entityType",tempLog.getEntityType());
                 obj.put("ipAddress",tempLog.getIpAddress());
-                obj.put("logTime",tempLog.getLogTime().toString());
+                obj.put("logTime",convertToLocalDateTime(tempLog.getLogTime()).toString());
                 obj.put("op", tempLog.getOp());
                 obj.put("query", tempLog.getQuery());
                 obj.put("duration", tempLog.getDuration());
@@ -360,69 +360,59 @@ public class DashboardREST {
          /**
          * Returns all the information on downloads.
          * @param sessionID SessionID for authentication.
-         * @param status
-         * @param startDate Start point for downloads.
-         * @param endDate end points for downloads.
-         * @param userName name of the user to check against.
-         * @param method
-         * @return All the information on downloads.
-         * @throws BadRequestException Incorrect date formats or a invalid sessionID.
+        * @param queryConstraint the where query
+        * @param initialLimit the initial limit value.
+        * @param maxLimit the end limit value.
+        * @return All the information on downloads.
+        * @throws BadRequestException Incorrect date formats or a invalid sessionID.
          */
         @GET
         @Path("download")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloads(@QueryParam("sessionID")String sessionID,
-                                 @QueryParam("status")String status,
-                                 @QueryParam("startDate")String startDate,
-                                 @QueryParam("endDate")String endDate,
-                                 @QueryParam("userName")String userName,                                 
-                                 @QueryParam("method")String method) throws DashboardException{
-            if(sessionID==null){
-                throw new BadRequestException("A SessionID must be provided");
+                                  @QueryParam("queryConstraint")String queryConstraint,
+                                  @QueryParam("initialLimit")int initialLimit,
+                                  @QueryParam("maxLimit")int maxLimit) throws DashboardException{
+            
+            if(sessionID == null){
+                throw new BadRequestException("sessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
-            }  
+            }   
             
-            Date start = new Date(Long.valueOf(startDate));
-            Date end = new Date(Long.valueOf(endDate));
-            
-            //Criteria objects.
-            CriteriaBuilder cb = manager.getCriteriaBuilder();
-            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<Download> download = query.from(Download.class);           
-                     
-            //User Join     
-            Join<Download, ICATUser> userJoin = download.join("user");           
            
-            query.multiselect(download,userJoin.get("name"),userJoin.get("fullName"));  
+            JSONArray ary = new JSONArray(); 
             
-            Predicate finalPredicate = createDownloadPredicate(cb,start,end,download,userJoin,userName, method);
+            String query = "SELECT download, user.name, user.fullName from Download download JOIN download.user user ";
+            
+            //Check status of passed paramaters and build query.
+            if(!("".equals(queryConstraint))){
+                query += queryConstraint;
+            }
             
             
-            query.where(finalPredicate);     
-            
-            List<Object[]> downloads = manager.createQuery(query).getResultList();
-
-            
-            JSONArray ary = new JSONArray();            
-                  
+            List<Object[]> downloads= manager.createQuery(query).setFirstResult(initialLimit).setMaxResults(maxLimit).getResultList();           
             
                
             for(Object[] singleDownload: downloads){   
                JSONObject obj = new JSONObject();
-               Download d = (Download)singleDownload[0];
-               obj.put("start",convertToLocalDateTime(d.getDownloadStart()).toString());               
-               obj.put("size",d.getDownloadSize());
+               Download d = (Download)singleDownload[0];                              
+               obj.put("downloadSize",d.getDownloadSize());
                obj.put("id",d.getId());
                obj.put("method",d.getMethod());              
                obj.put("status",d.getStatus());              
                obj.put("fullName",singleDownload[2]);
                obj.put("name",singleDownload[1]);
                
+               //Handle preparing downloads as they wont have a start date
+               if(!("preparing".equals(d.getStatus()))){
+                   obj.put("downloadStart",convertToLocalDateTime(d.getDownloadStart()).toString());
+               }
+               
                //To deal with unfinished downloads as it wont have bandiwdth or end date.
                if("finished".equals(d.getStatus())){
-                   obj.put("end", convertToLocalDateTime(d.getDownloadEnd()).toString());
+                   obj.put("downloadEnd", convertToLocalDateTime(d.getDownloadEnd()).toString());
                    obj.put("bandwidth",d.getBandwidth()); 
                }
                else{
@@ -443,27 +433,29 @@ public class DashboardREST {
         @Path("download/entities")
         @Produces(MediaType.APPLICATION_JSON)
         public String getDownloadEntities(@QueryParam("sessionID")String sessionID,
-                                        @QueryParam("downloadId")Long downloadId ) throws DashboardException{
-            if(sessionID==null){
-                throw new BadRequestException("A SessionID must be provided");
+                                  @QueryParam("queryConstraint")String queryConstraint,
+                                  @QueryParam("initialLimit")int initialLimit,
+                                  @QueryParam("maxLimit")int maxLimit) throws DashboardException{
+            
+            if(sessionID == null){
+                throw new BadRequestException("sessionID must be provided");
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
+            }   
+            
+           
+            JSONArray ary = new JSONArray(); 
+            
+            String query = "SELECT entity from Entity_ entity JOIN entity.downloadEntities de JOIN de.download download ";
+            
+            //Check status of passed paramaters and build query.
+            if(!("".equals(queryConstraint))){
+                query += queryConstraint;
             }
             
-            //Criteria objects.
-            CriteriaBuilder cb = manager.getCriteriaBuilder();
-            CriteriaQuery<Object[]>  query = cb.createQuery(Object[].class);
-            Root<Entity_> entity = query.from(Entity_.class);    
-                     
+               
             
-            //Entity Joins            
-            Join<Entity_, DownloadEntity> downloadEntityJoin = entity.join("downloadEntities");  
-            Join<DownloadEntity,Download> downloadJoin = downloadEntityJoin.join("download");
-           
-            query.multiselect(entity);
-            
-            query.where(cb.equal(downloadJoin.get("id"), downloadId));
             
             Object[] entities = manager.createQuery(query).getResultList().toArray();
            
@@ -473,11 +465,11 @@ public class DashboardREST {
         for (Object e : entities) {
             JSONObject t = new JSONObject();
             Entity_ entityResult = (Entity_)e;
-            t.put("name", entityResult.getEntityName());
+            t.put("entityName", entityResult.getEntityName());
             t.put("size",entityResult.getEntitySize());
-            t.put("icatId",entityResult.getICATID());
+            t.put("icatId",entityResult.getIcatId());
             t.put("type", entityResult.getType());
-            t.put("creationTime",entityResult.getICATcreationTime().toString());
+            t.put("creationTime",convertToLocalDateTime(entityResult.getICATcreationTime()).toString());
             result.add(t);
         }  
             
