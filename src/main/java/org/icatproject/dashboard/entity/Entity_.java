@@ -30,7 +30,7 @@ public class Entity_ extends EntityBaseBean implements Serializable{
     private List<DownloadEntity> downloadEntities;
     
     @Comment("ID of the entity in the ICAT")
-    private Long ICATID;
+    private Long icatId;
     
     @Comment("Name of the Entity.")
     private String entityName;
@@ -49,8 +49,8 @@ public class Entity_ extends EntityBaseBean implements Serializable{
         
     }
 
-    public Long getICATID() {
-        return ICATID;
+    public Long getIcatId() {
+        return icatId;
     }
     
     public List<DownloadEntity> getDownloadEntities() {
@@ -74,8 +74,8 @@ public class Entity_ extends EntityBaseBean implements Serializable{
         return type;
     }
 
-    public void setICATID(Long ICATID) {
-        this.ICATID = ICATID;
+    public void setIcatId(Long icatId) {
+        this.icatId = icatId;
     }
 
     
