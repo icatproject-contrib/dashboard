@@ -40,6 +40,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import org.icatproject.dashboard.consumers.GeoTool;
 import org.icatproject.dashboard.entity.Download;
 import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
@@ -150,6 +151,16 @@ public class DashboardREST {
            return mnemonicArray.toJSONString();
         }
         
+        /**
+         * Retrieves the ICAT logs from that are stored in the ICATLog table.
+         * @param sessionID for authentication
+         * @param queryConstraint the JPQL where query.
+         * @param initialLimit the initial value of a limit by expression
+         * @param maxLimit the max limit of a limit by expression.
+         * @return a JSON array of ICAT Log JSON Objects.
+         * @throws DashboardException Troubles accessing the database.
+         */
+        
         @GET
         @Path("icat/logs")
         @Produces(MediaType.APPLICATION_JSON)
@@ -198,6 +209,64 @@ public class DashboardREST {
             }    
             
             return result.toJSONString();
+        }
+        
+        /**
+         * Retrieves the geoLocation of an ICAT log. If the log was of a functional
+         * account then the location will be retrieved with the geo tool as functional account
+         * locations aren't stored.
+         * @param sessionID for authentication
+         * @param logId the unique identifier of an ICAT log.
+         * @return a JSON containing the city, longitude and latitude.
+         * @throws DashboardException 
+         */
+        @GET
+        @Path("icat/logs/location")
+        @Produces(MediaType.APPLICATION_JSON)
+        public String getIcatLogLocation(@QueryParam("sessionID")String sessionID,
+                                         @QueryParam("logId")int logId) throws DashboardException{
+            
+            if(sessionID == null){
+                throw new BadRequestException("sessionID must be provided");
+            }
+            if(!(beanManager.checkSessionID(sessionID, manager))){
+                throw new AuthenticationException("An invalid sessionID has been provided");
+            }  
+            
+            
+            String locationQuery = "SELECT location from GeoLocation location JOIN location.logs log WHERE log.id='"+logId+"'";
+            String ipQuery = "SELECT log.ipAddress FROM ICATLog log WHERE log.id='"+logId+"'";
+            
+            List<Object> location = manager.createQuery(locationQuery).getResultList();
+            GeoLocation geoLocation;
+          
+            
+            
+            /*Location has not been set due to it being a functional account log. We do not store that to prevent
+             * the geoLocation API blocking the dashboards ip.
+            */            
+            if(location.isEmpty()){                
+                List<Object> ipList = manager.createQuery(locationQuery).getResultList();               
+                geoLocation = GeoTool.getGeoLocation((String) ipList.get(0), manager, beanManager);   
+                
+            }
+            else{
+                geoLocation = (GeoLocation) location.get(0);
+            }
+           
+            
+            JSONArray resultArray = new JSONArray();
+            
+            JSONObject obj = new JSONObject();
+            obj.put("number",1);
+            obj.put("city",geoLocation.getCity());
+            obj.put("longitude",geoLocation.getLongitude());
+            obj.put("latitude", geoLocation.getLatitude());
+            obj.put("countryCode", geoLocation.getCountryCode());
+            obj.put("isp",geoLocation.getIsp());
+            resultArray.add(obj);           
+            
+            return resultArray.toJSONString();
         }
                 
                 
