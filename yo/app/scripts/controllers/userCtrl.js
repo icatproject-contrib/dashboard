@@ -2,10 +2,10 @@
 	  'use strict';
 angular.module('dashboardApp').controller('UsersCtrl', UsersCtrl);
 
-UsersCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridService'];	
+UsersCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridService','$uibModal'];	
 
 
-function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService){		
+function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibModal){		
 		
 		var vm=this;		
 		
@@ -35,7 +35,7 @@ function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService){
         vm.gridOptions = {}
         
         vm.gridOptions.columnDefs = [
-        	{field: 'id', displayName: 'ID', type:'number', width:80 },
+        	{field: 'id', displayName: 'ID', type:'number', width:80, cellTemplate:'<button class="btn primary" ng-click="grid.appScope.loadPopUp(row.entity.id)">{{row.entity.id}}</button>' },
         	{field: 'entityId', type:'number', displayName: 'Entity ID', width:80},
         	{field: 'entityType',  type:"string", displayName: 'Entity Type', width:140},        	
         	{field: 'ipAddress', type:"string", displayName: 'ipAddress', width:120 },        	
@@ -57,6 +57,24 @@ function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService){
       vm.gridOptions = uiGridService.setupGrid(vm.gridOptions,$scope,"log", gridDataCall);  	
 
   		
+      $scope.loadPopUp = function(logId){
+          
+
+          var modalInstance = $uibModal.open({
+            templateUrl :'views/locationModal.html',
+            controller:'LocationModalCtrl',
+            controllerAs:'modalCtrl',
+            size:'lg',
+            resolve :{
+              
+              logId : function(){
+                return logId;
+              }
+
+            }
+
+          });
+        }
 
   	
 

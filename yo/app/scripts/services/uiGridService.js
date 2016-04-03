@@ -50,8 +50,8 @@
 			            	}
 
 			            	if(type == "bytes"){
-			            		column.filterHeaderTemplate ='<div class="ui-grid-filter-container" byte-filter ng-model="col.filters[0].term"></div>\
-			            									 <div class="ui-grid-filter-container" byte-filter ng-model="col.filters[1].term"></div>';    
+			            		column.filterHeaderTemplate ='<div class="ui-grid-filter-container" byte-filter placeholder="To" ng-model="col.filters[0].term"></div>\
+			            									 <div class="ui-grid-filter-container" byte-filter placeholder="From" ng-model="col.filters[1].term"></div>';    
 
 			            		column.cellTemplate='<div class="ui-grid-cell-contents">{{row.entity.'+field+'|bytes}}</div>';
 
@@ -102,8 +102,8 @@
 				            }
 				            if(!column.filters){
 				                if(type == 'date'){
-				                	column.filterHeaderTemplate ='<div class="ui-grid-filter-container" date-time-picker ng-model="col.filters[0].term"></div>\
-    														 <div class="ui-grid-filter-container" date-time-picker ng-model="col.filters[1].term"></div>';
+				                	column.filterHeaderTemplate ='<div class="ui-grid-filter-container" date-time-picker ng-model="col.filters[0].term" placeholder="To"></div>\
+    														 <div class="ui-grid-filter-container" date-time-picker ng-model="col.filters[1].term" placeholder="From" ></div>';
     																		 
 				                    column.filters = [
 				                        {

@@ -34,6 +34,15 @@
 								return response.data; 
 							});
 					},
+
+					getIcatLogLocation: function(logId){
+						return $http.get(baseURL+"icat/logs/location?sessionID="+ $sessionStorage.sessionData.sessionID+"&logId="+logId)
+							.then(function(response){
+
+								return response.data; 
+							});
+					},
+
 					
 				    
 				}

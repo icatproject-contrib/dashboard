@@ -23,10 +23,13 @@
     app.controller('ByteFilterController', function($scope, $element, $attrs){
          var vm = this;
 
+        vm.placeholder = $attrs.placeholder;
+
+        
+
         vm.formats = ['B', 'KB', 'MB', 'GB', 'TB'];
 
-        $scope.appendToEl = $($element).find('#modal-body');
-        console.log($scope.appendToEl)
+        
                
         vm.selectedFormat = 'B'
         vm.isCollapsed = false;

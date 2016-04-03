@@ -34,7 +34,8 @@
         vm.europeOptions = [
         	{area:"Northern Europe", geoCode:"154"},
 			{area:"Western Europe", geoCode:"155"},
-		    {area:"Southern Europe", geoCode:"039"}
+		    {area:"Southern Europe", geoCode:"039"},
+		    {area:"Eastern Europe", geoCode:"151"}
         ];
         vm.africaOptions = [
         	{area:"All of Africa", geoCode:"002"},

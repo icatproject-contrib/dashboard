@@ -24,6 +24,7 @@
          var vm = this;
         var dropdownElement = $($element).find('.datetime-picker');		       
         vm.datetime = new Date();
+        vm.placeholder = $attrs.placeholder;
        
 
         $scope.$watch('value', function(){
