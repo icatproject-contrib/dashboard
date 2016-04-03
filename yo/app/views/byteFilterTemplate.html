@@ -1,11 +1,14 @@
-<div class="input-group">    
-	
 
-		<input type="text" class="form-control " ng-model="input" >
+<div class="input-group" uib-dropdown dropdown-append-to="byteCtrl.appendToEl">
+    
+    <input type="text" class="form-control input-sm" ng-model="input" >
+    <span class="input-group-btn">
+        <button type="button" class="btn btn-default input-sm" uib-dropdown-toggle><i>{{byteCtrl.selectedFormat}}</i></button>
+    </span>
+    <div  uib-dropdown-menu role="menu" aria-labelledby="btn-append-to-body" class="ropdown-menu-right">
+ 
+    	<button type="button" ng-model="byteCtrl.selectedFormat" class="sub-menu btn btn-primary btn-sm" ng-repeat="format in byteCtrl.formats" ng-click="byteCtrl.update(format)">{{format}}</button>
 
-	    <select class="form-control " ng-init="byteCtrl.selectedFormat= byteCtrl.formats[0]" ng-model="byteCtrl.selectedFormat" ng-change="byteCtrl.update()" ng-options=" formats for formats in byteCtrl.formats"> 	
-
-	    </select>
-	    
-                         
+        
+    </div>
 </div>
