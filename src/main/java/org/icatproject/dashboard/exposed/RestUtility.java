@@ -62,6 +62,8 @@ public class RestUtility {
      * @return LocalDateTime object of the date provided.
      */
     public static LocalDateTime convertToLocalDateTime(Date date){
+        
+        
         Instant instant = Instant.ofEpochMilli(date.getTime());
         
         LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()); 

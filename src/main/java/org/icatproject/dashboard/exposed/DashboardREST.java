@@ -391,8 +391,7 @@ public class DashboardREST {
                 query += queryConstraint;
             }
             
-            
-            List<Object[]> downloads= manager.createQuery(query).setFirstResult(initialLimit).setMaxResults(maxLimit).getResultList();           
+                        List<Object[]> downloads= manager.createQuery(query).setFirstResult(initialLimit).setMaxResults(maxLimit).getResultList();           
             
                
             for(Object[] singleDownload: downloads){   
@@ -452,31 +451,28 @@ public class DashboardREST {
             //Check status of passed paramaters and build query.
             if(!("".equals(queryConstraint))){
                 query += queryConstraint;
-            }
-            
-               
-            
+            }          
             
             Object[] entities = manager.createQuery(query).getResultList().toArray();
            
             
             JSONArray result = new JSONArray();
             
-        for (Object e : entities) {
-            JSONObject t = new JSONObject();
-            Entity_ entityResult = (Entity_)e;
-            t.put("entityName", entityResult.getEntityName());
-            t.put("size",entityResult.getEntitySize());
-            t.put("icatId",entityResult.getIcatId());
-            t.put("type", entityResult.getType());
-            t.put("creationTime",convertToLocalDateTime(entityResult.getICATcreationTime()).toString());
-            result.add(t);
-        }  
-            
-            
-            
-            return result.toJSONString();   
-        }
+            for (Object e : entities) {
+                JSONObject t = new JSONObject();
+                Entity_ entityResult = (Entity_)e;
+                t.put("entityName", entityResult.getEntityName());
+                t.put("entitySize",entityResult.getEntitySize());
+                t.put("icatId",entityResult.getIcatId());
+                t.put("type", entityResult.getType());
+                t.put("creationTime",convertToLocalDateTime(entityResult.getICATcreationTime()).toString());
+                result.add(t);
+            }  
+
+
+
+                return result.toJSONString();   
+            }
         
         /**
          * Calculates the number of downloads that occurred over the provided period.
