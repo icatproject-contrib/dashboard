@@ -24,7 +24,8 @@ angular
     'ui.grid.selection',
     'ui.grid.saveState',
     'ui.grid.resizeColumns',
-    'ui.grid.moveColumns',    
+    'ui.grid.moveColumns',   
+    'ui.grid.autoResize', 
     'bytes',
     
 

@@ -19,16 +19,16 @@
 
 				var services = {
 
-					getDownloadEntities: function(downloadId){
-						return $http.get(baseURL+"/entities?sessionID="+ $sessionStorage.sessionData.sessionID+"&downloadId="+downloadId)
+					getDownloadEntities: function(queryConstraint, initialLimit, maxLimit, canceller){
+						return $http.get(baseURL+"/entities?sessionID="+ $sessionStorage.sessionData.sessionID+"&queryConstraint="+encodeURIComponent(queryConstraint)+"&initalLimit="+initialLimit+"&maxLimit="+maxLimit,{timeout:canceller.promise})
 							.then(function(response){
 
 								return response.data; 
 							});
 					},
 
-					getDownloads :function(startDate,endDate, userName, method){
-						return $http.get(baseURL+"?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
+					getDownloads :function(queryConstraint, initialLimit, maxLimit, canceller){
+						return $http.get(baseURL+"?sessionID="+ $sessionStorage.sessionData.sessionID+"&queryConstraint="+encodeURIComponent(queryConstraint)+"&initalLimit="+initialLimit+"&maxLimit="+maxLimit,{timeout:canceller.promise})
 							.then(function(response){
 
 								return response.data; 

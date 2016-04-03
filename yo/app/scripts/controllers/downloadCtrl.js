@@ -6,22 +6,9 @@
 
 	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise','$q','$filter','$uibModal','uiGridService','$timeout'];	
 
-	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q,$filter, $uibModal, uiGridService,$timeout){	
+	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q,$filter, $uibModal, uiGridService){	
 
-		var vm=this;
-
-		//Page for the limit
-        var page = 1;
-
-        //Amount of results per page;
-        var pageSize = 100;
-
-        //Used to stop calls when changes in the table occur.
-        var canceller = $q.defer();
-
-        //Stores sorted columns
-        var sortColumns = [];      
-
+		var vm=this;		
         
 		var globalIdentifiers = ['Country', 'number of Downloads'];
 		
@@ -76,8 +63,8 @@
         	{field: 'id', displayName: 'ID', width:80, type:'number', cellTemplate:'<button class="btn primary" ng-click="grid.appScope.loadPopUp(row.entity.id)">{{row.entity.id}}</button>' },
         	{field: 'fullName', displayName: 'Full Name', type:'string'},
         	{field: 'name', displayName: 'Name', type:'string'},
-        	{field: 'bandwidth', type:"number",displayName: 'Bandwidth',width:160,cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.bandwidth|bytes}}</div>'},
-        	{field: 'downloadSize', type:"bytes", width:130,displayName: 'Size',cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.size|bytes}}</div>'},
+        	{field: 'bandwidth', type:"bytes",displayName: 'Bandwidth',width:160,},
+        	{field: 'downloadSize', type:"bytes", width:130,displayName: 'Size'},
         	{field: 'method',  displayName: 'Method',width:80},
         	{field: 'downloadStart',  displayName: 'Start', type:'date'},
         	{field: 'downloadEnd', displayName:'End',type:'date'},
@@ -85,93 +72,15 @@
     		
     	];
 
-    	vm.gridOptions = uiGridService.setupGrid(vm.gridOptions);  
+    	function gridDataCall(queryConstraint,initialLimit,maxLimit,canceller){
 
-    	vm.gridOptions.onRegisterApi= function(gridApi){
-    		
-    		vm.gridApi = gridApi;
-
-
-    		vm.gridApi.core.on.sortChanged($scope, vm.sortChanged);
-    		vm.sortChanged(vm.gridApi.grid, [vm.gridOptions.columnDefs[1]]);
-
-    		vm.gridApi.core.on.filterChanged($scope, function(){
-    			canceller.resolve();
-    			canceller = $q.defer();
-    			
-    			console.log("change")
-    			updateTable().then(function(result){
-    				vm.gridOptions.data = result;    				
-
-       			});
-
-    		});
-
-    		vm.gridApi.infiniteScroll.on.needLoadMoreData($scope, function() {
-                page++;
-                
-                updateTable().then(function(results){
-                    _.each(results, function(result){ vm.gridOptions.data.push(result); });
-                    
-                    if(results.length == 0) page--;
-
-                    updateScroll(results.length);
-                });
-        });
-
-          
-        vm.gridApi.infiniteScroll.on.needLoadMoreDataTop($scope, function() {
-            page--;
-            updateTable().then(function(results){
-                _.each(results, function(result){ vm.gridOptions.data.push(result); });
-                 
-                if(results.length == 0) page++;
-
-                updateScroll(results.length);
-            });
-        });
-
-    		
-    	}
-
-
-    	vm.sortChanged = function(grid, passedSortColumns){
-	        canceller.resolve();
-	        canceller = $q.defer();
-    		sortColumns = passedSortColumns;
-
-    		updateTable().then(function(result){
-    			vm.gridOptions.data = result;
-    		});
-    
-
-    		
-		    
-  		};	
-
-  		function updateTable(){
-  			var gridColumns = vm.gridApi.grid.columns;
-  			
-  			var queryConstraint = uiGridService.generateQuery(gridColumns, sortColumns, "download");  		
-
-  			var initialLimit = (page-1)* pageSize;
-  			var maxLimit = pageSize;
-
-  			
-
-  			return downloadService.getDownloads(queryConstraint,initialLimit,maxLimit,canceller);
+    		return downloadService.getDownloads(queryConstraint,initialLimit,maxLimit,canceller);
 
   		}
 
-  		function updateScroll(resultCount){
-            
-            $timeout(function(){
-                var isMore = resultCount == pageSize;
-                if(page == 1) vm.gridApi.infiniteScroll.resetScroll(false, isMore);
-                vm.gridApi.infiniteScroll.dataLoaded(false, isMore);
-            });
-            
-        } 	
+    	vm.gridOptions = uiGridService.setupGrid(vm.gridOptions,$scope,"download", gridDataCall);  
+
+
 
     	//Unfortunately have to use $scope to allow the isolate scope access with Angular Grid UI.
     	$scope.loadPopUp = function(downloadId){

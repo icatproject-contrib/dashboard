@@ -1,4 +1,4 @@
-(function() {
+ (function() {
     'use strict';
 
     /**
@@ -54,8 +54,16 @@
             //Converts the bytes into human readable format. bytes is the value to change and 
             // log is the power to convert by.
             function convertBytes(bytes, log){
+
+                var convertedValue = (bytes / Math.pow(1024, log));
+
+                convertedValue = convertedValue.toString();               
+                //Only want to substring values that have decimal places.
+                if(convertedValue.indexOf(".") > -1){
+                    convertedValue = convertedValue.slice(0, (convertedValue.indexOf("."))+3);
+                }                
                 
-                return Math.round(bytes / Math.pow(1024, log)*100)/100;
+                return convertedValue;
 
             }
 
