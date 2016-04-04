@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @NamedQueries({
     @NamedQuery(name="Users.LoggedIn",
-                query="SELECT u.fullName FROM ICATUser u WHERE u.logged=1"),
+                query="SELECT u.fullName, u.name FROM ICATUser u WHERE u.logged=1"),
     @NamedQuery(name="Users.LoggedOut",
                 query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"), 
     
@@ -43,11 +43,11 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     
     @Comment("A user can have downloads.")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
-    private List<Download> downloads = new ArrayList<Download>();
+    private List<Download> downloads = new ArrayList<>();
     
     @Comment("A user can perform queries.")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
-    private List<ICATLog> queries = new ArrayList<ICATLog>();
+    private List<ICATLog> queries = new ArrayList<>();
     
         
     @Comment("A user can either be logged in or out.")
