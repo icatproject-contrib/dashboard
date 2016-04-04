@@ -17,8 +17,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Period;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
@@ -178,10 +176,7 @@ public class DashboardREST {
             }
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
-            }   
-            
-            
-            JSONArray ary = new JSONArray(); 
+            }       
             
             String query = "SELECT log, user.fullName from ICATLog log JOIN log.user user ";
             
@@ -238,26 +233,8 @@ public class DashboardREST {
             }  
             
             
-            String locationQuery = "SELECT location from GeoLocation location JOIN location.logs log WHERE log.id='"+logId+"'";
-            String ipQuery = "SELECT log.ipAddress FROM ICATLog log WHERE log.id='"+logId+"'";
             
-            List<Object> location = manager.createQuery(locationQuery).getResultList();
-            GeoLocation geoLocation;
-          
-            
-            
-            /*Location has not been set due to it being a functional account log. We do not store that to prevent
-             * the geoLocation API blocking the dashboards ip.
-            */            
-            if(location.isEmpty()){                
-                List<Object> ipList = manager.createQuery(ipQuery).getResultList();               
-                geoLocation = GeoTool.getGeoLocation((String) ipList.get(0), manager, beanManager);   
-                
-            }
-            else{
-                geoLocation = (GeoLocation) location.get(0);
-            }
-           
+           GeoLocation geoLocation = getLogLocation(logId);
             
             JSONArray resultArray = new JSONArray();
             
@@ -281,7 +258,7 @@ public class DashboardREST {
          * @throws DashboardException 
          */
 	@GET
-	@Path("users/logged")
+	@Path("user/logged")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getUsersLogInfo(@QueryParam("sessionID")String sessionID) throws DashboardException{
             
@@ -295,8 +272,7 @@ public class DashboardREST {
             
             JSONArray ary = new JSONArray();                     
 
-            users = manager.createNamedQuery("Users.LoggedIn").getResultList(); 
-            
+            users = manager.createNamedQuery("Users.LoggedIn").getResultList();            
                         
             if(users.size()>0){
                 
@@ -304,7 +280,7 @@ public class DashboardREST {
                     
                     String name = (String) user[1];
                     Duration loggedTime = getLoggedinTime(name);  
-                    String currentOperation = getLatestOperation(name);
+                    String currentOperation = getLatestOperation(name);                  
                     
                     JSONObject obj = new JSONObject();
                     obj.put("fullName",user[0]);
@@ -321,17 +297,17 @@ public class DashboardREST {
 	}  
         
         /**
-         * Returns the location of currently logged in users.
+         * Returns the geo location of currently logged in users.
          * @param sessionID SessionID for authentication.     
-         * @param userName name of the user to check against.        
+         * @param name name of the user to check against.        
          * @return All the information on downloads.
          * @throws BadRequestException Incorrect date formats or a invalid sessionID.
          */
         @GET
-        @Path("user/logged/location")
+        @Path("user/location")
         @Produces(MediaType.APPLICATION_JSON)
-        public String getDownloads(@QueryParam("sessionID")String sessionID,                                 
-                                   @QueryParam("userName")String userName) throws DashboardException{
+        public String getUserLocation(@QueryParam("sessionID")String sessionID,                                 
+                                      @QueryParam("name")String name) throws DashboardException{
             
             if(sessionID == null){
                 throw new BadRequestException("sessionID must be provided");
@@ -339,14 +315,32 @@ public class DashboardREST {
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
             }
-            List<String> users;
             
-            JSONArray ary = new JSONArray();                     
-
-            users = manager.createNamedQuery("Users.LoggedIn").getResultList();    
+            Query logQuery = manager.createQuery("SELECT log.id FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc");
+            logQuery.setParameter("name", name);            
+            logQuery.setMaxResults(1);
+                
+            int logId = (int) logQuery.getSingleResult();
+            
+            
+            GeoLocation geoLocation = getLogLocation(logId);
+           
+            
+            JSONArray resultArray = new JSONArray();
+            
+            JSONObject obj = new JSONObject();
+            obj.put("number",1);
+            obj.put("city",geoLocation.getCity());
+            obj.put("longitude",geoLocation.getLongitude());
+            obj.put("latitude", geoLocation.getLatitude());
+            obj.put("countryCode", geoLocation.getCountryCode());
+            obj.put("isp",geoLocation.getIsp());
+            resultArray.add(obj);           
+            
+            return resultArray.toJSONString();      
+            
+             
         
-            
-            return null;
         } 
        
         /**
@@ -1516,6 +1510,37 @@ public class DashboardREST {
             }
 
             return operation;
+            
+        }
+        
+        
+        /**
+         * Gets the geolocation of an ICATLog.
+         * @param logId the id of the log.
+         * @return A geoLocation object of where the Log took place.
+         */
+        private GeoLocation getLogLocation(int logId){
+            
+            String locationQuery = "SELECT location from GeoLocation location JOIN location.logs log WHERE log.id='"+logId+"'";
+            String ipQuery = "SELECT log.ipAddress FROM ICATLog log WHERE log.id='"+logId+"'";
+            
+            List<Object> location = manager.createQuery(locationQuery).getResultList();
+            GeoLocation geoLocation;         
+            
+            
+            /*Location has not been set due to it being a functional account log. We do not store that to prevent
+             * the geoLocation API blocking the dashboards ip.
+            */            
+            if(location.isEmpty()){                
+                List<Object> ipList = manager.createQuery(ipQuery).getResultList();               
+                geoLocation = GeoTool.getGeoLocation((String) ipList.get(0), manager, beanManager);   
+                
+            }
+            else{
+                geoLocation = (GeoLocation) location.get(0);
+            }
+            
+            return geoLocation;
             
         }
         
