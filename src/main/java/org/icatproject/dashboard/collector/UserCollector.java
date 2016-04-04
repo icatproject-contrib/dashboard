@@ -7,9 +7,7 @@ package org.icatproject.dashboard.collector;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,8 +19,6 @@ import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.xml.namespace.QName;
-import org.icatproject.dashboard.entity.CollectionType;
-import static org.icatproject.dashboard.entity.CollectionType.UserUpdate;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.manager.EntityBeanManager;
