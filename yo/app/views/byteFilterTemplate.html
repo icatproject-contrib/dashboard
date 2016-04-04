@@ -1,12 +1,12 @@
 
-<div class="input-group" uib-dropdown dropdown-append-to="byteCtrl.appendToEl">
+<div class="input-group" uib-dropdown dropdown-append-to-body>
     
-    <input type="text" class="form-control input-sm" ng-model="input" >
+    <input type="text" class="form-control input-sm" ng-model="input" placeholder={{byteCtrl.placeholder}} >
     <span class="input-group-btn">
-        <button type="button" class="btn btn-default input-sm" uib-dropdown-toggle><i>{{byteCtrl.selectedFormat}}</i></button>
+        <button type="button" class="btn btn-default input-sm" uib-dropdown-toggle uib-tooltip={{byteCtrl.tooltip}} tooltip-append-to-body="true"> <i>{{byteCtrl.selectedFormat}}</i></button>
     </span>
-    <div  uib-dropdown-menu role="menu" aria-labelledby="btn-append-to-body" class="ropdown-menu-right">
- 
+    <div  uib-dropdown-menu role="menu" aria-labelledby="btn-append-to-body" class="pop-up dropdown-menu-right ">
+ 		
     	<button type="button" ng-model="byteCtrl.selectedFormat" class="sub-menu btn btn-primary btn-sm" ng-repeat="format in byteCtrl.formats" ng-click="byteCtrl.update(format)">{{format}}</button>
 
         
