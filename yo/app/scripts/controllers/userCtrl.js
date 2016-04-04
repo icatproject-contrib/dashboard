@@ -7,19 +7,19 @@ UsersCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridServi
 
 function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibModal){		
 		
-		var vm=this;		
-		
-		vm.format =  'yyyy-MM-dd';
+    		var vm=this;		
+    		
+    		vm.format =  'yyyy-MM-dd';
 
-		vm.endDate = new Date();
-	
-		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10));		
+    		vm.endDate = new Date();
+    	
+    		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10));		
 
-		//Date selection for the overall page
-		vm.isStartDateOpen = false;
+		    //Date selection for the overall page
+		    vm.isStartDateOpen = false;
         vm.isEndDateOpen = false;       
 
-		vm.openStartDate = function(){
+		    vm.openStartDate = function(){
             vm.isStartDateOpen = true;
             vm.isEndDateOpen = false;
         };
@@ -30,12 +30,12 @@ function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService,$uib
             vm.isEndDateOpen = true;
         };
 
-      
+       //Setup the ui-grid for log tables.
 
         vm.gridOptions = {}
         
         vm.gridOptions.columnDefs = [
-        	{field: 'id', displayName: 'ID', type:'number', width:80, cellTemplate:'<button class="btn primary" ng-click="grid.appScope.loadPopUp(row.entity.id)">{{row.entity.id}}</button>' },
+        	{field: 'id', displayName: 'ID', type:'number', width:80, cellTemplate:'<button class="btn primary" ng-click="grid.appScope.loadGridLocationModal(row.entity.id)">{{row.entity.id}}</button>' },
         	{field: 'entityId', type:'number', displayName: 'Entity ID', width:80},
         	{field: 'entityType',  type:"string", displayName: 'Entity Type', width:140},        	
         	{field: 'ipAddress', type:"string", displayName: 'ipAddress', width:120 },        	
@@ -56,8 +56,8 @@ function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService,$uib
 
       vm.gridOptions = uiGridService.setupGrid(vm.gridOptions,$scope,"log", gridDataCall);  	
 
-  		
-      $scope.loadPopUp = function(logId){
+  		//Use of scope is to allow the ui-grid to access the call.
+      $scope.loadGridLocationModal = function(logId,entity){
           
 
           var modalInstance = $uibModal.open({
@@ -67,8 +67,16 @@ function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService,$uib
             size:'lg',
             resolve :{
               
-              logId : function(){
+              data :function(){
+                userService.getIcatLogLocation(logId).then(function(responseData){
+                    return responseData;
+                });
+              },
+              id:function(){
                 return logId;
+              },
+              entity:function(){
+                return "log";
               }
 
             }
@@ -76,7 +84,30 @@ function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService,$uib
           });
         }
 
-  	
+      vm.loadUserLocationModal = function(name){
+          
+
+          var modalInstance = $uibModal.open({
+            templateUrl :'views/locationModal.html',
+            controller:'LocationModalCtrl',
+            controllerAs:'modalCtrl',
+            size:'lg',
+            resolve :{
+              
+              Id : function(){
+                return Id;
+              }
+
+            }
+
+          });
+        }
+  	   //Gather logged in users
+
+       userService.getLoggedUsers().then(function(responseData){ 
+          vm.loggedUsers = responseData;
+
+       });
 
         vm.updatePage = function(){	
 

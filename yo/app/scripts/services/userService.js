@@ -20,7 +20,15 @@
 				var services = {
 
 					getLoggedUsers: function(){
-						return $http.get(baseURL+"users/logged?sessionID="+ $sessionStorage.sessionData.sessionID)
+						return $http.get(baseURL+"user/logged?sessionID="+ $sessionStorage.sessionData.sessionID)
+							.then(function(response){
+
+								return response.data; 
+							});
+					},
+
+					getUserLocation: function(name){
+						return $http.get(baseURL+"user/location?sessionID="+ $sessionStorage.sessionData.sessionID+"&name="+name)
 							.then(function(response){
 
 								return response.data; 

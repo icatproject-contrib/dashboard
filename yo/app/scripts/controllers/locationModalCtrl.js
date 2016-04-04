@@ -1,26 +1,29 @@
-angular.module('dashboardApp').controller('LocationModalCtrl', function($scope,$uibModalInstance , logId, userService, googleChartApiPromise){
+angular.module('dashboardApp').controller('LocationModalCtrl', function($scope,$uibModalInstance , Id, data, entity, userService, googleChartApiPromise){
 
   		var vm = this;
 
-  		vm.logId = logId;
+  		vm.id = id;
+      vm.entity=entity;
 
-   		userService.getIcatLogLocation(logId).then(function(responseData){
+   		
         
         googleChartApiPromise.then(function(){
           var dataTable = new google.visualization.DataTable();
 
           dataTable.addColumn('number', 'Lat');                                
           dataTable.addColumn('number', 'Long');          
-          dataTable.addColumn('string', 'City');          
-          dataTable.addColumn('string', 'Country');
-          dataTable.addColumn('string', 'isp');
+          dataTable.addColumn({type:'string', role: 'tooltip',
+            'p': {'html': true}});          
+          
+        
           
 
-          var dataArray = _.map(responseData, function(responseData){
-            return [responseData.latitude, responseData.longitude,responseData.city, responseData.countryCode, responseData.isp];
+          var dataArray = _.map(data, function(data){
+            return [data.latitude, data.longitude, "City: "+data.city+"<br /> ISP:" +data.isp];
           
           });
 
+          
           dataTable.addRows(dataArray);
 
           var localChart = {};
@@ -28,7 +31,8 @@ angular.module('dashboardApp').controller('LocationModalCtrl', function($scope,$
             localChart.data = dataTable;
             localChart.options ={                          
               colorAxis: {colors: ['grey', '#e31b23']},
-              legend:'none'
+              legend:'none',
+              tooltip: {isHtml:true}
             };  
            
             
@@ -36,7 +40,7 @@ angular.module('dashboardApp').controller('LocationModalCtrl', function($scope,$
           
         });
         
-      });
+    
 
      
 

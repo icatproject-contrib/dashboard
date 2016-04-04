@@ -25,6 +25,7 @@
 
         vm.placeholder = $attrs.placeholder;
 
+        vm.tooltip="Select which magnitude of Bytes to search by"
         
 
         vm.formats = ['B', 'KB', 'MB', 'GB', 'TB'];
