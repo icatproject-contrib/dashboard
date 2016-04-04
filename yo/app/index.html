@@ -53,7 +53,6 @@
     <script src="scripts/controllers/loginCtrl.js"></script>
     <script src="scripts/controllers/downloadCtrl.js"></script>   
     <script src="scripts/controllers/entityCtrl.js"></script>
-    <script src="scripts/controllers/userCtrl.js"></script>
     <script src="scripts/controllers/indexCtrl.js"></script>
     <script src="scripts/controllers/logoutCtrl.js"></script>
     <script src="scripts/controllers/searchCtrl.js"></script> 
@@ -67,9 +66,7 @@
     <script src="scripts/directives/downloadDirectives/downloadSizeBar.js"></script>
     <script src="scripts/directives/downloadDirectives/entityAgeScatter.js"></script>
     <script src="scripts/directives/downloadDirectives/ispBandwidthBar.js"></script>
-    <script src="scripts/directives/downloadDirectives/successGauge.js"></script>
-    <!-- User -->
-    <script src="scripts/directives/userDirectives/loggedUsers.js"></script>
+    <script src="scripts/directives/downloadDirectives/successGauge.js"></script>   
     <!-- General -->
     <script src="scripts/directives/generalDirectives/dateTimeDirective.js"></script>
     <script src="scripts/directives/generalDirectives/byteFilterDirective.js"></script>
@@ -111,7 +108,7 @@
                 <a ng-if="ic.isLoggedIn()" ui-sref="logout"><li class="fa fa-unlock" ></li> Logout</a>
                 <a ng-if="!ic.isLoggedIn()" ui-sref="login"><li class="fa fa-lock"></li> Login</a> 
                 <a ng-if="ic.isLoggedIn()" ui-sref="downloads"><li class="fa fa-download"></li> Downloads</a>
-                <a ng-if="ic.isLoggedIn()" ui-sref="users"><li class="fa fa-download"></li> Users</a>
+                
                 
               </ul> 
 
