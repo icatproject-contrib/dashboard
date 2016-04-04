@@ -14,6 +14,13 @@ html,body, .cotainer-fluid,.row  {
   background-color: #EEEEEE;
 
 
+
+}
+
+.pop-up{
+  
+  z-index: 999999999;
+
 }
 
 
@@ -234,3 +241,15 @@ html,body, .cotainer-fluid,.row  {
 }
 
 
+/*
+User css
+*/
+
+.user-icon{
+  padding-left: 13px;
+  color: #66FF00;
+}
+
+.table-borderless tbody tr td, .table-borderless tbody tr th, .table-borderless thead tr th {
+    border: none;
+}
