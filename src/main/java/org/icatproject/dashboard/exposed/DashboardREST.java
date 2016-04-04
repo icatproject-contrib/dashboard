@@ -13,8 +13,12 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Period;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,6 +31,7 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
@@ -42,7 +47,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.icatproject.dashboard.consumers.GeoTool;
 import org.icatproject.dashboard.entity.Download;
-import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.Entity_;
@@ -246,7 +250,7 @@ public class DashboardREST {
              * the geoLocation API blocking the dashboards ip.
             */            
             if(location.isEmpty()){                
-                List<Object> ipList = manager.createQuery(locationQuery).getResultList();               
+                List<Object> ipList = manager.createQuery(ipQuery).getResultList();               
                 geoLocation = GeoTool.getGeoLocation((String) ipList.get(0), manager, beanManager);   
                 
             }
@@ -271,13 +275,13 @@ public class DashboardREST {
                 
                 
         /**
-         * Gets the full name of users which are currently logged into the ICAT
+         * Gets details on users which are currently logged into the ICAT
          * @param sessionID Session ID
-         * @return Names of users currently logged into ICAT.
+         * @return a JSONString containing the users name, fullName, login duration and current activity.
          * @throws DashboardException 
          */
 	@GET
-	@Path("user/logged")
+	@Path("users/logged")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getUsersLogInfo(@QueryParam("sessionID")String sessionID) throws DashboardException{
             
@@ -287,23 +291,31 @@ public class DashboardREST {
             if(!(beanManager.checkSessionID(sessionID, manager))){
                 throw new AuthenticationException("An invalid sessionID has been provided");
             }
-            List<String> users;
+            List<String[]> users;
             
             JSONArray ary = new JSONArray();                     
 
-            users = manager.createNamedQuery("Users.LoggedIn").getResultList();        
+            users = manager.createNamedQuery("Users.LoggedIn").getResultList(); 
             
+                        
             if(users.size()>0){
                 
-                for(String user: users){
+                for(Object[] user: users){
+                    
+                    String name = (String) user[1];
+                    Duration loggedTime = getLoggedinTime(name);  
+                    String currentOperation = getLatestOperation(name);
+                    
                     JSONObject obj = new JSONObject();
-                    obj.put("fullName",user);  
+                    obj.put("fullName",user[0]);
+                    obj.put("name", name);
+                    obj.put("loggedTime", loggedTime.toMinutes());
+                    obj.put("operation", currentOperation);
+                    
                     ary.add(obj);
                 }                
             }
-            else{             
-                 return "No users currently logged in";
-            }
+            
            
             return ary.toString();
 	}  
@@ -1449,6 +1461,62 @@ public class DashboardREST {
            
             
             return finalPredicate;
+        }
+        
+        /**
+         * Gets the duration of a users logged in time.
+         * @param name the unique name of the user.
+         * @return 
+         */
+            private Duration getLoggedinTime(String name){
+            
+                Query query = manager.createQuery("SELECT log.logTime FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc");
+                query.setParameter("name", name);            
+                query.setMaxResults(1);
+
+                Date loginTime =  (Date) query.getSingleResult();
+
+                Duration loggedTime = Duration.between((RestUtility.convertToLocalDateTime(loginTime)),LocalDateTime.now());
+            
+            return loggedTime;
+            
+            
+        }
+            
+        /**
+         * Gets the users most recent operation.
+         * @param name of the user
+         * @return the most recent operation 
+         */    
+        private String getLatestOperation(String name){
+            
+            String operation = null;
+            
+            //First check if the users is downloading or preparing a downloading.            
+            Query query = manager.createQuery("SELECT download.status FROM Download download JOIN download.user user WHERE (download.status='preparing' OR download.status='inProgress') AND user.name= :name ORDER BY download.createTime desc");
+            query.setParameter("name", name);            
+            query.setMaxResults(1);
+            
+            List<Object> downloadResult = query.getResultList();
+            
+            //If the user isn't downloading anything then we need to look into the log table.
+            if(downloadResult.isEmpty()){
+                Query logQuery = manager.createQuery("SELECT log.op FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc");
+                logQuery.setParameter("name", name);            
+                logQuery.setMaxResults(1);
+                
+                operation = (String) logQuery.getSingleResult();
+            
+                                                        
+            }
+            else{
+               
+                operation = "Download (" +(String) downloadResult.get(0)+")";
+                
+            }
+
+            return operation;
+            
         }
         
         
