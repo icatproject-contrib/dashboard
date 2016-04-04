@@ -69,8 +69,10 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),   
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID4"),
-    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub") 
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID5"),
+    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),
+    
+    
     
 })
 
@@ -83,6 +85,7 @@ import org.slf4j.LoggerFactory;
  * and properties. It will then collect extra information from the ICAT and then from TopCat. 
  * With all this information it then pushes the data to the database.
  */
+
 
 public class DownloadListener implements MessageListener {
     
@@ -875,7 +878,7 @@ public class DownloadListener implements MessageListener {
             if("investigation".equals(entityType)){        
 
                 Investigation inv = getInvestigation(id);
-                entity.setICATID(id);
+                entity.setIcatId(id);
                 entity.setEntityName(inv.getName());
                 entity.setICATcreationTime(inv.getCreateTime().toGregorianCalendar().getTime());
                 entity.setEntitySize(getInvSize(id));                   
@@ -883,7 +886,7 @@ public class DownloadListener implements MessageListener {
             else if("dataset".equals(entityType)){           
 
                 Dataset ds = getDataset(id);
-                entity.setICATID(id);
+                entity.setIcatId(id);
                 entity.setEntityName(ds.getName());
                 entity.setICATcreationTime(ds.getCreateTime().toGregorianCalendar().getTime());
                 entity.setEntitySize(getDatasetSize(id));                   
@@ -892,7 +895,7 @@ public class DownloadListener implements MessageListener {
             else if("datafile".equals(entityType)){
 
                 Datafile df = getDatafile(id);
-                entity.setICATID(id);
+                entity.setIcatId(id);
                 entity.setEntityName(df.getName());
                 entity.setICATcreationTime(df.getCreateTime().toGregorianCalendar().getTime());
                 entity.setEntitySize(df.getFileSize());                    

@@ -36,11 +36,14 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),   
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "icatDashboard"),
-    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),   
+    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "icatDashboard2"),
+    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"), 
+    
+    
   
     
 })
+
 
 public class ICATListener implements MessageListener {
     
@@ -92,15 +95,20 @@ public class ICATListener implements MessageListener {
      */
     private void addLocation(ICATLog log){
         
-        List<String> functionalAccounts = properties.getAuthorisedAccounts();    
+        List<String> functionalAccounts = properties.getFunctionalAccounts();    
+
+        Boolean addLocation = true;
         
         for(String account : functionalAccounts ){
             if(account.equals(log.getUser().getName())){
-                log.setLocation(GeoTool.getGeoLocation(log.getIpAddress(), manager, beanManager));
-                break;
+                addLocation = false;
+                break;                
             }
         }       
        
+        if(addLocation){
+            log.setLocation(GeoTool.getGeoLocation(log.getIpAddress(), manager, beanManager));
+        }
     }
     
     /**
@@ -171,17 +179,7 @@ public class ICATListener implements MessageListener {
         
     }
     
-    /**
-     * Inserts the query into the dashboard database.
-     * @param q The query object to be inserted
-     */
-    public void createQuery(ICATLog q){
-        try {
-            beanManager.create(q, manager);
-        } catch (DashboardException ex) {
-            Logger.getLogger(ICATListener.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+    
     
     /**
      * Retrieves the user from the dashboard. If the user is found in the dashboard then the user is inserted into the
