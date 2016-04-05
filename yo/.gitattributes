@@ -1,7 +1,2 @@
-* text=auto
+#* text=auto
 
-#Declaring text files 
-*.html text
-*.js text
-*.css text
-*.xml text
