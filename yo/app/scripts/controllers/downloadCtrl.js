@@ -61,7 +61,7 @@
 
         vm.gridOptions = {};
         vm.gridOptions.columnDefs = [
-        	{field: 'id', displayName: 'ID', width:80, type:'number', cellTemplate:'<button class="btn primary" ng-click="grid.appScope.loadPopUp(row.entity.id)">{{row.entity.id}}</button>' },
+        	{field: 'id', displayName: 'Entities', width:80, type:'button', cellTemplate:'<div class="button-holder" align=center><button class="btn btn-default btn-large text-center" ng-click="grid.appScope.loadPopUp(row.entity.id)"><span class="fa fa-archive" aria-hidden="true"></span></button></div>' },
         	{field: 'fullName', displayName: 'Full Name', type:'string'},
         	{field: 'name', displayName: 'Name', type:'string'},
         	{field: 'bandwidth', type:"bytes",displayName: 'Bandwidth',width:160,},
@@ -498,7 +498,7 @@
 	    		var largestDay = 0;	    		
 	    		
 	    		for(var i=1;i<dataForGraph.length;i++){	
-	    			console.log(dataForGraph[i])    			
+	    		   			
 	    			if(dataForGraph[i] > largestDay && dataForGraph[i]!=="null"){
 	    				busiestIndex = i;
 	    				largestDay = dataForGraph[i];
