@@ -497,15 +497,17 @@
 	    		var busiestIndex = 0;
 	    		var largestDay = 0;	    		
 	    		
-	    		for(var i=1;i<dataForGraph.length;i++){	    			
-	    			if(dataForGraph[i] > largestDay){
+	    		for(var i=1;i<dataForGraph.length;i++){	
+	    			console.log(dataForGraph[i])    			
+	    			if(dataForGraph[i] > largestDay && dataForGraph[i]!=="null"){
 	    				busiestIndex = i;
 	    				largestDay = dataForGraph[i];
+	    				
 	    			}
 	    		} 
 				 
 				var byteFormat = formattedData[1];
-
+				
 	    		vm.volume = { 	
 	    			data:[dates,dataForGraph],
 	    			byteFormat:byteFormat,

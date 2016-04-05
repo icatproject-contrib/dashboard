@@ -23,6 +23,10 @@ html,body, .cotainer-fluid,.row  {
 
 }
 
+.button-holder .btn{
+  border:0px solid transparent;
+  width:100%;
+}
 
 /*Angular-Loading-Bar*/
 #loading-bar,

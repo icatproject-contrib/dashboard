@@ -1,4 +1,4 @@
-angular.module('dashboardApp').controller('LocationModalCtrl', function($scope,$uibModalInstance , Id, data, entity, userService, googleChartApiPromise){
+angular.module('dashboardApp').controller('LocationModalCtrl', function($scope,$uibModalInstance , id, data, entity, userService, googleChartApiPromise){
 
   		var vm = this;
 

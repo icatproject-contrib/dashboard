@@ -18,9 +18,9 @@
 					setupGrid : function(gridOptions,  scope, entity, gridDataCall){			        
 			          
 			            
-			         var vm=this;
+			            var vm=this;
 
-						    //Page for the limit
+						//Page for the limit
 				        var page = 1;
 
 				        //Amount of results per page;
@@ -47,6 +47,11 @@
 			            	if(field ==='query'){
 
 			            		column.cellTemplate = '<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.'+field+'}}>{{row.entity.'+field+'}}</div>';
+			            	}
+
+			            	if(type ==='button'){
+			            		column.enableFiltering = false;
+			            		column.enableSorting = false;
 			            	}
 
 			            	if(type == "bytes"){
