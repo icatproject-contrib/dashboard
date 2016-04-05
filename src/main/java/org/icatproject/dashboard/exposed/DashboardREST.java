@@ -152,7 +152,196 @@ public class DashboardREST {
             
            return mnemonicArray.toJSONString();
         }
-        
+
+         /**		
+          * Retrieves the ICAT logs from that are stored in the ICATLog table.		
+          * @param sessionID for authentication		
+          * @param queryConstraint the JPQL where query.		
+          * @param initialLimit the initial value of a limit by expression		
+          * @param maxLimit the max limit of a limit by expression.		
+          * @return a JSON array of ICAT Log JSON Objects.		
+          * @throws DashboardException Troubles accessing the database.		
+          */		
+         		
+         @GET		
+         @Path("icat/logs")		
+         @Produces(MediaType.APPLICATION_JSON)		
+         public String getIcatLogs(@QueryParam("sessionID")String sessionID,		
+                                   @QueryParam("queryConstraint")String queryConstraint,		
+                                   @QueryParam("initialLimit")int initialLimit,		
+                                   @QueryParam("maxLimit")int maxLimit) throws DashboardException{		
+             		
+             if(sessionID == null){		
+                 throw new BadRequestException("sessionID must be provided");		
+             }		
+             if(!(beanManager.checkSessionID(sessionID, manager))){		
+                 throw new AuthenticationException("An invalid sessionID has been provided");		
+             }       		
+             		
+             String query = "SELECT log, user.fullName from ICATLog log JOIN log.user user ";		
+             		
+             //Check status of passed paramaters and build query.		
+             if(!("".equals(queryConstraint))){		
+                 query += queryConstraint;		
+             }		
+             		
+             		
+             List<Object[]> logs = manager.createQuery(query).setFirstResult(initialLimit).setMaxResults(maxLimit).getResultList();		
+             		
+             JSONArray result = new JSONArray();		
+ 		
+             for(Object[] log: logs) {		
+                 JSONObject obj = new JSONObject();		
+                 ICATLog tempLog = (ICATLog) log[0];		
+                 obj.put("fullName",log[1]);		
+                 obj.put("id", tempLog.getId());		
+                 obj.put("entityId",tempLog.getEntityId());		
+                 obj.put("entityType",tempLog.getEntityType());		
+                 obj.put("ipAddress",tempLog.getIpAddress());		
+                 obj.put("logTime",convertToLocalDateTime(tempLog.getLogTime()).toString());		
+                 obj.put("op", tempLog.getOp());		
+                 obj.put("query", tempLog.getQuery());		
+                 obj.put("duration", tempLog.getDuration());		
+                 result.add(obj);		
+                 		
+                 		
+             }    		
+             		
+             return result.toJSONString();		
+         }		
+         		
+         /**		
+          * Retrieves the geoLocation of an ICAT log. If the log was of a functional		
+          * account then the location will be retrieved with the geo tool as functional account		
+          * locations aren't stored.		
+          * @param sessionID for authentication		
+          * @param logId the unique identifier of an ICAT log.		
+          * @return a JSON containing the city, longitude and latitude.		
+          * @throws DashboardException 		
+          */		
+         @GET		
+         @Path("icat/logs/location")		
+         @Produces(MediaType.APPLICATION_JSON)		
+         public String getIcatLogLocation(@QueryParam("sessionID")String sessionID,		
+                                          @QueryParam("logId")int logId) throws DashboardException{		
+             		
+             if(sessionID == null){		
+                 throw new BadRequestException("sessionID must be provided");		
+             }		
+             if(!(beanManager.checkSessionID(sessionID, manager))){		
+                 throw new AuthenticationException("An invalid sessionID has been provided");		
+             }  		
+             		
+             		
+             		
+            GeoLocation geoLocation = getLogLocation(logId);		
+             		
+             JSONArray resultArray = new JSONArray();		
+             		
+             JSONObject obj = new JSONObject();		
+             obj.put("number",1);		
+             obj.put("city",geoLocation.getCity());		
+             obj.put("longitude",geoLocation.getLongitude());		
+             obj.put("latitude", geoLocation.getLatitude());		
+             obj.put("countryCode", geoLocation.getCountryCode());		
+             obj.put("isp",geoLocation.getIsp());		
+             resultArray.add(obj);           		
+             		
+             return resultArray.toJSONString();		
+         }		
+                 		
+                 		
+         /**		
+          * Gets details on users which are currently logged into the ICAT		
+          * @param sessionID Session ID		
+          * @return a JSONString containing the users name, fullName, login duration and current activity.		
+          * @throws DashboardException 		
+          */		
+ 	@GET		
+ 	@Path("user/logged")		
+ 	@Produces(MediaType.APPLICATION_JSON)		
+ 	public String getUsersLogInfo(@QueryParam("sessionID")String sessionID) throws DashboardException{		
+             		
+             if(sessionID == null){		
+                 throw new BadRequestException("sessionID must be provided");		
+             }		
+             if(!(beanManager.checkSessionID(sessionID, manager))){		
+                 throw new AuthenticationException("An invalid sessionID has been provided");		
+             }		
+             List<String[]> users;		
+             		
+             JSONArray ary = new JSONArray();                     		
+ 		
+             users = manager.createNamedQuery("Users.LoggedIn").getResultList();            		
+                         		
+             if(users.size()>0){		
+                 		
+                 for(Object[] user: users){		
+                     		
+                     String name = (String) user[1];		
+                     Duration loggedTime = getLoggedinTime(name);  		
+                     String currentOperation = getLatestOperation(name);                  		
+                     		
+                     JSONObject obj = new JSONObject();		
+                     obj.put("fullName",user[0]);		
+                     obj.put("name", name);		
+                     obj.put("loggedTime", loggedTime.toMinutes());		
+                     obj.put("operation", currentOperation);		
+                     		
+                     ary.add(obj);		
+                 }                		
+             }		
+             		
+            		
+             return ary.toString();		
+ 	}  		
+         		
+         /**		
+          * Returns the geo location of currently logged in users.		
+          * @param sessionID SessionID for authentication.     		
+          * @param name name of the user to check against.        		
+          * @return All the information on downloads.		
+          * @throws BadRequestException Incorrect date formats or a invalid sessionID.		
+          */		
+         @GET		
+         @Path("user/location")		
+         @Produces(MediaType.APPLICATION_JSON)		
+         public String getUserLocation(@QueryParam("sessionID")String sessionID,                                 		
+                                       @QueryParam("name")String name) throws DashboardException{		
+             		
+             if(sessionID == null){		
+                 throw new BadRequestException("sessionID must be provided");		
+             }		
+             if(!(beanManager.checkSessionID(sessionID, manager))){		
+                 throw new AuthenticationException("An invalid sessionID has been provided");		
+             }		
+             		
+             Query logQuery = manager.createQuery("SELECT log.id FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc");		
+             logQuery.setParameter("name", name);            		
+             logQuery.setMaxResults(1);		
+                 		
+            Long logId = (Long) logQuery.getSingleResult();		
+             		
+             		
+             GeoLocation geoLocation = getLogLocation(logId.intValue());		
+            		
+             		
+             JSONArray resultArray = new JSONArray();		
+             		
+             JSONObject obj = new JSONObject();		
+             obj.put("number",1);		
+             obj.put("city",geoLocation.getCity());		
+             obj.put("longitude",geoLocation.getLongitude());		
+             obj.put("latitude", geoLocation.getLatitude());		
+             obj.put("countryCode", geoLocation.getCountryCode());		
+             obj.put("isp",geoLocation.getIsp());		
+             resultArray.add(obj);           		
+             		
+             return resultArray.toJSONString();      		
+             		
+              		
+          		          
+         }
         
        
         /**
