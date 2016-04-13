@@ -23,38 +23,47 @@ public class EntityCount extends EntityBaseBean implements Serializable {
     private Date countDate;
     
     @Comment("Entity type of the Count e.g. Investigation, Datafile etc...")
-    private String entity;
+    private String entityType;
     
-    @Comment("Instrument that the Entity count is associated with.")
-    private String instrument;
+    @Comment("The number of entities for the day")
+    private Long entityCount;
     
     public EntityCount(){
         
     }
 
-    public Date getDate() {
+    public EntityCount(Date countDate, String entityType, Long entityCount) {
+        this.countDate = countDate;
+        this.entityType = entityType;
+        this.entityCount = entityCount;
+    }
+
+    public Date getCountDate() {
         return countDate;
     }
 
-    public String getEntity() {
-        return entity;
+    public void setCountDate(Date countDate) {
+        this.countDate = countDate;
     }
 
-    public String getInstrument() {
-        return instrument;
+    public String getEntityType() {
+        return entityType;
     }
 
-    public void setDate(Date date) {
-        this.countDate = date;
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
     }
 
-    public void setEntity(String entity) {
-        this.entity = entity;
+    public Long getEntityCount() {
+        return entityCount;
     }
 
-    public void setInstrument(String instrument) {
-        this.instrument = instrument;
+    public void setEntityCount(Long entityCount) {
+        this.entityCount = entityCount;
     }
+
+    
+
     
     
 }

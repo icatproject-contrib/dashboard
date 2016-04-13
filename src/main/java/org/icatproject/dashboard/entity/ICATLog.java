@@ -33,7 +33,7 @@ public class ICATLog extends EntityBaseBean implements Serializable {
     private Long duration;
     
     @Comment("Type of query that took place.")
-    private String op;
+    private String operation;
     
     @Comment("The query performed if there was one.")
     @Column(length = 4000)
@@ -43,7 +43,7 @@ public class ICATLog extends EntityBaseBean implements Serializable {
     private Long entityId;
     
     @Comment("The type of entity modified/searched for.")
-    private String entityType;
+    private String entityName;
     
     @Comment("The ip address of where the action took place.")
     private String ipAddress;
@@ -94,11 +94,11 @@ public class ICATLog extends EntityBaseBean implements Serializable {
     }
 
     public String getEntityType() {
-        return entityType;
+        return entityName;
     }
 
     public void setEntityType(String entityType) {
-        this.entityType = entityType;
+        this.entityName = entityType;
     }
     
        
@@ -111,8 +111,8 @@ public class ICATLog extends EntityBaseBean implements Serializable {
         this.duration = Duration;
     }
 
-    public void setOp(String op) {
-        this.op = op;
+    public void setOp(String operation) {
+        this.operation = operation;
     }
 
     public void setQuery(String query) {
@@ -127,8 +127,8 @@ public class ICATLog extends EntityBaseBean implements Serializable {
         return duration;
     }
 
-    public String getOp() {
-        return op;
+    public String getOperation() {
+        return operation;
     }
 
     public String getQuery() {
