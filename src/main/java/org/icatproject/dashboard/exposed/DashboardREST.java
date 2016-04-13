@@ -199,7 +199,7 @@ public class DashboardREST {
                  obj.put("entityType",tempLog.getEntityType());		
                  obj.put("ipAddress",tempLog.getIpAddress());		
                  obj.put("logTime",convertToLocalDateTime(tempLog.getLogTime()).toString());		
-                 obj.put("op", tempLog.getOp());		
+                 obj.put("op", tempLog.getOperation());		
                  obj.put("query", tempLog.getQuery());		
                  obj.put("duration", tempLog.getDuration());		
                  result.add(obj);		
@@ -1496,7 +1496,7 @@ public class DashboardREST {
             
             //If the user isn't downloading anything then we need to look into the log table.
             if(downloadResult.isEmpty()){
-                Query logQuery = manager.createQuery("SELECT log.op FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc");
+                Query logQuery = manager.createQuery("SELECT log.operation FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc");
                 logQuery.setParameter("name", name);            
                 logQuery.setMaxResults(1);
                 

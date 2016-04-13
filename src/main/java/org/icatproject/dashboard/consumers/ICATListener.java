@@ -7,8 +7,6 @@ package org.icatproject.dashboard.consumers;
 
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
@@ -117,7 +115,7 @@ public class ICATListener implements MessageListener {
      */
     private void updateUserInfo(ICATLog log){
         
-        String operation = log.getOp();
+        String operation = log.getOperation();
         ICATUser user = log.getUser();
         
         if("login".equals(operation)){
