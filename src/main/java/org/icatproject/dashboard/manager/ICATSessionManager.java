@@ -6,14 +6,15 @@
 package org.icatproject.dashboard.manager;
 
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
-import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.Timeout;
@@ -22,11 +23,12 @@ import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import javax.xml.namespace.QName;
 
-import org.icatproject.dashboard.collector.DataCollector;
 import org.icatproject.ICAT;
 import org.icatproject.ICATService;
 import org.icatproject.IcatException_Exception;
 import org.icatproject.Login;
+import org.icatproject.icat.client.IcatException;
+import org.icatproject.icat.client.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +44,12 @@ public class ICATSessionManager {
     private static final Logger log = LoggerFactory.getLogger(ICATSessionManager.class);  
   
     private String sessionID;
-    private ICAT icat;
-    
-    
+    private Session restSession;
+    private ICAT icat;   
             
     @Resource
     private TimerService timerService;
-    
-   
+      
    
     /**
      * Initialises the timers and the ICAT login.
@@ -59,6 +59,7 @@ public class ICATSessionManager {
         log.info("Initiating ICATSession Manager");
         createTimers();
         sessionID = loginICAT(properties);
+        restSession = createRestSession(properties);
        
     }
      /**
@@ -123,27 +124,64 @@ public class ICATSessionManager {
     @Timeout
     public void timeout(Timer timer){
         if("refreshSession".equals(timer.getInfo())){
-            try {
-                refreshSession();
-            } catch (IcatException_Exception ex) {
-                java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            refreshSession();
         }
         
     }
+    
+    /**
+     * Creates an ICAT RestFul client.
+     * @param properties that contain the login details.
+     * @return a ICAT RestFul client.
+     */
+    private Session createRestSession(PropsManager properties){
+        Session session = null;
+        
+        try {
+            org.icatproject.icat.client.ICAT icatClient = new org.icatproject.icat.client.ICAT(properties.getICATUrl());
+            session = icatClient.login(properties.getAuthenticator(), mapCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
+        } catch (URISyntaxException | IcatException ex) {
+            log.error("Issue creating the RestFul client ",ex);
+        }
+        return session;
+    }
+    
+    /**
+     * Maps the credentials for the ICAT RestFul login call.
+     * @param userName name of the user account.
+     * @param password of the user account.
+     * @return a map containing the users name and password.
+     */
+    public static Map mapCredentials(String userName, String password){
+        
+        Map<String, String> credentials = new HashMap<>();
+        credentials.put("username", userName);
+        credentials.put("password", password);       
+        return credentials;
+        
+    }    
 
     /**
     * Refreshes the ICAT session ID so the collector can keep connected to the ICAT
     * @throws IcatException_Exception Incase it can't connect to the ICAT
     */
-    private void refreshSession() throws IcatException_Exception{
-        log.info("Refresshing the Session ID");
-        icat.refresh(sessionID);
+    private void refreshSession(){
+        try {
+            log.info("Refresshing the Session ID");
+            icat.refresh(sessionID);
+            restSession.refresh();
+        } catch (IcatException | IcatException_Exception ex) {
+            log.error("Issue with refreshing the ICAT sessions ", ex);
+        }
       
     }
     
     public String getSessionID(){
         return sessionID;
+    }
+    
+    public Session getRestSession(){
+        return restSession;
     }
     
     
