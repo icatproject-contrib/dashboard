@@ -8,10 +8,13 @@ import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
@@ -27,18 +30,21 @@ import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.icatproject.dashboard.entity.CollectionType;
 import org.icatproject.dashboard.exceptions.InternalException;
 import org.icatproject.dashboard.manager.ICATSessionManager;
 import org.icatproject.*;
+import org.icatproject.dashboard.entity.CollectionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 @DependsOn("ICATSessionManager")
+@Singleton
+@Startup
 public class DataCollector {
 
     @PersistenceContext(unitName = "dashboard")
@@ -46,18 +52,9 @@ public class DataCollector {
 
     @EJB
     private PropsManager prop;
-
-    @EJB
-    private ICATSessionManager session;
-
-    @EJB
-    private EntityBeanManager beanManager;
-
+    
     @EJB
     private EntityCounter counter;
-
-    @EJB
-    private UserCollector userCollector;
 
     protected ICAT icat;
     protected String sessionID;
@@ -76,21 +73,22 @@ public class DataCollector {
      */
     @PostConstruct
     private void init() {
-        log.info("Initial Setup Check.");
-
-        //createTimers(prop);
-        icat = createICATLink();
-        sessionID = session.getSessionID();        
-        
+        createTimer(prop.getCollectionTime());
+                
+        initialiseEntityCollection();
 
     }
+    
+    /**
+     * Creates the timers for the daily data collection.
+     * @param collectionTime the hour on which the collection will commence.
+     */
+    private void createTimer(int collectionTime) {
 
-    public void collectData() throws InternalException {
-        //setupUserCollection();
-        // setupEntityCollection();   
+        TimerConfig dataCollect = new TimerConfig("dataCollect", false);
+        timerService.createCalendarTimer(new ScheduleExpression().hour(collectionTime), dataCollect);
 
-    }
-
+    } 
    
 
     /**
@@ -103,81 +101,65 @@ public class DataCollector {
      */
     @Timeout
     public void timeout(Timer timer) {
-
-        try {
-            collectData();
-        } catch (InternalException ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
-    public ICAT createICATLink() {
-        ICAT icat = null;
-        try {
-            URL hostUrl;
-
-            hostUrl = new URL(prop.getICATUrl());
-            URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
-            QName qName = new QName("http://icatproject.org", "ICATService");
-            ICATService service = new ICATService(icatUrl, qName);
-            icat = service.getICATPort();
-
-        } catch (MalformedURLException ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return icat;
-    }
-
+       
+        initialiseEntityCollection();
+        
+    } 
+    
    
+    private LocalDate toLocalDate(Date date) {
+        Instant instant = Instant.ofEpochMilli(date.getTime());
+        
+        LocalDate localDate = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalDate(); 
+        
+        return localDate;
+    }
+
+    /***
+     * Initialises the collection of entity information from the ICAT into the Dashboard.
+     */
+    private void initialiseEntityCollection() {  
+        
+        LocalDate today = LocalDate.now();
+      
+        log.info("Entity Collection initiated for ",today.toString());
+        
+        LocalDate earliestImport = earliestImportPass();
+        
+        //An actual import has happened
+        if(earliestImport!=null){
+            counter.performCollection(earliestImport, today);
+        }               
+               
+        log.info("Entity collection completed for ",today.toString());
+    }  
     
     
     /**
-     * Get the earliest date the integrity check took place for that set collection.
-     * @return The earliest date.
+     * Finds out the earliest LocalDate that an import check has been inserted
+     * @return the date of the earliest import check. If no check was found then 
+     * null is returned.
      */
-    private LocalDate getEarliestDashboard() throws InternalException {
-        List<Object> date;
-        LocalDate earliest;
-
-        date = beanManager.search("SELECT MAX(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 1 AND inc.collectionType=" + CollectionType.class.getName() + ".UserUpdate", manager);
-        if(date.get(0)==null){
-            return null;
-        }
-        earliest = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd").format(date.get(0)));
-
-        return earliest;
+    private LocalDate earliestImportPass(){
+        
+        Query importCheckQuery = manager.createQuery("SELECT ic.checkDate FROM ImportCheck ic WHERE ic.passed=1 ORDER BY ic.checkDate desc");
+                    
+        importCheckQuery.setMaxResults(1);
+        //Have to use getResultList as getSingleResult will fail if no collection has occured.        
+        List<Object> dates = importCheckQuery.getResultList();
+        
+        LocalDate earliestImport = null;
+        
+        if(!dates.isEmpty()){
+            earliestImport =  toLocalDate((Date)dates.get(0));
+        }                
+                
+        return earliestImport;
+    
     }
-
-    private LocalDate dateConversion(XMLGregorianCalendar date) {
-        return date.toGregorianCalendar().toZonedDateTime().toLocalDate();
-    }
-
-    private void setupEntityCollection() throws InternalException {
-
-        List<Object> earliestICAT = new ArrayList();
-        List<Object> earliestDashboard = new ArrayList();
-
-        try {
-            earliestICAT = icat.search(sessionID, "SELECT MIN(d.createTime) FROM Datafile d");
-
-            if (earliestICAT.get(0) != null) {
-                earliestDashboard = beanManager.search("SELECT MIN(inc.checkDate) FROM IntegrityCheck inc WHERE inc.passed = 1 AND inc.collectionType=" + CollectionType.class.getName() + ".EntityCount", manager);
-
-                if (earliestDashboard.get(0) == null) {
-                    log.info("Initial Entity Collection Required.");
-                    counter.countEntities(dateConversion((XMLGregorianCalendar) earliestICAT.get(0)), LocalDate.now());
-                } else {
-                    log.info("Top up initiated");
-                    counter.countEntities(dateConversion((XMLGregorianCalendar) earliestDashboard.get(0)), LocalDate.now());
-                }
-            }
-
-        } catch (IcatException_Exception ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
+    
+      
+    
+    
+    
 }
