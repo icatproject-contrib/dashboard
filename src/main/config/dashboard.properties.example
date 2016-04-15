@@ -14,6 +14,9 @@ password=
 #Accounts allowed to login. Set as uows/1054444 simple/test
 authorised_accounts = 
 
+#The hour (24 hour clock) in which the dashboard will collect its daily warehouse data.
+collectionTime=1
+
 #TopCat Admin login Information
 topCatURL= https://topcat.facility.ac.uk
 
