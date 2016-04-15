@@ -155,16 +155,15 @@ def exportLogs(icatCon, dashboardCon,database):
 			result.append(row_data)
 
 		if(loopCounter == 500000):
-			importLog(result,cursImport,importQuery)
+			importMany(result,cursImport,importQuery)
 			loopCounter = 0
 			result = []
-			dashboardCon.commit()
-			break
+			dashboardCon.commit()			
 		counter +=1
 		loopCounter+=1	
 
 	#Import any remaining files 	
-	importLog(result,cursImport,importQuery)
+	importMany(result,cursImport,importQuery)
 	
 	dashboardCon.commit()
 
@@ -174,7 +173,7 @@ def exportLogs(icatCon, dashboardCon,database):
 
 	
 #Imports multiple rows of logs into the Dashboard.	
-def importLog(data,cursImport,query):
+def importMany(data,cursImport,query):
 	
 	try:
 		cursImport.executemany(query,data)
@@ -209,23 +208,23 @@ def exportUsers(icatCon,dashboardCon, database,rootName):
 
     	counter = 0
     	#First insert the root user into the Dashboard
-	importUsers(cursImport,(rootName,99999999,rootName,now,now),importQuery)
+	importSingle(cursImport,(rootName,99999999,rootName,now,now),importQuery)
 
     	for row_data in cursExport:
 		counter+=1
-		importUsers(cursImport,row_data+(now,now),importQuery)
+		importSingle(cursImport,row_data+(now,now),importQuery)
 		print(counter)
 		sys.stdout.write("\033[F") #back to previous line
 		sys.stdout.write("\033[K") #clear line
 
-	#Commit and close connections	
+	#Commit and close connections commit required so the program can get the user ids to associated with a log	
 	dashboardCon.commit()
 	cursImport.close()
 	cursExport.close()
 
 
 #Imports multiple rows into the user table.
-def importUsers(cursImport,data,query):
+def importSingle(cursImport,data,query):
 	try:
 		cursImport.execute(query,data)
 	except Exception as e:
@@ -245,9 +244,9 @@ def getEntityAmount(entity, connection):
 def exportEntityCount(cursor,entity,database):
 	result = []	
 	if(database=="mySql"):
-		query ="SELECT COUNT("+entity+".id), DATE_FORMAT("+entity+".CREATE_TIME, '%Y,%m,%d') FROM "+entity+" GROUP BY DATE_FORMAT("+entity+".CREATE_TIME, '%Y,%m,%d');"
+		query ="SELECT COUNT("+entity+".id), DATE_FORMAT("+entity+".CREATE_TIME, '%Y,%m,%d') FROM "+entity+" WHERE "+entity+".CREATE_TIME < CURDATE()  GROUP BY DATE_FORMAT("+entity+".CREATE_TIME, '%Y,%m,%d');"
 	elif(database=="oracle"):
-		query="SELECT COUNT("+entity+".id), to_char("+entity+".CREATE_TIME,'yyyy,mm,dd') FROM "+entity+" GROUP BY to_char("+entity+".CREATE_TIME,'yyyy,mm,dd')"
+		query="SELECT COUNT("+entity+".id), to_char("+entity+".CREATE_TIME,'yyyy,mm,dd') FROM "+entity+" WHERE "+entity+".CREATE_TIME < trunc(sysdate) GROUP BY to_char("+entity+".CREATE_TIME,'yyyy,mm,dd')"
 	
 	cursor.execute(query)
 
@@ -259,23 +258,6 @@ def exportEntityCount(cursor,entity,database):
 		result.append(row)
 
 	return result
-	
-#Imports the entities and their count into the dashboard
-def importEntityCount(dashboardCon, data,query):
-
-	try:
-		cursImportCount = dashboardCon.cursor()
-
-		cursImportCount.executemany(query,data)
-	
-		dashboardCon.commit()
-
-	except Exception as e:
-		print "There has been an issue inserting a entity count into the dashboard ",e
-		sys.exit(1)
-	finally:
-		cursImportCount.close()
-
 
 
 #Main method to collect entities and how many where created each day.
@@ -295,19 +277,22 @@ def importEntitiesCount(dashboardCon, icatCon, database,configuration):
 	cursEntityCounter = icatCon.cursor()
 	
 	cursEntities.execute(entityTypeQuery)
-	
+
+        cursImport = dashboardCon.cursor()
+        	
 	for entity in cursEntities:
 		result = exportEntityCount(cursEntityCounter,entity[0],database)	
-		importEntityCount(dashboardCon, result,importQuery)
+		importMany(result,cursImport,importQuery)
 	
 	print("Completed collection of entity count")
 
+#Collects the instrument meta data from the ICAT.
 def exportInstrumentMeta(icatCon,database,dashboardCon):
 
 	if(database=="mySql"):
-                searchQuery = "SELECT INSTRUMENT.ID, COUNT(DATAFILE.id), SUM(DATAFILE.filesize),  DATE_FORMAT(DATAFILE.CREATE_TIME, '%Y,%m,%d') FROM DATAFILE JOIN DATASET ON DATASET.ID = DATAFILE.DATASET_ID JOIN INVESTIGATION ON INVESTIGATION.ID = DATASET.INVESTIGATION_ID  JOIN INVESTIGATIONINSTRUMENT ON INVESTIGATIONINSTRUMENT.INVESTIGATION_ID = INVESTIGATION.ID JOIN INSTRUMENT ON INSTRUMENT.ID = INVESTIGATIONINSTRUMENT.INSTRUMENT_ID GROUP BY  DATE_FORMAT(DATAFILE.CREATE_TIME, '%Y,%m,%d'), INSTRUMENT.ID" 
+                searchQuery = "SELECT INSTRUMENT.ID, COUNT(DATAFILE.ID), SUM(DATAFILE.filesize),  DATE_FORMAT(DATAFILE.CREATE_TIME, '%Y,%m,%d') FROM DATAFILE JOIN DATASET ON DATASET.ID = DATAFILE.DATASET_ID JOIN INVESTIGATION ON INVESTIGATION.ID = DATASET.INVESTIGATION_ID  JOIN INVESTIGATIONINSTRUMENT ON INVESTIGATIONINSTRUMENT.INVESTIGATION_ID = INVESTIGATION.ID JOIN INSTRUMENT ON INSTRUMENT.ID = INVESTIGATIONINSTRUMENT.INSTRUMENT_ID WHERE DATAFILE.CREATE_TIME < CURDATE() GROUP BY  DATE_FORMAT(DATAFILE.CREATE_TIME, '%Y,%m,%d'), INSTRUMENT.ID" 
 	elif(database=="oracle"):
-		searchQuery = "SELECT INSTRUMENT.ID, COUNT (datafile.id), SUM(datafile.filesize), to_char(Datafile.CREATE_TIME,'yyyy,mm,dd') FROM Datafile JOIN Dataset ON Dataset.ID = Datafile.DATASET_ID JOIN Investigation ON Investigation.ID = Dataset.INVESTIGATION_ID JOIN Investigationinstrument ON Investigationinstrument.INVESTIGATION_ID = Investigation.ID JOIN Instrument ON Instrument.ID = Investigationinstrument.INSTRUMENT_ID GROUP BY to_char(Datafile.CREATE_TIME,'yyyy,mm,dd'), Instrument.ID"
+		searchQuery = "SELECT INSTRUMENT.ID, COUNT (datafile.id), SUM(datafile.filesize), to_char(Datafile.CREATE_TIME,'yyyy,mm,dd') FROM Datafile JOIN Dataset ON Dataset.ID = Datafile.DATASET_ID JOIN Investigation ON Investigation.ID = Dataset.INVESTIGATION_ID JOIN Investigationinstrument ON Investigationinstrument.INVESTIGATION_ID = Investigation.ID JOIN Instrument ON Instrument.ID = Investigationinstrument.INSTRUMENT_ID WHERE DATAFILE.CREATE_TIME < trunc(sysdate) GROUP BY to_char(Datafile.CREATE_TIME,'yyyy,mm,dd'), Instrument.ID"
 
 	try:
 		cursInstrument = icatCon.cursor()
@@ -353,21 +338,92 @@ def importInstrumentMeta(dashboardCon,icatCon,database):
 	finally:
 		cursInstrument.close()	
 
-	dashboardCon.commit()
-
 	
 	print "Importing of instrument meta data complete"
 
-def exportInvestigationMeta(icatCon):
+#Collects the investigation meta data from the ICAT.
+def exportInvestigationMeta(icatCon,database):
 
-	searchQuery = ""
+	if(database=="mySql"):
+        	searchQuery="SELECT INVESTIGATION.ID, COUNT(DATAFILE.id), SUM(DATAFILE.filesize),  DATE_FORMAT(DATAFILE.CREATE_TIME, '%Y,%m,%d') FROM DATAFILE JOIN DATASET ON DATASET.ID = DATAFILE.DATASET_ID JOIN INVESTIGATION ON INVESTIGATION.ID = DATASET.INVESTIGATION_ID WHERE DATAFILE.CREATE_TIME<CURDATE() GROUP BY DATE_FORMAT(DATAFILE.CREATE_TIME, '%Y,%m,%d'), INVESTIGATION.ID"
+	elif(database=="oracle"):
+		searchQuery = "SELECT INVESTIGATION.ID, COUNT (datafile.id), SUM(datafile.filesize), to_char(Datafile.CREATE_TIME,'yyyy,mm,dd') FROM Datafile JOIN Dataset ON Dataset.ID = Datafile.DATASET_ID JOIN Investigation ON Investigation.ID = Dataset.INVESTIGATION_ID WHERE DATAFILE.CREATE_TIME<trunc(sysdate) GROUP BY to_char(Datafile.CREATE_TIME,'yyyy,mm,dd'), INVESTIGATION.ID"
+	try:
+		cursInvestigation = icatCon.cursor()
 
+		cursInvestigation.execute(searchQuery)
+
+		result = []
+	
+		now = datetime.datetime.now()
+	
+		for row_data in cursInvestigation:
+			dateValues = row_data[3].split(",")
+                	row = (row_data[0],row_data[1],row_data[2],datetime.datetime(int(dateValues[0]),int(dateValues[1]),int(dateValues[2]),00,00,00),now,now)
+                	result.append(row)
+	
+	except Exception as e:
+		print "Issue with collecting investigation meta data", e
+		sys.exit(1)
+
+	finally:
+		cursInvestigation.close()
+
+	return result
+
+#Inserts the investigation meta data into the dashboard.
 def importInvestigationMeta(dashboardCon,icatCon,database):
 	print "Starting to gather meta data on investigations"
 	
 	if(database=="mySql"):
-		importQuery = "INSERT INTO INVESTIGATIONMETADATA(INVESTIGATIONID, "
+		importQuery = "INSERT INTO INVESTIGATIONMETADATA(INVESTIGATIONID, DATAFILECOUNT, DATAFILEVOLUME, COLLECTIONDATE, CREATE_TIME,MOD_TIME) VALUES(%s,%s,%s,%s,%s,%s) "
 	elif(database=="oracle"):
+		importQuery= "INSERT INTO INVESTIGATIONMETADATA(INVESTIGATIONID,DATAFILECOUNT,DATAFILEVOLUME,COLLECTIONDATE,CREATE_TIME,MOD_TIME, ID) VALUES(:0,:1,:2,:3,:4,:5,ID_SEQ.NEXTVAL)"
+
+	data = exportInvestigationMeta(icatCon,database)
+	
+	try:	
+		cursInvestigationMeta = dashboardCon.cursor()
+
+		cursInvestigationMeta.executemany(importQuery,data)
+	
+	except Exception as e:
+		print "Issue with importing investigation meta data into the dashboard", e
+		sys.exit(1)		
+	finally:
+		cursInvestigationMeta.close()
+	
+	
+
+	print "Import of investigation meta data complete"	
+
+#Final method that sets the integrity flag in the dashboard for the previous day so the dashboard can begin collecting data the next day.
+def insertIntegrityFlag(dashboardCon,database):
+	now = datetime.datetime.now()
+	yesterday = now - datetime.timedelta(days = 1)
+
+	cursIntegrity = dashboardCon.cursor()
+
+	if(database=="mySql"):
+		importQuery="INSERT INTO IMPORTCHECK(CHECKDATE,PASSED,CREATE_TIME,MOD_TIME) VALUES(%s,%s,%s,%s)"
+	elif(database=="oracle"):
+		importQuery = " INSERT INTO IMPORTCHECK(CHECKDATE,PASSED,CREATE_TIME,MOD_TIME,ID) VALUES(:0,:1,:2,:3,ID_SEQ.NEXTVAL)"
+	
+	
+	data = (yesterday,1,now,now)
+
+	try:
+
+		cursIntegrity.execute(importQuery,data)
+
+	except Exception as e:
+		print "Integrity flag insert has failed ",e
+		sys.exit(1)
+	finally:
+		cursIntegrity.close()
+
+	dashboardCon.commit()
+
 
 if __name__ == "__main__":    
 	print("Initiating ICAT to Dashboard")    	
@@ -392,11 +448,14 @@ if __name__ == "__main__":
 		dashboardCon = connectToOracle(configuration,"dashboard")		
 
 
-	#exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
-	#exportLogs(icatCon,dashboardCon,database)	
-	#importEntitiesCount(dashboardCon, icatCon, database,configuration)
-
+	exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
+	exportLogs(icatCon,dashboardCon,database)	
+	importEntitiesCount(dashboardCon, icatCon, database,configuration)
 	importInstrumentMeta(dashboardCon,icatCon,database)
+	importInvestigationMeta(dashboardCon,icatCon,database)
+	
+	insertIntegrityFlag(dashboardCon,database)	
+
 	icatCon.close()
 	dashboardCon.close()
 
