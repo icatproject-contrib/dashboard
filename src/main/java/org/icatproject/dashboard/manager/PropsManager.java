@@ -33,6 +33,7 @@ public class PropsManager {
     private String loginAuth;
     private String userName;
     private String password;
+    private int collectionTime;
     
     private List<String> authorisedAccounts;
     
@@ -75,17 +76,24 @@ public class PropsManager {
            authorisedAccounts = Arrays.asList(props.getProperty("authorised_accounts").split("\\s+"));
            userName = props.getProperty("userName");
            password = props.getProperty("password");                      
-           topCatURL = props.getProperty("topCatURL");     
+           topCatURL = props.getProperty("topCatURL"); 
+           collectionTime = Integer.parseInt(props.getProperty("collectionTime"));
+            
            
            log.info("Functional accounts set as: ",functionalAccounts);
            log.info("ICAT set as: ",ICATUrl);
            log.info("TopCat set as: ",topCatURL);
            log.info("Reader account set as ",userName);
+           log.info("Collection time set as (24 Hour Clock)",collectionTime);
           
            
     }
     
     //Getters for the methods.
+    
+    public int getCollectionTime(){
+        return collectionTime;
+    }
     
     public String getIdsAddress() {
         return idsAddress;
