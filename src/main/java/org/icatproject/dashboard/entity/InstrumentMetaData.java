@@ -8,13 +8,16 @@ package org.icatproject.dashboard.entity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
 @Comment("This entity records meta information on a instrument on a day.")
 @SuppressWarnings("serial")
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "INSTRUMENTID", "COLLECTIONDATE" }) })
 @Entity
 @XmlRootElement
 public class InstrumentMetaData extends EntityBaseBean implements Serializable{

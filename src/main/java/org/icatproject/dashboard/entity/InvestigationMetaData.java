@@ -7,34 +7,23 @@ package org.icatproject.dashboard.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
 @Comment("This entity records meta information on an investigation during a day.")
 @SuppressWarnings("serial")
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "INVESTIGATIONID", "COLLECTIONDATE" }) })
 @Entity
 @XmlRootElement
 public class InvestigationMetaData extends EntityBaseBean implements Serializable{
     
     
-    @Comment("A short name for the investigation")
-    @Column(name = "NAME", nullable = false)
-    private String name;
-
-    @Comment("Full title of the investigation")
-    @Column(nullable = false)
-    private String title;
-    
-    @Comment("The investigation visit id")
-    private String visitId;
-    
-    @Comment("The number of datasets associated with this instrument on a specific day")
-    private Long datasetCount;
-    
+       
     @Comment("The number of datafiles associated with this instrument on a specific day")
     private Long datafileCount;
     
@@ -52,16 +41,14 @@ public class InvestigationMetaData extends EntityBaseBean implements Serializabl
     
     public InvestigationMetaData(){}
 
-    public InvestigationMetaData(String name, String title, String visitId, Long datasetCount, Long datafileCount, Long datafileVolume, Date collectionDate, long investigationId) {
-        this.name = name;
-        this.title = title;
-        this.visitId = visitId;
-        this.datasetCount = datasetCount;
+    public InvestigationMetaData(Long datafileCount, Long datafileVolume, Date collectionDate, long investigationId) {
         this.datafileCount = datafileCount;
         this.datafileVolume = datafileVolume;
         this.collectionDate = collectionDate;
         this.investigationId = investigationId;
     }
+
+    
 
     
 
@@ -73,42 +60,7 @@ public class InvestigationMetaData extends EntityBaseBean implements Serializabl
         this.investigationId = investigationId;
     }
 
-      
-    
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }  
-
-   
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }    
-
-
-    public String getVisitId() {
-        return visitId;
-    }
-
-    public void setVisitId(String visitId) {
-        this.visitId = visitId;
-    }
-
-    public Long getDatasetCount() {
-        return datasetCount;
-    }
-
-    public void setDatasetCount(Long datasetCount) {
-        this.datasetCount = datasetCount;
-    }
-
+     
     public Long getDatafileCount() {
         return datafileCount;
     }
