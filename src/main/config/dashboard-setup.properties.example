@@ -13,6 +13,9 @@ port           = 4848
 #ids
 ids.address    = 
 
+#icat
+icat.address   =
+
 #oracle
 db.vendor      = oracle
 db.driver      = oracle.jdbc.pool.OracleDataSource
