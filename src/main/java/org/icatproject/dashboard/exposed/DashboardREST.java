@@ -72,7 +72,7 @@ import org.slf4j.LoggerFactory;
 
 @Stateless
 @LocalBean
-@Path("/v1")
+@Path("")
 public class DashboardREST {
     
     private String icatURL;
@@ -88,7 +88,7 @@ public class DashboardREST {
     
     private final DecimalFormat df = new DecimalFormat("#.##");    
      
-    private static final Logger logger = LoggerFactory.getLogger(DashboardREST.class);    
+    private static final Logger LOGGER = LoggerFactory.getLogger(DashboardREST.class);    
     
     //Constants for download statuses,
     
