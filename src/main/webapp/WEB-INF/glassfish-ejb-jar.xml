@@ -10,11 +10,20 @@ and open the template in the editor.
   <enterprise-beans>
     <ejb>
       <ejb-name>DownloadListener</ejb-name>
+      <mdb-connection-factory>
+        <jndi-name>jms/idsFactory</jndi-name>
+      </mdb-connection-factory>
       <bean-pool>
         <resize-quantity>1</resize-quantity>
         <max-pool-size>1</max-pool-size>
         <steady-pool-size>1</steady-pool-size>
       </bean-pool>
+    </ejb>
+    <ejb>
+      <ejb-name>ICATListener</ejb-name>
+      <mdb-connection-factory>
+        <jndi-name>jms/icatFactory</jndi-name>
+      </mdb-connection-factory>      
     </ejb>
   </enterprise-beans>
 </glassfish-ejb-jar>
