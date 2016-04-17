@@ -25,9 +25,9 @@ import org.slf4j.LoggerFactory;
 public class GeoTool {
 
     //End point of the API
-    private static final String apiEndPoint = "http://ip-api.com/json/";
+    private static final String APIENDPOINT = "http://ip-api.com/json/";
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(GeoTool.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GeoTool.class);
 
     /**
      * Gets the longitude and latitude from the above API and inserts it into a
@@ -40,45 +40,43 @@ public class GeoTool {
      */
     public static GeoLocation getGeoLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) {
 
-        GeoLocation gl;
-        JSONObject result =null;
-
-        JSONParser parser = new JSONParser();
-
-        try {
-            result = (JSONObject) parser.parse(contactAPI(ipAddress));
-        } catch (ParseException ex) {
-            logger.error("Issue parsing JSON data", ex);
-        }
-
-        gl = new GeoLocation();
-        double latitude = (double) result.get("lat");
-        double longitude = (double) result.get("lon");
-        String city = (String) result.get("city");
-        String countryCode = (String) result.get("country");
-        String isp = (String) result.get("isp");
-        List<GeoLocation> locations;
-        locations = manager.createNamedQuery("GeoLocation.check").setParameter("longitude", longitude).setParameter("latitude", latitude).getResultList();
-        if (locations.size() > 0) {
-            gl = locations.get(0);
-        } else {
-            gl.setCountryCode(countryCode);
-            gl.setCity(city);
-            gl.setLatitude(latitude);
-            gl.setLongitude(longitude);
-            gl.setIsp(isp);
-
+        GeoLocation location; 
+        
+        List<GeoLocation> locations = manager.createNamedQuery("GeoLocation.ipCheck").setParameter("ipAddress", ipAddress).getResultList();
+        
+        if(locations.isEmpty()){
+            JSONParser parser = new JSONParser();
+            JSONObject result = new JSONObject();
             try {
-                beanManager.create(gl, manager);
+                result = (JSONObject) parser.parse(contactAPI(ipAddress));
+            } catch (ParseException ex) {
+                LOG.error("Issue parsing JSON data", ex);
+            }            
+            
+            double latitude = (double) result.get("lat");
+            double longitude = (double) result.get("lon");
+            String city = (String) result.get("city");
+            String countryCode = (String) result.get("country");
+            String isp = (String) result.get("isp");
+            
+            location = new GeoLocation( longitude, latitude, countryCode, city,  isp, ipAddress);            
+            
+            try {
+                beanManager.create(location, manager);
             } catch (DashboardException ex) {
                 Logger.getLogger(GeoTool.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
+            }  
+            
+        } 
+        else{
+            location = locations.get(0);
         }
 
-        return gl;
+        return location;
 
     }
+    
+ 
 
     /**
      * Contacts the GeoLocation API to collect a geoLocation from an ipAddress
@@ -90,7 +88,7 @@ public class GeoTool {
 
         try {
 
-            URL url = new URL(apiEndPoint + ipAddress);
+            URL url = new URL(APIENDPOINT + ipAddress);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             StringBuilder sb = null;
             try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
@@ -101,15 +99,15 @@ public class GeoTool {
 
                 }
             } catch (IOException e) {
-                logger.error("Error has occured with contacting the GeoTool API ", e);
+                LOG.error("Error has occured with contacting the GeoTool API ", e);
             }
             conn.disconnect();
 
             return sb.toString();
         } catch (MalformedURLException ex) {
-            logger.error("Error has occured with processing the return for the GeoTool API ", ex);
+            LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
         } catch (IOException ex) {
-            logger.error("Error has occured with processing the return for the GeoTool API ", ex);
+            LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
         }
 
         return null;

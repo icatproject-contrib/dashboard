@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/ICAT/log"),
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
-    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),   
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "icatDashboard2"),
+    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),     
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"), 
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "icat5331"),
     
     
   

@@ -68,10 +68,9 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/IDS/log"),
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
-    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),   
-    @ActivationConfigProperty(propertyName = "clientId",propertyValue = "dashboardID921"),
+    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),  
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),
-    
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "ids5331"),
     
     
 })
