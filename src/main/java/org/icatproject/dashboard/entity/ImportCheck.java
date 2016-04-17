@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 
 @Comment("The overal data intergrity of Entity Count.")
-@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "CHECKDATE","PASSED" }) })
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "CHECKDATE","PASSED", "TYPE" }) })
 @Entity
 @XmlRootElement
 public class ImportCheck extends EntityBaseBean implements Serializable {
@@ -32,16 +32,38 @@ public class ImportCheck extends EntityBaseBean implements Serializable {
     @Column( nullable = false)
     private Boolean passed;
     
+    
+    @Comment("The type of import")
+    @Column( nullable = false)
+    private String type;
+    
     public ImportCheck(){
         
     }
 
-    public ImportCheck(Date checkDate, Boolean passed) {
+    public ImportCheck(Date checkDate, Boolean passed, String type) {
         this.checkDate = checkDate;
         this.passed = passed;
+        this.type = type;
     }
-    
-    
+
+    public Date getCheckDate() {
+        return checkDate;
+    }
+
+    public void setCheckDate(Date checkDate) {
+        this.checkDate = checkDate;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+       
 
     public Date getDate() {
         return checkDate;

@@ -24,9 +24,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class InstrumentMetaData extends EntityBaseBean implements Serializable{
     
        
-    @Comment("The number of datasets associated with this instrument on a specific day")
-    private Long datasetCount;
-    
+     
     @Comment("The number of datafiles associated with this instrument on a specific day")
     private Long datafileCount;
     
@@ -44,8 +42,8 @@ public class InstrumentMetaData extends EntityBaseBean implements Serializable{
 
     public InstrumentMetaData(){}
 
-    public InstrumentMetaData(Long datasetCount, Long datafileCount, Long datafileVolume, Date collectionDate, long instrumentId) {
-        this.datasetCount = datasetCount;
+    public InstrumentMetaData( Long datafileCount, Long datafileVolume, Date collectionDate, long instrumentId) {
+        
         this.datafileCount = datafileCount;
         this.datafileVolume = datafileVolume;
         this.collectionDate = collectionDate;
@@ -62,14 +60,7 @@ public class InstrumentMetaData extends EntityBaseBean implements Serializable{
         this.instrumentId = instrumentId;
     }
         
-    
-    public Long getDatasetCount() {
-        return datasetCount;
-    }
-
-    public void setDatasetCount(Long datasetCount) {
-        this.datasetCount = datasetCount;
-    }
+   
 
     public Long getDatafileCount() {
         return datafileCount;
