@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class PropsManager {
     
     
-    private static final Logger log = LoggerFactory.getLogger(PropsManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PropsManager.class);
     private List<String> functionalAccounts;
     private String ICATUrl;
     private String loginAuth;
@@ -57,7 +57,7 @@ public class PropsManager {
      */
     
     public void collectProperties(String propertyFile){   
-        log.info("Reading properties.");
+        LOG.info("Reading properties.");
         File f = new File(propertyFile);
            Properties props = null;
            try {
@@ -66,25 +66,25 @@ public class PropsManager {
            } catch (Exception e) {
                String msg = "Unable to read property file " + f.getAbsolutePath() + "  "
                        + e.getMessage();
-               log.error(msg);
+               LOG.error(msg);
                throw new IllegalStateException(msg);
 
            }
            functionalAccounts = Arrays.asList(props.getProperty("functional_accounts").split("\\s+"));
-           ICATUrl = props.getProperty("icat.url");
-           loginAuth = props.getProperty("authenticator");
+           ICATUrl = props.getProperty("icat.url").trim();
+           loginAuth = props.getProperty("authenticator").trim();
            authorisedAccounts = Arrays.asList(props.getProperty("authorised_accounts").split("\\s+"));
-           userName = props.getProperty("userName");
-           password = props.getProperty("password");                      
-           topCatURL = props.getProperty("topCatURL"); 
-           collectionTime = Integer.parseInt(props.getProperty("collectionTime"));
+           userName = props.getProperty("userName").trim();
+           password = props.getProperty("password").trim();                      
+           topCatURL = props.getProperty("topCatURL").trim(); 
+           collectionTime = Integer.parseInt(props.getProperty("collectionTime").trim());
             
            
-           log.info("Functional accounts set as: ",functionalAccounts);
-           log.info("ICAT set as: ",ICATUrl);
-           log.info("TopCat set as: ",topCatURL);
-           log.info("Reader account set as ",userName);
-           log.info("Collection time set as (24 Hour Clock)",collectionTime);
+           LOG.info("Functional accounts set as: ",functionalAccounts);
+           LOG.info("ICAT set as: ",ICATUrl);
+           LOG.info("TopCat set as: ",topCatURL);
+           LOG.info("Reader account set as ",userName);
+           LOG.info("Collection time set as (24 Hour Clock)",collectionTime);
           
            
     }
