@@ -43,7 +43,7 @@ public class ICATLog extends EntityBaseBean implements Serializable {
     private Long entityId;
     
     @Comment("The type of entity modified/searched for.")
-    private String entityName;
+    private String entityType;
     
     @Comment("The ip address of where the action took place.")
     private String ipAddress;
@@ -94,11 +94,11 @@ public class ICATLog extends EntityBaseBean implements Serializable {
     }
 
     public String getEntityType() {
-        return entityName;
+        return entityType;
     }
 
     public void setEntityType(String entityType) {
-        this.entityName = entityType;
+        this.entityType = entityType;
     }
     
        

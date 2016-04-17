@@ -61,6 +61,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     private String fullName;
     
     @Comment("Login name")
+    @Column( nullable = false)
     private String name;
     
    

@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -32,7 +33,7 @@ import javax.persistence.TemporalType;
 public class Download extends EntityBaseBean implements Serializable {
 
     @Comment("A download is associated with a user.")
-    @JoinColumn(name = "USER_ID")
+    @JoinColumn(name = "USER_ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private ICATUser user;
 
@@ -50,7 +51,7 @@ public class Download extends EntityBaseBean implements Serializable {
     private GeoLocation location;
 
     @Comment("The preparedID from TopCAT")
-    private String preparedID;
+     private String preparedID;
 
     @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("The time the download started.")

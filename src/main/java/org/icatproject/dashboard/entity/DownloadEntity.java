@@ -6,6 +6,7 @@
 package org.icatproject.dashboard.entity;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -26,7 +27,7 @@ public class DownloadEntity extends EntityBaseBean implements Serializable {
 
     @JoinColumn(name="ENTITY_ID",nullable = false)   
     @ManyToOne(fetch = FetchType.LAZY)
-    private Entity_ entity;
+     private Entity_ entity;
     
     public DownloadEntity(){
         

@@ -7,16 +7,23 @@ package org.icatproject.dashboard.entity;
 
 import java.util.List;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 @Comment("A geoLocation of where an activity such as a download took place.")
 @NamedQueries({    
     @NamedQuery(name="GeoLocation.check",
                 query="SELECT ge FROM GeoLocation ge WHERE ge.longitude = :longitude AND ge.latitude = :latitude"), 
+    
+    @NamedQuery(name="GeoLocation.ipCheck",
+                query="SELECT ge FROM GeoLocation ge WHERE ge.ipAddress= :ipAddress "),
 })
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "LONGITUDE", "LATITUDE","IPADDRESS" }) })
 @Entity
 public class GeoLocation extends EntityBaseBean {
     
@@ -42,7 +49,37 @@ public class GeoLocation extends EntityBaseBean {
     
     @Comment("The ISP at this location.")
     private String isp;
+    
+    @Comment("ip address of the geo location")
+    @Column( nullable = false)
+    private String ipAddress;
 
+    public GeoLocation(double longitude, double latitude, String countryCode, String city, String isp, String ipAddress) {
+        this.longitude = longitude;
+        this.latitude = latitude;
+        this.countryCode = countryCode;
+        this.city = city;
+        this.isp = isp;
+        this.ipAddress = ipAddress;
+    }
+    
+    public GeoLocation(){
+        
+    }
+    
+    
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+    
+    
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+    
+    
     
     
     public List<ICATLog> getLogs() {

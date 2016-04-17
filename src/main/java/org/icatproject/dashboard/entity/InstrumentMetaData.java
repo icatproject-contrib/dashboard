@@ -7,6 +7,7 @@ package org.icatproject.dashboard.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -34,9 +35,11 @@ public class InstrumentMetaData extends EntityBaseBean implements Serializable{
     
     @Temporal(value = TemporalType.TIMESTAMP)
     @Comment("Time of the meta collection.")
+    @Column( nullable = false)
     private Date collectionDate;    
     
     @Comment("Id in the ICAT of the instrument associated with this daily meta data")
+    @Column( nullable = false)
     private long instrumentId;
 
     public InstrumentMetaData(){}

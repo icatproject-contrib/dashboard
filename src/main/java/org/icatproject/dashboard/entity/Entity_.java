@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.Entity;
@@ -20,7 +21,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @Comment("This is a item that has been downloaded via the IDS. It belongs to an Entity Collection")
 @SuppressWarnings("serial")
-@Table(uniqueConstraints={@UniqueConstraint(columnNames={"type","ICATID"})})
+@Table(uniqueConstraints={@UniqueConstraint(columnNames={"TYPE","ICATID"})})
 @Entity
 @XmlRootElement
 public class Entity_ extends EntityBaseBean implements Serializable{
@@ -30,9 +31,11 @@ public class Entity_ extends EntityBaseBean implements Serializable{
     private List<DownloadEntity> downloadEntities;
     
     @Comment("ID of the entity in the ICAT")
+    @Column( nullable = false)
     private Long icatId;
     
     @Comment("Name of the Entity.")
+    @Column( nullable = false)
     private String entityName;
     
     @Comment("Size of the Entity in bytes.")

@@ -6,6 +6,7 @@
 package org.icatproject.dashboard.entity;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -24,9 +25,11 @@ public class DownloadEntityAge extends EntityBaseBean implements Serializable {
     
     
     @Comment("The age of files in the format of days.")
+    @Column( nullable = false)
     private long age;
     
     @Comment("The amount of files.")
+    @Column( nullable = false)
     private long amount;
 
     public Download getDownload() {
