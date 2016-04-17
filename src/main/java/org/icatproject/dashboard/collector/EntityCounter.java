@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -21,6 +22,10 @@ import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.ICATSessionManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.dashboard.entity.EntityCount;
+import org.icatproject.dashboard.entity.ImportCheck;
+import org.icatproject.dashboard.entity.InstrumentMetaData;
+import static org.icatproject.dashboard.entity.InstrumentMetaData_.instrumentId;
+import org.icatproject.dashboard.entity.InvestigationMetaData;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.icat.client.Session;
 import org.json.simple.JSONArray;
@@ -37,10 +42,7 @@ public class EntityCounter  {
     
     @EJB
     EntityBeanManager beanManager;
-    
-    @EJB
-    private PropsManager properties;
-    
+        
     @EJB
     private ICATSessionManager sessionManager;
     
@@ -48,16 +50,11 @@ public class EntityCounter  {
     private EntityManager manager;    
      
     private final String[] ENTITIES={"Application", "DataCollection", "DataCollectionDatafile", "DataCollectionDataset", "DataCollectionParameter", "Datafile", "DatafileFormat", "DatafileParameter", "Dataset", "DatasetParameter", "DatasetType", "Facility", "FacilityCycle", "Grouping", "Instrument", "InstrumentScientist", "Investigation", "InvestigationGroup", "InvestigationInstrument", "InvestigationParameter", "InvestigationType", "InvestigationUser", "Job", "Keyword", "ParameterType", "PermissibleStringValue", "PublicStep", "Publication", "RelatedDatafile", "Rule", "Sample", "SampleParameter", "SampleType", "Shift", "Study", "StudyInvestigation", "User","UserGroup"};
-    
-    private final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");    
-    
+       
     private Session icatSession;
     
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(EntityCounter.class);  
-    
-    
-    
-      
+        
     @PostConstruct
     public void init(){
         icatSession = sessionManager.getRestSession();     
@@ -75,11 +72,16 @@ public class EntityCounter  {
        
         //Only want to go to the day before
         while(startDate.isBefore(endDate)){
-            //countEntities(startDate);
-            collectInstrumentMeta(startDate);
-            collectInvestigationMeta(startDate);
             
+            Date currentDate = convertToDate(startDate);
             
+            boolean countPassed = countEntities(startDate);
+            boolean instrumentPassed = collectInstrumentMeta(startDate);
+            boolean investigationPassed = collectInvestigationMeta(startDate); 
+            
+            insertImportCheck(currentDate, countPassed, "entityCount");
+            insertImportCheck(currentDate,instrumentPassed,"instrumentMeta");
+            insertImportCheck(currentDate,investigationPassed,"investigationMeta");            
             
             startDate = startDate.plusDays(1);
         }
@@ -89,8 +91,10 @@ public class EntityCounter  {
     /***
      * Counts all of the ICAT entities created on a specific date.
      * @param countLocalDate the date to count entity creations.
+     * @return if it has passed without issues
      */
-    public void countEntities(LocalDate countLocalDate){ 
+    public boolean countEntities(LocalDate countLocalDate){ 
+        boolean passed = true;
         
         LOG.info("Starting entity count for date ", countLocalDate.toString());
         
@@ -115,20 +119,25 @@ public class EntityCounter  {
                 
             } catch (org.icatproject.icat.client.IcatException | DashboardException | ParseException ex) {
                 LOG.error("A error has occured counting entities ",ex);
+                passed = false;
             }
-        }
-        
+        }        
         
         LOG.info("Completed entity count for date ", countLocalDate.toString());
         
+        return passed;
     }
     
-    private void collectInstrumentMeta(LocalDate collectionLocalDate){
+    private boolean collectInstrumentMeta(LocalDate collectionLocalDate){
          LOG.info("Starting Instrument meta data collection for ", collectionLocalDate.toString());
          
+         boolean passed = true;
+         
+         Date collectionDate = convertToDate(collectionLocalDate);
+         
          String instrumentQuery = "SELECT instrument.id, COUNT(datafile.id), SUM(datafile.fileSize) FROM Datafile as datafile "
-                 + "JOIN datafile.dataset dataset JOIN dataset.investigation investigation JOIN investigation.investigationInstruments investigationInstrument JOIN investigationInstrument.instrument instrument"
-                 + "WHERE datafile.createTime >= {ts "+collectionLocalDate.toString()+" 00:00:00} AND datafile.createTime <= {ts "+collectionLocalDate.toString()+" 23:59:59}"
+                 + "JOIN datafile.dataset dataset JOIN dataset.investigation investigation JOIN investigation.investigationInstruments investigationInstrument JOIN investigationInstrument.instrument instrument "
+                 + "WHERE datafile.createTime>= {ts "+collectionLocalDate.toString()+" 00:00:00} AND datafile.createTime<= {ts "+collectionLocalDate.toString()+" 23:59:59} "
                  + "GROUP BY instrument.id ";
          
         try {
@@ -138,42 +147,77 @@ public class EntityCounter  {
             
             resultArray = (JSONArray) parser.parse(result);
             
-            if(!result.equals("[]")){
-                    
-                  
+            if(resultArray.size()>0){
+                
+                for (Iterator it = resultArray.iterator(); it.hasNext();) {
+                 JSONArray sub = (JSONArray) it.next();
+                 long instrumentId = (long) sub.get(0);
+                 long dataFileCount = (long) sub.get(1);
+                 long dataFileVolume = (long) sub.get(2);
+                 
+                 InstrumentMetaData insData = new InstrumentMetaData(dataFileCount, dataFileVolume, collectionDate, instrumentId);
+                 beanManager.create(insData, manager);
+                 
                 }
+                
+            } 
             
-        } catch (org.icatproject.icat.client.IcatException | ParseException ex) {
+             
+            
+        } catch (org.icatproject.icat.client.IcatException | DashboardException | ParseException ex) {
             LOG.error("Issue with instrument meta collection ", ex);
-        }
+            passed = false;
+        } 
          
          
          LOG.info("Completed Instrument meta data collection for ", collectionLocalDate.toString());
+         
+         return passed;
     }
     
     
-    private void collectInvestigationMeta(LocalDate collectionLocalDate){
+    private boolean collectInvestigationMeta(LocalDate collectionLocalDate){
         LOG.info("Starting Instrument meta data collection for ", collectionLocalDate.toString());
+        
+        boolean passed = true;
+        
+        Date collectionDate = convertToDate(collectionLocalDate);
          
-         String instrumentQuery = "SELECT investigation.id, COUNT(datafile.id), SUM(datafile.fileSize) FROM Datafile as datafile "
-                 + "JOIN datafile.dataset dataset JOIN dataset.investigation investigation@"
-                 + "WHERE datafile.createTime >= {ts "+collectionLocalDate.toString()+" 00:00:00} AND datafile.createTime <= {ts "+collectionLocalDate.toString()+" 23:59:59}"
+         String investigationQuery = "SELECT investigation.id, COUNT(datafile.id), SUM(datafile.fileSize) FROM Datafile as datafile "
+                 + "JOIN datafile.dataset dataset JOIN dataset.investigation investigation "
+                 + "WHERE datafile.createTime >= {ts "+collectionLocalDate.toString()+" 00:00:00} AND datafile.createTime <= {ts "+collectionLocalDate.toString()+" 23:59:59} "
                  + "GROUP BY investigation.id ";
          
         try {
-            String result = icatSession.search(instrumentQuery);
+            String result = icatSession.search(investigationQuery);
+            JSONParser parser = new JSONParser();
+            JSONArray resultArray;
             
-            if(!result.equals("[]")){
-              
-                   
+            resultArray = (JSONArray) parser.parse(result);
+            
+            if(resultArray.size()>0){
+                
+                for (Iterator it = resultArray.iterator(); it.hasNext();) {
+                 JSONArray sub = (JSONArray) it.next();
+                 long investigationId = (long) sub.get(0);
+                 long dataFileCount = (long) sub.get(1);
+                 long dataFileVolume = (long) sub.get(2);
+                 
+                 InvestigationMetaData invData = new InvestigationMetaData(dataFileCount, dataFileVolume, collectionDate, investigationId);
+                 
+                 beanManager.create(invData, manager);
+                 
                 }
-            
-        } catch (org.icatproject.icat.client.IcatException ex) {
+                
+            } 
+        } catch (org.icatproject.icat.client.IcatException  | DashboardException | ParseException ex) {
             LOG.error("Issue with instrument meta collection ", ex);
+            passed = false;
         }
          
-         
          LOG.info("Completed Instrument meta data collection for ", collectionLocalDate.toString());
+         
+         return passed;
     }
     
     
@@ -190,6 +234,18 @@ public class EntityCounter  {
         
     }
     
+    
+    private void insertImportCheck(Date date,boolean passed,String importType){
+        
+        ImportCheck check = new ImportCheck(date,passed,importType);
+        
+        try {
+            beanManager.create(check, manager);
+        } catch (DashboardException ex) {
+            LOG.error("Issue inserting import check into dashboard ", ex);
+        }
+        
+    }
  
    
     

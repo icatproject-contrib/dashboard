@@ -114,9 +114,8 @@ public class DataCollector {
       
         LOG.info("Entity Collection initiated for ",today.toString());
         
-        //LocalDate earliestImport = earliestImportPass();
+        LocalDate earliestImport = earliestImportPass();       
         
-        LocalDate earliestImport = LocalDate.of(2016, Month.MARCH, 19);
         
         //An actual import has happened
         if(earliestImport!=null){

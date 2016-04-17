@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 public class ICATListener implements MessageListener {
     
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ICATListener.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ICATListener.class);
     
     @EJB
     private EntityBeanManager beanManager;
@@ -80,7 +80,7 @@ public class ICATListener implements MessageListener {
         try {
             beanManager.create(log, manager);
         } catch (DashboardException ex) {
-           logger.error("Issue inserting ICATLog into the dashboard ",ex);
+           LOG.error("Issue inserting ICATLog into the dashboard ",ex);
         }
         
     }
@@ -170,7 +170,7 @@ public class ICATListener implements MessageListener {
            
             
         } catch (ParseException | JMSException | InternalException ex) {
-            logger.info("Issue with parsing the JMS message body: ",ex.getMessage());
+            LOG.info("Issue with parsing the JMS message body: ",ex.getMessage());
         }        
         
         return icatLog;
