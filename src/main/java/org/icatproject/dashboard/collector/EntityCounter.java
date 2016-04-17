@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -21,6 +23,9 @@ import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.icat.client.Session;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -70,7 +75,9 @@ public class EntityCounter  {
        
         //Only want to go to the day before
         while(startDate.isBefore(endDate)){
-            countEntities(startDate);
+            //countEntities(startDate);
+            collectInstrumentMeta(startDate);
+            collectInvestigationMeta(startDate);
             
             
             
@@ -89,18 +96,24 @@ public class EntityCounter  {
         
         Date countDate = convertToDate(countLocalDate);
         
+        JSONParser parser = new JSONParser();
+        
+        
         for(String entity : ENTITIES){
-            String countQuery = "SELECT COUNT(entity.id) FROM"+entity+" as entity WHERE entity.createTime >= {ts "+countLocalDate.toString()+" 00:00:00} AND entity.createTime <= {ts "+countLocalDate.toString()+" 23:59:59}";
-            
+            String countQuery = "SELECT COUNT(entity.id) FROM "+entity+" as entity WHERE entity.createTime >= {ts "+countLocalDate.toString()+" 00:00:00} AND entity.createTime <= {ts "+countLocalDate.toString()+" 23:59:59}";
+            JSONArray resultArray;
             try {
-                String result = icatSession.search(countQuery);
+                String icatResult = icatSession.search(countQuery);
+                resultArray = (JSONArray) parser.parse(icatResult);
                 
-                if(!result.equals("[]")){
-                    EntityCount ec = new EntityCount(countDate,entity,Long.parseLong(result));
+                Long countValue = (Long) resultArray.get(0);
+                
+                if(countValue!=0){
+                    EntityCount ec = new EntityCount(countDate,entity,countValue);
                     beanManager.create(ec, manager);
                 }
                 
-            } catch (org.icatproject.icat.client.IcatException | DashboardException ex) {
+            } catch (org.icatproject.icat.client.IcatException | DashboardException | ParseException ex) {
                 LOG.error("A error has occured counting entities ",ex);
             }
         }
@@ -114,12 +127,46 @@ public class EntityCounter  {
          LOG.info("Starting Instrument meta data collection for ", collectionLocalDate.toString());
          
          String instrumentQuery = "SELECT instrument.id, COUNT(datafile.id), SUM(datafile.fileSize) FROM Datafile as datafile "
-                 + "JOIN datafile.dataset dataset JOIN dataset.investigation investigation JOIN investigation.investigationInstrument investigationInstrument"
+                 + "JOIN datafile.dataset dataset JOIN dataset.investigation investigation JOIN investigation.investigationInstruments investigationInstrument JOIN investigationInstrument.instrument instrument"
                  + "WHERE datafile.createTime >= {ts "+collectionLocalDate.toString()+" 00:00:00} AND datafile.createTime <= {ts "+collectionLocalDate.toString()+" 23:59:59}"
                  + "GROUP BY instrument.id ";
          
         try {
             String result = icatSession.search(instrumentQuery);
+            JSONParser parser = new JSONParser();
+            JSONArray resultArray;
+            
+            resultArray = (JSONArray) parser.parse(result);
+            
+            if(!result.equals("[]")){
+                    
+                  
+                }
+            
+        } catch (org.icatproject.icat.client.IcatException | ParseException ex) {
+            LOG.error("Issue with instrument meta collection ", ex);
+        }
+         
+         
+         LOG.info("Completed Instrument meta data collection for ", collectionLocalDate.toString());
+    }
+    
+    
+    private void collectInvestigationMeta(LocalDate collectionLocalDate){
+        LOG.info("Starting Instrument meta data collection for ", collectionLocalDate.toString());
+         
+         String instrumentQuery = "SELECT investigation.id, COUNT(datafile.id), SUM(datafile.fileSize) FROM Datafile as datafile "
+                 + "JOIN datafile.dataset dataset JOIN dataset.investigation investigation@"
+                 + "WHERE datafile.createTime >= {ts "+collectionLocalDate.toString()+" 00:00:00} AND datafile.createTime <= {ts "+collectionLocalDate.toString()+" 23:59:59}"
+                 + "GROUP BY investigation.id ";
+         
+        try {
+            String result = icatSession.search(instrumentQuery);
+            
+            if(!result.equals("[]")){
+              
+                   
+                }
             
         } catch (org.icatproject.icat.client.IcatException ex) {
             LOG.error("Issue with instrument meta collection ", ex);
@@ -128,6 +175,7 @@ public class EntityCounter  {
          
          LOG.info("Completed Instrument meta data collection for ", collectionLocalDate.toString());
     }
+    
     
     
     

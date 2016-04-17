@@ -8,6 +8,7 @@ import org.icatproject.dashboard.manager.PropsManager;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -50,7 +51,7 @@ public class DataCollector {
 
     DateTimeFormatter format;
 
-    private static final Logger log = LoggerFactory.getLogger(DataCollector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DataCollector.class);
 
     @Resource
     private TimerService timerService;
@@ -111,16 +112,18 @@ public class DataCollector {
         
         LocalDate today = LocalDate.now();
       
-        log.info("Entity Collection initiated for ",today.toString());
+        LOG.info("Entity Collection initiated for ",today.toString());
         
-        LocalDate earliestImport = earliestImportPass();
+        //LocalDate earliestImport = earliestImportPass();
+        
+        LocalDate earliestImport = LocalDate.of(2016, Month.MARCH, 19);
         
         //An actual import has happened
         if(earliestImport!=null){
             counter.performCollection(earliestImport, today);
         }               
                
-        log.info("Entity collection completed for ",today.toString());
+        LOG.info("Entity collection completed for ",today.toString());
     }  
     
     
