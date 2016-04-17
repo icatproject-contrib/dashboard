@@ -9,21 +9,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import org.icatproject.dashboard.entity.CollectionType;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.ICATSessionManager;
 import org.icatproject.dashboard.manager.PropsManager;
-import org.icatproject.*;
 import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.icat.client.Session;
@@ -151,9 +145,6 @@ public class EntityCounter  {
  
    
     
-    public void importCheckInsert(LocalDate date, boolean passed,CollectionType type){
-        
-    }
     
    
     

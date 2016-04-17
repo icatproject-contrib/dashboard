@@ -5,18 +5,13 @@
 package org.icatproject.dashboard.collector;
 
 import org.icatproject.dashboard.manager.PropsManager;
-import org.icatproject.dashboard.manager.EntityBeanManager;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.DependsOn;
@@ -31,13 +26,7 @@ import javax.ejb.TimerService;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import org.icatproject.dashboard.exceptions.InternalException;
-import org.icatproject.dashboard.manager.ICATSessionManager;
 import org.icatproject.*;
-import org.icatproject.dashboard.entity.CollectionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
