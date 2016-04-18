@@ -86,6 +86,9 @@ public class IcatDataManager {
     private void createTimers(){
         
         TimerConfig refreshSession = new TimerConfig("refreshSession", false);
+        TimerConfig refreshAuthenticators = new TimerConfig("refreshAuthenticators", false);
+        
+        timerService.createIntervalTimer(1200000,1200000,refreshAuthenticators);        
         timerService.createIntervalTimer(3600000,3600000,refreshSession);         
        
         
@@ -181,6 +184,9 @@ public class IcatDataManager {
     public void timeout(Timer timer){
         if("refreshSession".equals(timer.getInfo())){
             refreshSession();
+        }
+        else if("refreshAuthenticators".equals(timer.getInfo())){
+            authenticators = retrieveAuthenticators();
         }
         
     }
