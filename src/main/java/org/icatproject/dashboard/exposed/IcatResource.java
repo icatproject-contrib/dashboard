@@ -10,7 +10,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
+import java.util.TreeMap;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -18,6 +23,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -113,7 +119,7 @@ public class IcatResource {
             obj.put("entityType", tempLog.getEntityType());
             obj.put("ipAddress", tempLog.getIpAddress());
             obj.put("logTime", convertToLocalDateTime(tempLog.getLogTime()).toString());
-            obj.put("op", tempLog.getOperation());
+            obj.put("operation", tempLog.getOperation());
             obj.put("query", tempLog.getQuery());
             obj.put("duration", tempLog.getDuration());
             result.add(obj);
@@ -137,7 +143,7 @@ public class IcatResource {
     @Path("logs/location")
     @Produces(MediaType.APPLICATION_JSON)
     public String getIcatLogLocation(@QueryParam("sessionID") String sessionID,
-            @QueryParam("logId") int logId) throws DashboardException {
+                                     @QueryParam("logId") int logId) throws DashboardException {
 
         if (sessionID == null) {
             throw new BadRequestException("sessionID must be provided");
@@ -162,6 +168,34 @@ public class IcatResource {
         return resultArray.toJSONString();
     }
 
+    
+    @GET
+    @Path("{instrument}/datafile/number")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getInstrumentDataFileCount(@QueryParam("sessionID") String sessionID,
+                                    @QueryParam("instrument")final String instrument,
+                                    @QueryParam("startDate") String startDate,
+                                    @QueryParam("endDate") String endDate) throws DashboardException {
+
+        if (sessionID == null) {
+            throw new BadRequestException("sessionID must be provided");
+        }
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }
+        
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));
+
+        LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();
+
+        TreeMap<LocalDate, Long> downloadDates = RestUtility.createPrePopulatedMap(startRange, endRange);
+
+        
+
+        return "";
+        }
     /**
      * Gets the geolocation of an ICATLog.
      *
