@@ -17,6 +17,10 @@ html,body, .cotainer-fluid,.row  {
 
 }
 
+.verticalLine {
+    border-left: thick solid #ff0000;
+}
+
 .pop-up{
   
   z-index: 999999999;

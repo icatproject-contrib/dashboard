@@ -1,3 +1,29 @@
-<div id ="entities" class="row">
-	
+<div class="row" >  
+    <div class="col-lg-10 col-lg-offset-1 "> 
+        <div class="box search-box col-lg-12">
+            <div class="col-lg-3">
+                <p class="input-group">
+                    <input type="text" tooltip-placement="top" uib-tooltip="Start Date" uib-datepicker-popup="{{entity.format}}" class="form-control" ng-model="entity.startDate" is-open="entity.isStartDateOpen" close-text="Close" placeholder="Start Date" on-return-click-submit-button />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="entity.openStartDate()"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                </p>
+            </div>
+            <div class="col-lg-3 search-bar" >    
+                <p class="input-group">
+                    <input type="text" tooltip-placement="top" uib-tooltip="End Date" uib-datepicker-popup="{{entity.format}}" class="form-control" ng-model="entity.endDate" is-open="entity.isEndDateOpen" close-text="Close" placeholder="End Date" on-return-click-submit-button />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="entity.openEndDate()"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                </p> 
+           </div>        
+           <div class="col-lg-3 search-bar" class="search-bar">
+                <input type="text" class="form-control " ng-model="entity.entityName" placeholder="entity"/>
+            </div>            
+            
+            <div class="col-lg-3">                
+                <button type="submit" class="form-control btn btn-default" ng-click="entity.updatePage()" > Search</button>                
+            </div>                                                
+        </div>
+    </div>                        
 </div>
