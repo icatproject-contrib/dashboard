@@ -1,11 +1,11 @@
 (function (){
 	  'use strict';
-angular.module('dashboardApp').controller('UsersCtrl', UsersCtrl);
+angular.module('dashboardApp').controller('UserCtrl', UserCtrl);
 
-UsersCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridService','$uibModal'];	
+UserCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridService','$uibModal'];	
 
 
-function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibModal){		
+function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibModal){		
 		
     		var vm=this;		
     		
@@ -40,7 +40,7 @@ function UsersCtrl($scope,googleChartApiPromise, userService, uiGridService,$uib
         	{field: 'entityType',  type:"string", displayName: 'Entity Type', width:140},        	
         	{field: 'ipAddress', type:"string", displayName: 'ipAddress', width:120 },        	
         	{field: 'duration', type:'number', displayName:'Duration', width:110 },
-        	{field: 'op',  type:"string", displayName:'Operation', width:100 },
+        	{field: 'operation',  type:"string", displayName:'Operation', width:100 },
     		  {field: 'query', type:"string", displayName:'Query' },
     		  {field: 'fullName',  type:"string", displayName:'User', width:110},
     		  {field: 'logTime',  type:"date",  displayName: 'Log Time',width:160},

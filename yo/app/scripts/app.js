@@ -66,7 +66,7 @@ angular
           }]
         },
         templateUrl:'views/users.html',
-        controller: 'UsersCtrl as user'  
+        controller: 'UserCtrl as user'  
       })
       .state('entities',{
         url:'/entities',
