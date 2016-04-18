@@ -22,7 +22,7 @@ import javax.xml.namespace.QName;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.manager.EntityBeanManager;
-import org.icatproject.dashboard.manager.ICATSessionManager;
+import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.ICAT;
 import org.icatproject.ICATService;
@@ -39,7 +39,7 @@ public class UserCollector  {
     private PropsManager prop;
  
     @EJB
-    private ICATSessionManager session;
+    private IcatDataManager session;
      
     protected ICAT icat;
     protected String sessionID; 

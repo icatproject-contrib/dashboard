@@ -30,6 +30,7 @@ import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.InternalException;
 import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDateTime;
 import org.icatproject.dashboard.manager.EntityBeanManager;
+import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -46,55 +47,25 @@ public class IcatResource {
 
     @EJB
     PropsManager properties;
+    
+    @EJB
+    IcatDataManager icatData;
 
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
 
+    
+    /**
+     * Access the IcatDataManager to get the authenticators mnemonic;
+     * @return a JSONArray containing the ICATs mnemonics
+     * @throws InternalException issue accessing the IcatDataManager;
+     */
     @GET
     @Path("authenticators")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getICATAuthenticators() throws InternalException {
+    public String getICATAuthenticators() throws InternalException {       
 
-        URL url;
-        JSONArray mnemonicArray;
-
-        try {
-            url = new URL(properties.getICATUrl() + "/icat/properties");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-
-            BufferedReader responseBuffer = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream())));
-
-            StringBuilder buffer = new StringBuilder();
-            String output;
-
-            while ((output = responseBuffer.readLine()) != null) {
-                buffer.append(output);
-            }
-
-            conn.disconnect();
-
-            JSONParser parser = new JSONParser();
-
-            JSONObject response = (JSONObject) parser.parse(buffer.toString());
-            JSONArray authenticators = (JSONArray) response.get("authenticators");
-
-            mnemonicArray = new JSONArray();
-
-            for (int i = 0; i < authenticators.size(); i++) {
-                JSONObject temp = (JSONObject) authenticators.get(i);
-                JSONObject mnemonic = new JSONObject();
-
-                mnemonic.put("mnemonic", temp.get("mnemonic"));
-
-                mnemonicArray.add(mnemonic);
-            }
-        } catch (IOException | ParseException ex) {
-            throw new InternalException("Issues with generating Authenticator List: " + ex);
-        }
-
-        return mnemonicArray.toJSONString();
+        return icatData.getAuthenticators();
     }
 
     /**

@@ -19,7 +19,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.icatproject.dashboard.manager.EntityBeanManager;
-import org.icatproject.dashboard.manager.ICATSessionManager;
+import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.entity.ImportCheck;
@@ -44,7 +44,7 @@ public class EntityCounter  {
     EntityBeanManager beanManager;
         
     @EJB
-    private ICATSessionManager sessionManager;
+    private IcatDataManager sessionManager;
     
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;    

@@ -45,7 +45,7 @@ import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.InternalException;
 
 import org.icatproject.dashboard.manager.EntityBeanManager;
-import org.icatproject.dashboard.manager.ICATSessionManager;
+import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.Datafile;
 import org.icatproject.Dataset;
 import org.icatproject.ICAT;
@@ -94,7 +94,7 @@ public class DownloadListener implements MessageListener {
     private PropsManager prop;
 
     @EJB
-    private ICATSessionManager sessionManager;
+    private IcatDataManager sessionManager;
 
     @EJB
     private EntityBeanManager beanManager;
