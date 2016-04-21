@@ -4,7 +4,7 @@
     var app = angular.module('dashboardApp');
 
 
-    app.directive('successGauge', function(){
+    app.directive('gauge', function(){
     	return {
 			restrict: 'EA',			
 			scope: {

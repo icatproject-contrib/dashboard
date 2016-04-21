@@ -86,27 +86,13 @@ public class ICATListener implements MessageListener {
     }
     
     /**
-     * Adds a geoLocation to the ICATLog if it isn't associated with a functional
-     * account. Can have functional accounts doing millions of inserts so do not want
-     * to call the API each time.
+     * Adds a geoLocation to the ICATLog.
      * @param log to have it's location added.     
      */
     private void addLocation(ICATLog log){
         
-        List<String> functionalAccounts = properties.getFunctionalAccounts();    
-
-        Boolean addLocation = true;
+        log.setLocation(GeoTool.getGeoLocation(log.getIpAddress(), manager, beanManager));
         
-        for(String account : functionalAccounts ){
-            if(account.equals(log.getUser().getName())){
-                addLocation = false;
-                break;                
-            }
-        }       
-       
-        if(addLocation){
-            log.setLocation(GeoTool.getGeoLocation(log.getIpAddress(), manager, beanManager));
-        }
     }
     
     /**
@@ -156,7 +142,11 @@ public class ICATListener implements MessageListener {
             }
             
             if(json.containsKey("query")){
-                icatLog.setQuery((String)json.get("query"));
+                String query = (String)json.get("query");
+                if(query.length() > 4000){
+                    query = query.substring(0, 3996) + "...";
+                }
+                icatLog.setQuery(query);
             }                    
             
             

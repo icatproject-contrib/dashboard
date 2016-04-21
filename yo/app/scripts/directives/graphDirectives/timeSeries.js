@@ -5,7 +5,7 @@
 
 
 
-    app.directive('downloadCountLine', function(){
+    app.directive('timeLineGraph', function(){
     	return {
 			restrict: 'EA',			
 			scope: {
@@ -27,22 +27,19 @@
 				}				
 				
 				
-				$scope.$watch('data', function(dataObject){
-					if(dataObject){	
+				$scope.$watch('data', function(graphObject){
+					if(graphObject){	
 
-						$scope.description = dataObject.description;
-						$scope.title = dataObject.title;
-						$scope.zoom = dataObject.zoom;					
+						$scope.description = graphObject.description;
+						$scope.title = graphObject.title;
+						$scope.zoom = graphObject.zoom;	
+						
 					
 						chart = c3.generate({
 							bindto:divElement[0],
 
-							data: {
-
-							 	 x:"x",				 	 
-				       			 columns : dataObject.data,
-				       			 
-						    },
+							data: graphObject.data,
+				       							    
 						    legend: {
 						    	show:false
 						    },
@@ -57,7 +54,7 @@
 						                format: '%Y-%m-%d'
 						            },
 						            label: {
-						        			text: 'Dates',
+						        			text: graphObject.xLabel,
 						        			position: 'outer-center',
 						        		}, 
 						        },
@@ -66,7 +63,7 @@
 						        		bottom:0,
 						        	},
 						        	label: {
-						        			text: 'Number of Downloads',
+						        			text: graphObject.yLabel,
 						        			position: 'outer-center',
 						        		},
 						        }

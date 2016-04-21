@@ -13,6 +13,8 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
@@ -31,7 +33,6 @@ import org.icatproject.ICAT;
 import org.icatproject.ICATService;
 import org.icatproject.IcatException_Exception;
 import org.icatproject.Login;
-import org.icatproject.dashboard.exceptions.InternalException;
 import org.icatproject.icat.client.IcatException;
 import org.icatproject.icat.client.Session;
 import org.json.simple.JSONArray;
@@ -56,6 +57,8 @@ public class IcatDataManager {
     private Session restSession;
     private ICAT icat;   
     private String authenticators;
+    private LinkedHashMap<String,Long> instrumentIdMapping;
+    
     
             
     @Resource
@@ -63,7 +66,7 @@ public class IcatDataManager {
       
    
     /**
-     * Initialises the timers and the ICAT login.
+     * Initialises the timers and the initial load of ICAT data.
      */
     @PostConstruct
     public void init(){
@@ -72,6 +75,7 @@ public class IcatDataManager {
         sessionID = loginICAT(properties);
         restSession = createRestSession(properties);
         authenticators = retrieveAuthenticators();
+        instrumentIdMapping = mapInstrumentIds();
         
        
     }
@@ -86,9 +90,9 @@ public class IcatDataManager {
     private void createTimers(){
         
         TimerConfig refreshSession = new TimerConfig("refreshSession", false);
-        TimerConfig refreshAuthenticators = new TimerConfig("refreshAuthenticators", false);
+        TimerConfig refreshData = new TimerConfig("refreshData", false);
         
-        timerService.createIntervalTimer(1200000,1200000,refreshAuthenticators);        
+        timerService.createIntervalTimer(1200000,1200000,refreshData);        
         timerService.createIntervalTimer(3600000,3600000,refreshSession);         
        
         
@@ -185,10 +189,40 @@ public class IcatDataManager {
         if("refreshSession".equals(timer.getInfo())){
             refreshSession();
         }
-        else if("refreshAuthenticators".equals(timer.getInfo())){
+        else if("refreshData".equals(timer.getInfo())){
             authenticators = retrieveAuthenticators();
+            instrumentIdMapping = mapInstrumentIds();
         }
         
+    }
+    
+    /**
+     * Maps instrument IDs to their name.
+     * @return a Treemap of instrument IDs and names.
+     */
+    private LinkedHashMap<String,Long> mapInstrumentIds(){
+        
+        LinkedHashMap<String,Long> instrumentIds = new LinkedHashMap<>();
+        
+        JSONParser parser = new JSONParser();
+        JSONArray resultArray;
+        
+        try {
+            String queryResult = restSession.search("SELECT instrument.name, instrument.id FROM Instrument as instrument ORDER BY instrument.name ASC");
+            
+            resultArray = (JSONArray) parser.parse(queryResult);
+            
+            for (Iterator it = resultArray.iterator(); it.hasNext();) {
+                 JSONArray subArray = (JSONArray) it.next();
+                 instrumentIds.put((String)subArray.get(0),(Long)subArray.get(1));
+            }
+            
+            
+        } catch (IcatException | ParseException ex) {
+            LOG.error("Issue with collecting instrument names and ids from the ICAT ",ex);
+        }
+        
+        return instrumentIds;
     }
     
     /**
@@ -238,6 +272,11 @@ public class IcatDataManager {
         }
       
     }
+
+    public LinkedHashMap<String,Long> getInstrumentIdMapping() {
+        return instrumentIdMapping;
+    }   
+    
     
     public String getAuthenticators(){
         return authenticators;

@@ -5,7 +5,7 @@
 
 
 
-    app.directive('ispBandwidthBar', function(){
+    app.directive('stackedBar', function(){
     	return {
 			restrict: 'EA',			
 			scope: {
@@ -29,33 +29,27 @@
 				
 				
 
-				$scope.$watch('data', function(dataObject){
-					if(dataObject){
+				$scope.$watch('data', function(graphObject){
+					if(graphObject){
 						console
 						
-						$scope.description = dataObject.description; 
-						$scope.title = dataObject.title; 
+						$scope.description = graphObject.description; 
+						$scope.title = graphObject.title; 
 						
 					
 						chart = c3.generate({
 							bindto:divElement[0],
 
-							data: {
-							 	 				 	 
-				       			 columns : dataObject.data,
-				       			 type:'bar',
-				       			 labels:true,
-				       			 groups:[['average','min','max']]
-						    },
+							data:graphObject.data,
 						    legend: {
 						    	show:false,
 						    },
 						    axis: {
 						    	x:{
 						    		type:'category',
-						    		categories:dataObject.ispList,
+						    		categories:graphObject.categories,
 						            label: {
-						            	text: 'ISP',
+						            	text: graphObject.xLabel,
 						        		position: 'outer-center',
 						            },
 						            
@@ -63,7 +57,7 @@
 						        },
 						        y: {
 						        	label: {
-						        			text: dataObject.byteFormat,
+						        			text: graphObject.yLabel,
 						        			position: 'outer-center',
 						        		},				        
 						    },

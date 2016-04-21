@@ -177,11 +177,7 @@
 				    title :"User Downloads"
 				};
 
-			});
-
-			
-
-		    
+			});	    
 
 			//Create the promises for the download method data.
 			var methodNumberPromise = downloadService.getDownloadMethodNumber(startDate,endDate, userName);			
@@ -279,20 +275,34 @@
 					return responseData.age;
 				});
 
-				var number = _.map(responseData, function(responseData){
+				var numbers = _.map(responseData, function(responseData){
 					return responseData.number;
 				});
 
-				age.unshift("Days old");		
+				age.unshift("x");		
 							
-				number.unshift('Number of Files');				
+				numbers.unshift('Number');				
 				
 				vm.entityAge ={
-					data:[age,number],
+					data:{
+						x:"x",				 	 
+			       	    columns : [age,numbers],
+			       		types:{
+			       			Number:'scatter',
+			       		}
+			       	},
 					description : "This scatter graph displays the number of datafiles that have been downloaded grouped by their age. The age of the datafile is calculated from its creation date subtracted by the date of the download. The age is displayed in days.",
 				    title : "Download File Age",
-				    zoom : true
-				} 				
+				    zoom : true,
+				    xLabel:"Age of files",
+				    yLabel:"Number of files"
+				} 			
+
+					
+			 
+				
+				
+	
 				
 			});
 
@@ -391,13 +401,22 @@
 
 	    		dates.unshift("x");		
 							
-				numbers.unshift('Number of Downloads');	    		
+				numbers.unshift('Number');	    		
 					
 			    vm.count ={
-			    	data:data,
+			    	data:{
+						x:"x",				 	 
+			       	    columns : [dates,numbers],
+			       		types:{
+			       			Number:'line',
+			       		}
+			       	},	
 			    	description : "This line graph displays the number of downloads that occured on the requested days.",
 					title:"Download Count",
 					zoom:true,
+					type:"line",
+					xLabel:"Dates",
+					yLabel:"Number of Downloads",
 					total: countTotal,
 					busiestDay: busiestDay
 			    } 
@@ -451,12 +470,21 @@
 					}			
 					
 					vm.ispBandwidth = {
-						data:formattedData,
-						ispList:ispArray,
+						data: {							 	 				 	 
+				       			 columns : formattedData,
+				       			 type:'bar',
+				       			 labels:true,
+				       			 groups:[['average','min','max']]
+						    },
+						categories:ispArray,
 						zoom :false,
 				    	description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
-				    	title : "ISP Download Bandwidth MB/S"
-					};		
+				    	title : "ISP Download Bandwidth MB/S",
+				    	xLabel:"ISP",
+				    	yLabel: "Bandwidth MB/S"
+					};	
+
+
 						
 		    });
 			
@@ -481,7 +509,7 @@
 							
 				var dataForGraph = formattedData[0];
 
-				dataForGraph.unshift(formattedData[1]);			
+				dataForGraph.unshift("Volume");			
 
 				var total = 0;	    		
 	    		
@@ -509,15 +537,25 @@
 				var byteFormat = formattedData[1];
 				
 	    		vm.volume = { 	
-	    			data:[dates,dataForGraph],
+	    			data:{
+						x:"x",				 	 
+			       	    columns : [dates,dataForGraph],
+			       		types:{
+			       			Volume:'bar',
+			       		}
+			       	},	    			
 	    			byteFormat:byteFormat,
 	    			total:total === 0 ? "No Data":$filter('bytes')(total),
 	    			busiestDay:largestDay ===0 ?"No Data":"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat,
 	    			zoom :false,
 				    description : "This bar graph displays the volume of data that was downloaded during the requested period.",
-				    title : "Download Volume"
+				    title : "Download Volume",
+				    xLabel:"Dates",
+					yLabel:"Volume of Downloads "+byteFormat,
 
 	    		};
+
+	    		
 	    	});			
 
 		};

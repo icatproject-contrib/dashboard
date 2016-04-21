@@ -12,6 +12,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -35,8 +36,7 @@ public class ICATLog extends EntityBaseBean implements Serializable {
     @Comment("Type of query that took place.")
     private String operation;
     
-    @Comment("The query performed if there was one.")
-    @Column(length = 4000)
+    @Comment("The query performed if there was one.")    
     private String query;   
     
     @Comment("The id of the entity that modified/searched for.")

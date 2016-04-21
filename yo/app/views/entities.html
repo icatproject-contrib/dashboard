@@ -1,4 +1,4 @@
-<div class="row" >  
+<div class="row"  ng-init="entity.updatePage()" >  
     <div class="col-lg-10 col-lg-offset-1 "> 
         <div class="box search-box col-lg-12">
             <div class="col-lg-3">
@@ -17,9 +17,12 @@
                     </span>
                 </p> 
            </div>        
-           <div class="col-lg-3 search-bar" class="search-bar">
-                <input type="text" class="form-control " ng-model="entity.entityName" placeholder="entity"/>
-            </div>            
+           <div class="col-lg-2 search-bar" class="search-bar">         
+                <select class="form-control" placeholder="Instrument" ng-model="entity.selectedInstrument" ng-options="instrument.name as instrument.name for instrument in entity.instrumentNames">              
+                    
+
+                </select>                         
+            </div>           
             
             <div class="col-lg-3">                
                 <button type="submit" class="form-control btn btn-default" ng-click="entity.updatePage()" > Search</button>                
@@ -27,3 +30,13 @@
         </div>
     </div>                        
 </div>
+
+<div class="row">
+   
+    <div class="col-lg-5 col-lg-offset-1 ">     
+        <time-line-graph class="chart" data='entity.dataFileCount'></time-line-graph>         
+    </div>
+    <div class="col-lg-5">     
+        <time-line-graph class="chart" data='entity.dataFileVolume'></time-line-graph>         
+    </div>
+</div> 

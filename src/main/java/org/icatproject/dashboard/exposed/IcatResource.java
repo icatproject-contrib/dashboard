@@ -5,15 +5,13 @@
  */
 package org.icatproject.dashboard.exposed;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
 import javax.ejb.EJB;
@@ -21,6 +19,11 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -28,8 +31,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.icatproject.dashboard.consumers.GeoTool;
+import org.icatproject.dashboard.entity.Download;
+import org.icatproject.dashboard.entity.EntityBaseBean;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ICATLog;
+import org.icatproject.dashboard.entity.ICATUser;
+import org.icatproject.dashboard.entity.InstrumentMetaData;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
@@ -38,10 +45,9 @@ import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDateTi
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.manager.PropsManager;
+import org.icatproject.icat.client.Session;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 @Stateless
 @LocalBean
@@ -168,12 +174,39 @@ public class IcatResource {
         return resultArray.toJSONString();
     }
 
-    
+    @GET
+    @Path("instrument/names")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getInstrumentNames(){       
+        
+        JSONArray instrumentNames = new JSONArray();
+        
+        LinkedHashMap<String, Long> instrumentIds = icatData.getInstrumentIdMapping();
+        
+        for(String value : instrumentIds.keySet()){
+            JSONObject obj = new JSONObject();
+            obj.put("name", value);
+            instrumentNames.add(obj);
+        }        
+        
+        
+        return instrumentNames.toJSONString();
+    }
+
+    /***
+     * Gets the number of datafiles created for the specified instrument over a specific date. 
+     * @param sessionID for authentication.
+     * @param instrument name of the instrument to search for.
+     * @param startDate of when the datafiles were created.
+     * @param endDate of when the datafiles were created.
+     * @return a JSON Array of JSON Objects containing date and number of datafiles.
+     * @throws DashboardException 
+     */
     @GET
     @Path("{instrument}/datafile/number")
     @Produces(MediaType.APPLICATION_JSON)
     public String getInstrumentDataFileCount(@QueryParam("sessionID") String sessionID,
-                                    @QueryParam("instrument")final String instrument,
+                                    @PathParam("instrument")final String instrument,
                                     @QueryParam("startDate") String startDate,
                                     @QueryParam("endDate") String endDate) throws DashboardException {
 
@@ -184,18 +217,26 @@ public class IcatResource {
             throw new AuthenticationException("An invalid sessionID has been provided");
         }
         
-        Date start = new Date(Long.valueOf(startDate));
-        Date end = new Date(Long.valueOf(endDate));
+        return getInstrumentMetaData("datafileCount", startDate, endDate, instrument);
+    }
+    
+    @GET
+    @Path("{instrument}/datafile/volume")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getInstrumentDataFileVolume(@QueryParam("sessionID") String sessionID,
+                                    @PathParam("instrument")final String instrument,
+                                    @QueryParam("startDate") String startDate,
+                                    @QueryParam("endDate") String endDate) throws DashboardException {
 
-        LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();
-
-        TreeMap<LocalDate, Long> downloadDates = RestUtility.createPrePopulatedMap(startRange, endRange);
-
-        
-
-        return "";
+        if (sessionID == null) {
+            throw new BadRequestException("sessionID must be provided");
         }
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }
+        
+        return getInstrumentMetaData("datafileVolume", startDate, endDate, instrument);
+    }
     /**
      * Gets the geolocation of an ICATLog.
      *
@@ -222,7 +263,53 @@ public class IcatResource {
         }
 
         return geoLocation;
+    }
 
+    
+    private String getInstrumentMetaData(String type, String startDate, String endDate, String instrument){
+        
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));
+
+        LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();
+        
+        Long instrumentId = icatData.getInstrumentIdMapping().get(instrument);
+
+        TreeMap<LocalDate, Long> downloadDates = RestUtility.createPrePopulatedMap(startRange, endRange);
+        
+        //Criteria objects.
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<InstrumentMetaData> instrumentMeta = query.from(InstrumentMetaData.class);
+        
+        Predicate startGreater = cb.greaterThanOrEqualTo(instrumentMeta.<Date>get("collectionDate"), start);
+        Predicate endLess = cb.lessThanOrEqualTo(instrumentMeta.<Date>get("collectionDate"), end); 
+        Predicate instrumentName = cb.equal(instrumentMeta.<Long>get("instrumentId"), instrumentId);
+        
+        Predicate dateRange = cb.and(startGreater, endLess); 
+        
+        Predicate finalPredicate = cb.and(dateRange,instrumentName);
+        
+       
+        query.multiselect(instrumentMeta.<Date>get("collectionDate"), instrumentMeta.<Long>get(type));
+        
+        
+        
+        query.where(finalPredicate);
+        
+       
+        
+        List<Object[]> result = manager.createQuery(query).getResultList();
+        
+        for(Object[] day : result){
+            LocalDate collectionDate = RestUtility.convertToLocalDate((Date) day[0]);
+            
+            downloadDates.put(collectionDate, (Long) day[1]);
+        }     
+
+        return RestUtility.convertMapToJSON(downloadDates).toJSONString();
+        
     }
 
 }

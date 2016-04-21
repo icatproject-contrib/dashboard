@@ -5,7 +5,7 @@
 
 
 
-    app.directive('methodsNumberDonut', function(){
+    app.directive('donut', function(){
     	return {
 			restrict: 'EA',			
 			scope: {
@@ -24,25 +24,19 @@
 
 				$scope.reset = function(){					
 					chart.unzoom();
-				}
+				}					
 
-				
-
-			
-
+				$scope.$watch('data', function(graphObject){
+					if(graphObject){
 						
-
-				$scope.$watch('data', function(data){
-					if(data){
-						
-						$scope.description =  data.description;
-						$scope.options = data.datasets;
-						$scope.title = data.number.title;
+						$scope.description =  graphObject.description;
+						$scope.options = graphObject.datasets;
+						$scope.title = graphObject.number.title;
 
 						chart  = c3.generate({
 							bindto:divElement[0],
 							data:{
-								columns : data.number.data,							
+								columns : graphObject.number.data,							
 								type: 'donut'
 								},
 							donut:{
@@ -53,10 +47,7 @@
 
 								}
 							},
-							tooltip:{
-									
-									
-								},
+							
 							color:{
 								pattern: ['#CF000F','#7f8c8d','#2b2b2b'],
 							},							

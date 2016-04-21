@@ -19,13 +19,25 @@
 
 				var services = {
 
-					getInstrumentMeta: function(startDate,endDate, instrument){
-						return $http.get(baseURL+"/icat/instrumentMeta?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&instrument="+instrument)
+					getInstrumentFileCount: function(startDate,endDate, instrumentName){
+						return $http.get(baseURL+"/icat/"+instrumentName+"/datafile/number?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
 							.then(function(response){
-
 								return response.data; 
 							});
 					},
+					getInstrumentFileVolume: function(startDate,endDate, instrumentName){
+						return $http.get(baseURL+"/icat/"+instrumentName+"/datafile/volume?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+							.then(function(response){
+								return response.data; 
+							});
+					},
+					getInstrumetNames: function(){
+						return $http.get(baseURL+"/icat/instrument/names")
+							.then(function(response){
+								return response.data;
+							})
+					},
+
 
 				}
 

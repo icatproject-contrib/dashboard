@@ -17,11 +17,11 @@ html,body, .cotainer-fluid,.row  {
 
 }
 
-.verticalLine {
-    border-left: thick solid #ff0000;
+.tooltip {
+  z-index: 9999999999999999999;
+  position: absolute;
 }
-
-.pop-up{
+.pop-up, .tooltip{
   
   z-index: 999999999;
 

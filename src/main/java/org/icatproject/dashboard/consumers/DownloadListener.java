@@ -919,7 +919,7 @@ public class DownloadListener implements MessageListener {
      * @return the object if it's found. If not then null is returned.
      */
     ;private Entity_ checkEntity(Long ID, String type) throws InternalException {
-        List<Object> en = beanManager.search("SELECT en FROM Entity_ en WHERE en.type='" + type + "' AND en.ICATID=" + ID, manager);
+        List<Object> en = beanManager.search("SELECT en FROM Entity_ en WHERE en.type='" + type + "' AND en.icatId=" + ID, manager);
         if (en.size() > 0) {
             return (Entity_) en.get(0);
         }
