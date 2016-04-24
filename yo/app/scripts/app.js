@@ -21,10 +21,8 @@ angular
     'googlechart',
     'ui.grid',
     'ui.grid.infiniteScroll',
-    'ui.grid.selection',
-    'ui.grid.saveState',
-    'ui.grid.resizeColumns',
-    'ui.grid.moveColumns',   
+    'ui.grid.selection',   
+    'ui.grid.resizeColumns',   
     'ui.grid.autoResize', 
     'bytes',
     
