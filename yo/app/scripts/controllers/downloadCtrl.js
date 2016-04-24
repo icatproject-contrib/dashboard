@@ -4,9 +4,9 @@
 
 	angular.module('dashboardApp').controller('DownloadCtrl', DownloadCtrl);
 
-	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise','$q','$filter','$uibModal','uiGridService','$timeout'];	
+	DownloadCtrl.$inject= ['downloadService','$scope','googleChartApiPromise','$q','$filter','$uibModal','uiGridService','$timeout','$rootScope'];	
 
-	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q,$filter, $uibModal, uiGridService){	
+	function DownloadCtrl(downloadService, $scope, googleChartApiPromise, $q,$filter, $uibModal, uiGridService,$rootScope){	
 
 		var vm=this;		
         
@@ -328,7 +328,7 @@
 				    localChart.data = dataTable;
 				    localChart.options ={
 				    	region:'155',				    	
-				    	colorAxis: {colors: ['grey', '#e31b23']},
+				    	colorAxis: {colors: ["#2980B9","#4B77BE","#3498DB"]},
 				    	legend:'none'
 				    };	
 				   
@@ -355,7 +355,7 @@
 				    worldChart.type = "GeoChart";
 				    worldChart.data = responseData;
 				    worldChart.options = {
-				    	colorAxis: {colors: ['grey', '#e31b23']}
+				    	colorAxis: {colors: ["#2980B9","#4B77BE","#3498DB"]}
 				    };				   	
 
 				    vm.worldChart = worldChart;

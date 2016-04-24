@@ -51,50 +51,15 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter){
 
 				var instrument = vm.selectedInstrument;
 
-
-				var instrumentDatafileCount = entityService.getInstrumentFileCount(startDate,endDate, instrument);
+				vm.updateDfCount();
+				
 
 				var instrumentDatafileVolume = entityService.getInstrumentFileVolume(startDate,endDate,instrument);
 
-
-				instrumentDatafileCount.then(function(responseData){
-
-					var data = responseData;		    	
-
-			    	var dates  = _.map(data, function(data){
-						return data.date;
-					});
-
-					var numbers = _.map(data, function(data){
-						return data.number;
-					});
-
-					dates.unshift("x");		
-							
-					numbers.unshift('Number');	 
-
-					var formattedData = [dates,numbers];
+				//var entityCount = entityService.getEntityCount(startDate,endDate,entity);
 
 
-					vm.dataFileCount = {
-						data:{
-							x:"x",				 	 
-				       	    columns : formattedData,
-				       		types:{
-				       			Number:'line',
-				       		}
-				       	},
-				    	description : "This line graph shows the number of datafiles created for that instrument on a specific day. Please not this is only correct if you follow one investigation instrument per investigation",
-						title:"Datafile Count "+vm.selectedInstrument,
-						zoom:true,
-						xLabel:"Insertion Date",
-						yLabel:"Number of Datafiles",
-						
-				    } 
-
-					
-
-				});
+				
 
 				instrumentDatafileVolume.then(function(responseData){
 
@@ -144,10 +109,64 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter){
 
 
         	}
+        	vm.updateDfCount = function(instrument){
+        		//Have to set the time to midnight otherwise will use current time.
+	     		var startDate = moment(vm.startDate).subtract(1,'seconds');
+	     		console.log(instrument)			
+
+				startDate.set('hour','00');
+				startDate.set('minute','00');
+				startDate.set('second','00');
+							
+				var endDate = Date.parse(vm.endDate);
+
+    			var instrumentDatafileCount = entityService.getInstrumentFileCount(startDate,endDate, instrument);
+
+    			instrumentDatafileCount.then(function(responseData){
+
+					var data = responseData;		    	
+
+			    	var dates  = _.map(data, function(data){
+						return data.date;
+					});
+
+					var numbers = _.map(data, function(data){
+						return data.number;
+					});
+
+					dates.unshift("x");		
+							
+					numbers.unshift('Number');	 
+
+					var formattedData = [dates,numbers];
+
+
+					vm.dataFileCount = {
+						data:{
+							x:"x",				 	 
+				       	    columns : formattedData,
+				       		types:{
+				       			Number:'line',
+				       		}
+				       	},
+				    	description : "This line graph shows the number of datafiles created for that instrument on a specific day. Please not this is only correct if you follow one investigation instrument per investigation",
+						title:"Datafile Count "+vm.selectedInstrument,
+						zoom:true,
+						xLabel:"Insertion Date",
+						yLabel:"Number of Datafiles",
+						selectOp:vm.instrumentNames,
+						
+				    } 
+
+					
+
+				});
+
+    		}    		
 
     		
-    		}
-
+    		
+        }
 	
 
 })();
