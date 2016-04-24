@@ -14,7 +14,7 @@
 
 			templateUrl : 'views/headLineTemplate.html',
 
-			link:function($scope,$element){				
+			link:function($scope,$element,$rootScope){				
 	
 				var chart;
 				
@@ -37,7 +37,7 @@
 								type: 'gauge'
 							},
 							color: {
-						        pattern:['#2b2b2b','#CF000F'], // the three color levels for the percentage values.
+						        pattern:["#3498DB","#4B77BE"], // the three color levels for the percentage values.
 						        threshold: {
 						//            unit: 'value', // percentage is default
 						//            max: 200, // 100 is default

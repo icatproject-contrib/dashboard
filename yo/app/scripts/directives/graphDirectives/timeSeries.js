@@ -9,13 +9,15 @@
     	return {
 			restrict: 'EA',			
 			scope: {
-				data: '=',					
+				data: '=',
+				selectOptions:'&',
+
 
 			},
 
 			templateUrl : 'views/graphTemplate.html',
 
-			link:function($scope,$element){
+			link:function($scope,$element,$rootScope){
 				
 	
 				var chart;
@@ -29,11 +31,12 @@
 				
 				$scope.$watch('data', function(graphObject){
 					if(graphObject){	
-
+						
 						$scope.description = graphObject.description;
 						$scope.title = graphObject.title;
 						$scope.zoom = graphObject.zoom;	
-						
+						$scope.selectOp = graphObject.selectOp;
+												
 					
 						chart = c3.generate({
 							bindto:divElement[0],
@@ -72,7 +75,7 @@
 									
 								},
 							color:{
-								pattern: ['#CF000F','#7f8c8d','#2b2b2b'],
+								pattern: $rootScope.graphColours,
 							},	
 							zoom:{
 								enabled:'true'

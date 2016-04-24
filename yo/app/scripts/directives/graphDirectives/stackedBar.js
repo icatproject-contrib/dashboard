@@ -15,7 +15,7 @@
 
 			templateUrl : 'views/graphTemplate.html',
 
-			link:function($scope,$element){
+			link:function($scope,$element,$rootScope){
 				
 	
 				var chart;
@@ -66,7 +66,7 @@
 									
 								},
 							color:{
-								pattern: ['#2b2b2b','#CF000F','#7f8c8d'],
+								pattern: ["#2980B9","#4B77BE","#3498DB"],
 							},		
 						});					
 							}
