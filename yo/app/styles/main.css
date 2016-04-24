@@ -17,10 +17,7 @@ html,body, .cotainer-fluid,.row  {
 
 }
 
-.tooltip {
-  z-index: 9999999999999999999;
-  position: absolute;
-}
+
 .pop-up, .tooltip{
   
   z-index: 999999999;
@@ -83,7 +80,7 @@ html,body, .cotainer-fluid,.row  {
    
    width:100%;
    color:#ECECEC;
-   background-color:#CF000F;
+   background-color:#22A7F0;
 }
 
 
@@ -261,3 +258,12 @@ User css
 .table-borderless tbody tr td, .table-borderless tbody tr th, .table-borderless thead tr th {
     border: none;
 }
+
+/**
+Ui-grid Css
+**/
+.ui-grid-header-cell {
+  background-color: white;
+
+}
+
