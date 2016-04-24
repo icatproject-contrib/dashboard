@@ -17,12 +17,7 @@
                     </span>
                 </p> 
            </div>        
-           <div class="col-lg-2 search-bar" class="search-bar">         
-                <select class="form-control" placeholder="Instrument" ng-model="entity.selectedInstrument" ng-options="instrument.name as instrument.name for instrument in entity.instrumentNames">              
                     
-
-                </select>                         
-            </div>           
             
             <div class="col-lg-3">                
                 <button type="submit" class="form-control btn btn-default" ng-click="entity.updatePage()" > Search</button>                
@@ -34,7 +29,7 @@
 <div class="row">
    
     <div class="col-lg-5 col-lg-offset-1 ">     
-        <time-line-graph class="chart" data='entity.dataFileCount'></time-line-graph>         
+        <time-line-graph class="chart" data='entity.dataFileCount' select-Options= "entity.updateDfCount(instrument)"></time-line-graph>         
     </div>
     <div class="col-lg-5">     
         <time-line-graph class="chart" data='entity.dataFileVolume'></time-line-graph>         

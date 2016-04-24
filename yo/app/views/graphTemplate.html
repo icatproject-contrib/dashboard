@@ -1,7 +1,13 @@
 <div class="box">
 	<div class="chart-container">	
+
 		<p>
 			{{title}}
+			<select class="sub-menu btn btn-primary btn-sm" ng-show="selectOp" ng-model="selectedInstrument"  ng-change="selectOptions({instrument:selectedInstrument})" ng-options="options.name as options.name for options in selectOp">                             
+			
+             </select>  
+			{{selectedInstrument}}
+			
 			<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true"  uib-tooltip="{{description}}"><i class=" fa fa-question-circle fa-lg"></i></button>
 			<button type="button" class="sub-menu btn btn-primary btn-sm" tooltip-append-to-body="true" ng-repeat="op in options" ng-click="changeData(op)">{{op}}</button>
 			<button ng-show=zoom type="button" class="sub-menu btn btn-primary btn-sm" ng-click="reset()"><i class="fa fa-refresh"></i></button>
