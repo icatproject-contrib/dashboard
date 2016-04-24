@@ -9,8 +9,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
@@ -21,7 +19,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.ws.rs.GET;
@@ -31,11 +28,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.icatproject.dashboard.consumers.GeoTool;
-import org.icatproject.dashboard.entity.Download;
 import org.icatproject.dashboard.entity.EntityBaseBean;
+import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ICATLog;
-import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.entity.InstrumentMetaData;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
@@ -45,7 +41,6 @@ import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDateTi
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.manager.PropsManager;
-import org.icatproject.icat.client.Session;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -173,7 +168,11 @@ public class IcatResource {
 
         return resultArray.toJSONString();
     }
-
+    
+    /***
+     * Retrieves the name of instruments in the ICAT
+     * @return A JSONArray of JSONObjects {name:"AlF"}.
+     */
     @GET
     @Path("instrument/names")
     @Produces(MediaType.APPLICATION_JSON)
@@ -191,6 +190,38 @@ public class IcatResource {
         
         
         return instrumentNames.toJSONString();
+    }
+    
+    /**
+     * Gets the number of entities inserted into the ICAT for each day between the start 
+     * and end date.
+     * @param entity to search for
+     * @param sessionID for authentication.
+     * @param startDate to search from.
+     * @param endDate to search to.
+     * @return a JSONArray containing JSONObjects of {date:2015-01-20, number:200}
+     * @throws BadRequestException
+     * @throws AuthenticationException 
+     */
+    @GET
+    @Path("{entity}/number")
+    public String getEntityCount(@PathParam("entity") String entity,
+                                 @QueryParam("sessionID") String sessionID,
+                                 @QueryParam("startDate") String startDate,
+                                 @QueryParam("endDate") String endDate) throws BadRequestException, AuthenticationException{
+        
+        if (sessionID == null) {
+            throw new BadRequestException("sessionID must be provided");
+        }
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }      
+        
+
+        return getEntityCountData(startDate,endDate,entity);
+        
+        
+        
     }
 
     /***
@@ -235,6 +266,8 @@ public class IcatResource {
             throw new AuthenticationException("An invalid sessionID has been provided");
         }
         
+      
+        
         return getInstrumentMetaData("datafileVolume", startDate, endDate, instrument);
     }
     /**
@@ -265,23 +298,72 @@ public class IcatResource {
         return geoLocation;
     }
 
-    
-    private String getInstrumentMetaData(String type, String startDate, String endDate, String instrument){
+    private TreeMap<LocalDate,Long> createDateMap(String startDate,String endDate){
         
-        Date start = new Date(Long.valueOf(startDate));
-        Date end = new Date(Long.valueOf(endDate));
-
         LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();
         
-        Long instrumentId = icatData.getInstrumentIdMapping().get(instrument);
+        TreeMap<LocalDate, Long> dateMap = RestUtility.createPrePopulatedMap(startRange, endRange);
+        
+        return dateMap;
+    }
+    
+    private String convertResultsToJson(List<Object[]> result, TreeMap<LocalDate,Long> dateMap){
+        
+        for(Object[] day : result){
+            LocalDate collectionDate = RestUtility.convertToLocalDate((Date) day[0]);
+            
+            dateMap.put(collectionDate, (Long) day[1]);
+        }     
 
-        TreeMap<LocalDate, Long> downloadDates = RestUtility.createPrePopulatedMap(startRange, endRange);
+        return RestUtility.convertMapToJSON(dateMap).toJSONString();
+    }
+    
+    private String getEntityCountData(String startDate, String endDate, String entityType){
+        
+        TreeMap<LocalDate,Long> dateMap = createDateMap(startDate,endDate);
+        
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));       
+      
         
         //Criteria objects.
         CriteriaBuilder cb = manager.getCriteriaBuilder();
         CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
-        Root<InstrumentMetaData> instrumentMeta = query.from(InstrumentMetaData.class);
+        Root<EntityCount> entityCount = query.from(EntityCount.class);        
+        
+        Predicate startGreater = cb.greaterThanOrEqualTo(entityCount.<Date>get("collectionDate"), start);
+        Predicate endLess = cb.lessThanOrEqualTo(entityCount.<Date>get("collectionDate"), end); 
+        Predicate entity = cb.equal(entityCount.<Long>get("entityType"), entityType);
+        
+        Predicate dateRange = cb.and(startGreater, endLess); 
+        
+        Predicate finalPredicate = cb.and(dateRange,entity);       
+       
+        query.multiselect(entityCount.<Date>get("collectionDate"), entityCount.<Long>get("entityCount"));        
+        
+        query.where(finalPredicate);     
+       
+        
+        List<Object[]> result = manager.createQuery(query).getResultList();
+        
+        return convertResultsToJson(result,dateMap);
+        
+    }
+    
+    private String getInstrumentMetaData(String type, String startDate, String endDate, String instrument){
+        
+        TreeMap<LocalDate,Long> dateMap = createDateMap(startDate,endDate);
+        
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));
+        
+        Long instrumentId = icatData.getInstrumentIdMapping().get(instrument);
+        
+        //Criteria objects.
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<InstrumentMetaData> instrumentMeta = query.from(InstrumentMetaData.class);        
         
         Predicate startGreater = cb.greaterThanOrEqualTo(instrumentMeta.<Date>get("collectionDate"), start);
         Predicate endLess = cb.lessThanOrEqualTo(instrumentMeta.<Date>get("collectionDate"), end); 
@@ -289,11 +371,9 @@ public class IcatResource {
         
         Predicate dateRange = cb.and(startGreater, endLess); 
         
-        Predicate finalPredicate = cb.and(dateRange,instrumentName);
-        
+        Predicate finalPredicate = cb.and(dateRange,instrumentName);       
        
-        query.multiselect(instrumentMeta.<Date>get("collectionDate"), instrumentMeta.<Long>get(type));
-        
+        query.multiselect(instrumentMeta.<Date>get("collectionDate"), instrumentMeta.<Long>get(type));  
         
         
         query.where(finalPredicate);
@@ -302,13 +382,7 @@ public class IcatResource {
         
         List<Object[]> result = manager.createQuery(query).getResultList();
         
-        for(Object[] day : result){
-            LocalDate collectionDate = RestUtility.convertToLocalDate((Date) day[0]);
-            
-            downloadDates.put(collectionDate, (Long) day[1]);
-        }     
-
-        return RestUtility.convertMapToJSON(downloadDates).toJSONString();
+        return convertResultsToJson(result,dateMap);
         
     }
 
