@@ -2,10 +2,10 @@
 	  'use strict';
 angular.module('dashboardApp').controller('EntityCtrl', EntityCtrl);
 
-EntityCtrl.$inject= ['$scope','googleChartApiPromise', 'entityService','$filter'];	
+EntityCtrl.$inject= ['$scope','googleChartApiPromise', 'entityService','$filter','$q'];	
 
 
-function EntityCtrl($scope,googleChartApiPromise, entityService, $filter){		
+function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){		
 		
     		var vm=this;	
 
@@ -31,16 +31,43 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter){
 	            vm.isEndDateOpen = true;
 	        };
 
-	        entityService.getInstrumetNames().then(function(responseData){	        	
-	        	vm.instrumentNames = responseData;
-	        	vm.selectedInstrument = responseData[0].name;
-	        });
+	        vm.initPage = function(){
+	        	var getInstrumetNamesPromise = entityService.getInstrumetNames();
+	        	var getEntityNamesPromise = entityService.getEntityNames();
 
-    		
+	        	//Joinned promise to make sure all the data has been returned.
 
-    		 vm.updatePage = function(){	
+	        	var optionsPromise = $q.all([getInstrumetNamesPromise,getEntityNamesPromise]);
 
-    		 	//Have to set the time to midnight otherwise will use current time.
+	        	optionsPromise.then(function(responseData){	  
+	        		     	
+	        		vm.instrumentNames = responseData[0];
+	        		vm.selectedInstrument = vm.instrumentNames[0].name;
+
+	        		vm.entityNames = responseData[1];
+	        		vm.selectedEntity = vm.entityNames[0].name;
+	        		
+
+	        		//Only want to update the page once the instrument has been returned
+	        		vm.updatePage();
+	        	});       	
+
+	        }    		
+
+    		vm.updatePage = function(){	
+
+
+    		 	vm.updateDfCount(vm.selectedInstrument);
+    		 	vm.updateDfVolume(vm.selectedInstrument);
+    		 	vm.updateEntityCount(vm.selectedEntity);
+
+
+        	}
+
+        	vm.updateDfVolume = function(instrument){
+        		
+
+        		//Have to set the time to midnight otherwise will use current time.
 	     		var startDate = moment(vm.startDate).subtract(1,'seconds');			
 
 				startDate.set('hour','00');
@@ -49,17 +76,10 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter){
 							
 				var endDate = Date.parse(vm.endDate);
 
-				var instrument = vm.selectedInstrument;
-
-				vm.updateDfCount();
+				
 				
 
-				var instrumentDatafileVolume = entityService.getInstrumentFileVolume(startDate,endDate,instrument);
-
-				//var entityCount = entityService.getEntityCount(startDate,endDate,entity);
-
-
-				
+				var instrumentDatafileVolume = entityService.getInstrumentFileVolume(startDate,endDate,instrument);				
 
 				instrumentDatafileVolume.then(function(responseData){
 
@@ -97,22 +117,24 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter){
 				       		}
 				       	},	
 				    	description : "This line graph shows the volume of datafiles created for that instrument on a specific day. Please not this is only correct if you follow one investigation instrument per investigation",
-						title:"Datafile Volume "+vm.selectedInstrument,
+						title:"Datafile Volume "+instrument,
 						type:'line',
 						zoom:true,
 						xLabel:"Insertion Date",
 						yLabel:"Volume of Datafiles "+byteFormat,
+						selectOp:vm.instrumentNames,
+						optionTitle:"Instrument"
 						
 				    } 
 
 				});
 
-
         	}
         	vm.updateDfCount = function(instrument){
         		//Have to set the time to midnight otherwise will use current time.
 	     		var startDate = moment(vm.startDate).subtract(1,'seconds');
-	     		console.log(instrument)			
+	     		
+	     			
 
 				startDate.set('hour','00');
 				startDate.set('minute','00');
@@ -124,21 +146,8 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter){
 
     			instrumentDatafileCount.then(function(responseData){
 
-					var data = responseData;		    	
-
-			    	var dates  = _.map(data, function(data){
-						return data.date;
-					});
-
-					var numbers = _.map(data, function(data){
-						return data.number;
-					});
-
-					dates.unshift("x");		
-							
-					numbers.unshift('Number');	 
-
-					var formattedData = [dates,numbers];
+				
+					var formattedData = formatData(responseData);	
 
 
 					vm.dataFileCount = {
@@ -150,17 +159,82 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter){
 				       		}
 				       	},
 				    	description : "This line graph shows the number of datafiles created for that instrument on a specific day. Please not this is only correct if you follow one investigation instrument per investigation",
-						title:"Datafile Count "+vm.selectedInstrument,
+						title:"Datafile Count "+instrument,
 						zoom:true,
 						xLabel:"Insertion Date",
 						yLabel:"Number of Datafiles",
 						selectOp:vm.instrumentNames,
+						optionTitle:"Instrument"
 						
 				    } 
 
 					
 
 				});
+
+    		}
+
+    		vm.updateEntityCount = function(entity){
+
+    			//Have to set the time to midnight otherwise will use current time.
+	     		var startDate = moment(vm.startDate).subtract(1,'seconds');	
+	     			
+
+				startDate.set('hour','00');
+				startDate.set('minute','00');
+				startDate.set('second','00');
+							
+				var endDate = Date.parse(vm.endDate);
+
+    			var entityCount = entityService.getEntityCount(startDate,endDate, entity);
+
+    			entityCount.then(function(responseData){
+
+    				var formattedData = formatData(responseData);	
+
+
+					vm.countEntity = {
+						data:{
+							x:"x",				 	 
+				       	    columns : formattedData,
+				       		types:{
+				       			Number:'line',
+				       		}
+				       	},
+				    	description : "This Bar graph shows the number of "+entity+" created on each corresponding day.",
+						title:entity + " Count",
+						zoom:true,
+						xLabel:"Insertion Date",
+						yLabel:"Number of "+entity,
+						selectOp:vm.entityNames,
+						optionTitle:"Entity"
+						
+				    }
+
+				  
+    			});
+
+
+    		}
+
+    		//Formats data where the values are date and number
+    		function formatData(data){
+
+
+		    	var dates  = _.map(data, function(data){
+					return data.date;
+				});
+
+				var numbers = _.map(data, function(data){
+					return data.number;
+				});
+
+				dates.unshift("x");		
+						
+				numbers.unshift('Number');	 
+
+
+				return [dates,numbers];
 
     		}    		
 

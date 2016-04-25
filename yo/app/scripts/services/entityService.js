@@ -37,6 +37,18 @@
 								return response.data;
 							})
 					},
+					getEntityNames:function(){
+						return $http.get(baseURL+"/icat/entity/name")
+							.then(function(response){
+								return response.data;
+							})
+					},
+					getEntityCount:function(startDate,endDate,entity){
+						return $http.get(baseURL+"/icat/"+entity+"/number?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+							.then(function(response){
+								return response.data; 
+							});
+					},
 
 
 				}

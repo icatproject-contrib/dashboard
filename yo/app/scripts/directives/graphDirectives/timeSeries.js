@@ -26,7 +26,8 @@
 
 				$scope.reset = function(){					
 					chart.unzoom();
-				}				
+				}	
+
 				
 				
 				$scope.$watch('data', function(graphObject){
@@ -34,9 +35,11 @@
 						
 						$scope.description = graphObject.description;
 						$scope.title = graphObject.title;
-						$scope.zoom = graphObject.zoom;	
+						$scope.zoom = graphObject.zoom;
 						$scope.selectOp = graphObject.selectOp;
-												
+						$scope.selectTitle = graphObject.optionTitle;
+																	
+
 					
 						chart = c3.generate({
 							bindto:divElement[0],
