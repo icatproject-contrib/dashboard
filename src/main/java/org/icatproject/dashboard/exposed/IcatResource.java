@@ -223,6 +223,32 @@ public class IcatResource {
         
         
     }
+    
+    /**
+     * Gets a list of entities that have been counted from the ICAT.
+     * @return A JSONArray of entities.
+     */
+    @GET
+    @Path("entity/name")
+    public String getEntities(){
+        
+        String entityQuery = "SELECT DISTINCT(entity.entityType) FROM EntityCount as entity ORDER BY entity.entityType ASC";
+        
+
+        List<Object> entities = manager.createQuery(entityQuery).getResultList();
+        
+        JSONArray entityArray = new JSONArray();
+        
+        for(Object entity : entities){
+            JSONObject obj = new JSONObject();
+            obj.put("name", entity);
+            entityArray.add(obj);
+        }
+        
+        return entityArray.toJSONString();
+
+        
+    }
 
     /***
      * Gets the number of datafiles created for the specified instrument over a specific date. 
@@ -332,15 +358,15 @@ public class IcatResource {
         CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
         Root<EntityCount> entityCount = query.from(EntityCount.class);        
         
-        Predicate startGreater = cb.greaterThanOrEqualTo(entityCount.<Date>get("collectionDate"), start);
-        Predicate endLess = cb.lessThanOrEqualTo(entityCount.<Date>get("collectionDate"), end); 
+        Predicate startGreater = cb.greaterThanOrEqualTo(entityCount.<Date>get("countDate"), start);
+        Predicate endLess = cb.lessThanOrEqualTo(entityCount.<Date>get("countDate"), end); 
         Predicate entity = cb.equal(entityCount.<Long>get("entityType"), entityType);
         
         Predicate dateRange = cb.and(startGreater, endLess); 
         
         Predicate finalPredicate = cb.and(dateRange,entity);       
        
-        query.multiselect(entityCount.<Date>get("collectionDate"), entityCount.<Long>get("entityCount"));        
+        query.multiselect(entityCount.<Date>get("countDate"), entityCount.<Long>get("entityCount"));        
         
         query.where(finalPredicate);     
        
