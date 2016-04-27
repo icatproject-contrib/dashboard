@@ -61,25 +61,66 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
     		 	vm.updateDfVolume(vm.selectedInstrument);
     		 	vm.updateEntityCount(vm.selectedEntity);
 
+    		 	var investigationDatafileCountPromise = entityService.getInvestigationDatafileCount(getStartDate(),getEndDate());
+
+    		 	var investigationDatafileVolumePromise= entityService.getInvestigationDatafileVolume(getStartDate(),getEndDate());
+
+    		 	var investigationDatafilePromise = $q.all([investigationDatafileCountPromise,investigationDatafileVolumePromise]);
+
+    		 	investigationDatafilePromise.then(function(responseData){    					
+			
+					var number = _.map(responseData[0], function(data){
+							return [data.investigationId, data.value];
+					});
+
+					var volumeMethods = _.map(responseData[1], function(data){
+							return data.investigationId;
+					});
+
+					var volumeRaw = _.map(responseData[1], function(data){
+							return data.value;
+					});
+
+					var largestVolume = Math.max.apply(Math,volumeRaw);
+
+					//Conver the data to human readable format.
+					var formattedVolume = $filter('bytes')(volumeRaw,largestVolume);
+					var formattedVolumeData = formattedVolume[0];
+					
+
+					var byteFormat = formattedVolume[1]; 
+
+					//Combine the data into one array for the c3.js donut.
+					var volume =  formattedVolumeData.map(function(value,index){
+					    return [volumeMethods[index], formattedVolumeData[index]];
+					});
+
+					
+					
+					vm.investigationDatafile = {
+						datasets:["number","volume"],
+						number : {
+							"data":number,
+							"title":"Number of datafiles per investigation."
+						},
+						volume : {
+							"data":volume,
+							"title":"Volume of datafiles ("+byteFormat+") per investigation."
+						},					
+						description :  "This donut chart displays the number and volume of datafiles for the top 10 investigations.",
+					    title :"Investigation datafile information"
+					};
+
+				});		    		 	
+
 
         	}
 
         	vm.updateDfVolume = function(instrument){
         		
-
-        		//Have to set the time to midnight otherwise will use current time.
-	     		var startDate = moment(vm.startDate).subtract(1,'seconds');			
-
-				startDate.set('hour','00');
-				startDate.set('minute','00');
-				startDate.set('second','00');
-							
-				var endDate = Date.parse(vm.endDate);
-
-				
 				
 
-				var instrumentDatafileVolume = entityService.getInstrumentFileVolume(startDate,endDate,instrument);				
+				var instrumentDatafileVolume = entityService.getInstrumentFileVolume(getStartDate(),getEndDate(),instrument);				
 
 				instrumentDatafileVolume.then(function(responseData){
 
@@ -131,18 +172,9 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
 
         	}
         	vm.updateDfCount = function(instrument){
-        		//Have to set the time to midnight otherwise will use current time.
-	     		var startDate = moment(vm.startDate).subtract(1,'seconds');
-	     		
-	     			
+        		
 
-				startDate.set('hour','00');
-				startDate.set('minute','00');
-				startDate.set('second','00');
-							
-				var endDate = Date.parse(vm.endDate);
-
-    			var instrumentDatafileCount = entityService.getInstrumentFileCount(startDate,endDate, instrument);
+    			var instrumentDatafileCount = entityService.getInstrumentFileCount(getStartDate(),getEndDate(), instrument);
 
     			instrumentDatafileCount.then(function(responseData){
 
@@ -176,17 +208,8 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
 
     		vm.updateEntityCount = function(entity){
 
-    			//Have to set the time to midnight otherwise will use current time.
-	     		var startDate = moment(vm.startDate).subtract(1,'seconds');	
-	     			
-
-				startDate.set('hour','00');
-				startDate.set('minute','00');
-				startDate.set('second','00');
-							
-				var endDate = Date.parse(vm.endDate);
-
-    			var entityCount = entityService.getEntityCount(startDate,endDate, entity);
+    			
+    			var entityCount = entityService.getEntityCount(getStartDate(),getEndDate(), entity);
 
     			entityCount.then(function(responseData){
 
@@ -217,6 +240,8 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
 
     		}
 
+
+
     		//Formats data where the values are date and number
     		function formatData(data){
 
@@ -236,7 +261,27 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
 
 				return [dates,numbers];
 
-    		}    		
+    		}  
+
+    		//Gets the start date with its formatted values
+    		function getStartDate(){
+
+    			var startDate = moment(vm.startDate).subtract(1,'seconds');   			
+
+				startDate.set('hour','00');
+				startDate.set('minute','00');
+				startDate.set('second','00');
+
+				return startDate;
+
+    		}  	
+
+    		//Gets the end date with its formatted values
+    		function getEndDate(){
+    			       
+    			return Date.parse(vm.endDate);
+    			
+    	    }	
 
     		
     		

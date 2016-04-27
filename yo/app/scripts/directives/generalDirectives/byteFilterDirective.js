@@ -71,7 +71,7 @@
             }
             else if(format==='KB'){                
                 $scope.value = (input * Math.pow(1024,1));               
-                console.log($scope.value)
+                
 
                  
             }

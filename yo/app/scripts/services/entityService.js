@@ -49,6 +49,18 @@
 								return response.data; 
 							});
 					},
+					getInvestigationDatafileVolume:function(startDate,endDate){
+						return $http.get(baseURL+"/icat/investigation/datafile/volume?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&limit=10")
+							.then(function(response){
+								return response.data; 
+							});
+					},
+					getInvestigationDatafileCount:function(startDate,endDate){
+						return $http.get(baseURL+"/icat/investigation/datafile/number?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&limit=10")
+							.then(function(response){
+								return response.data; 
+							});
+					}
 
 
 				}

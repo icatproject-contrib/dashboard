@@ -60,9 +60,11 @@
 
 				var dataset = $scope.data[option];
 				
-				
+				console.log(dataset.data)
 				chart.load({
+
 					columns: dataset.data,
+
 					
 				});
 				$scope.title=  dataset.title;

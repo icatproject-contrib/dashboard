@@ -63,7 +63,7 @@
                     convertedValue = convertedValue.slice(0, (convertedValue.indexOf("."))+3);
                 }                
                 
-                return convertedValue;
+                return parseInt(convertedValue);
 
             }
 
