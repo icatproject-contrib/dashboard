@@ -58,7 +58,10 @@ public class InvestigationMetaData extends EntityBaseBean implements Serializabl
     public long getInvestigationId() {
         return investigationId;
     }
-
+    /**
+     * 
+     * @param investigationId 
+     */
     public void setInvestigationId(long investigationId) {
         this.investigationId = investigationId;
     }

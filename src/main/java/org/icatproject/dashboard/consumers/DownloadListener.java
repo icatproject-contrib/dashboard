@@ -131,7 +131,7 @@ public class DownloadListener implements MessageListener {
     private void init() {
         icat = createICATLink();
         sessionID = sessionManager.getSessionID();
-        topCatApi= prop.getTopCatURL()+"/api/v1/admin/downloads?icatUrl="+prop.getICATUrl()+"&sessionId="+sessionManager.getSessionID()+"&queryOffset=";
+        topCatApi= prop.getTopCatURL()+"/topcat/admin/downloads?icatUrl="+prop.getICATUrl()+"&sessionId="+sessionManager.getSessionID()+"&queryOffset=";
     }
     
     
