@@ -421,7 +421,7 @@
 					busiestDay: busiestDay
 			    } 
 
-			    console.log(vm.count)
+			  
 
 					
 		    });	

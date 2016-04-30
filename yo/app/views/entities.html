@@ -1,49 +1,27 @@
-<div class="row"  ng-init="entity.initPage()" >  
-    <div class="col-lg-10 col-lg-offset-1 "> 
-        <div class="box search-box col-lg-12">
-            <div class="col-lg-3">
-                <p class="input-group">
-                    <input type="text" tooltip-placement="top" uib-tooltip="Start Date" uib-datepicker-popup="{{entity.format}}" class="form-control" ng-model="entity.startDate" is-open="entity.isStartDateOpen" close-text="Close" placeholder="Start Date" on-return-click-submit-button />
-                    <span class="input-group-btn">
-                        <button type="button" class="btn btn-default" ng-click="entity.openStartDate()"><i class="glyphicon glyphicon-calendar"></i></button>
-                    </span>
-                </p>
-            </div>
-            <div class="col-lg-3 search-bar" >    
-                <p class="input-group">
-                    <input type="text" tooltip-placement="top" uib-tooltip="End Date" uib-datepicker-popup="{{entity.format}}" class="form-control" ng-model="entity.endDate" is-open="entity.isEndDateOpen" close-text="Close" placeholder="End Date" on-return-click-submit-button />
-                    <span class="input-group-btn">
-                        <button type="button" class="btn btn-default" ng-click="entity.openEndDate()"><i class="glyphicon glyphicon-calendar"></i></button>
-                    </span>
-                </p> 
-           </div>        
-                    
-            
-            <div class="col-lg-3">                
-                <button type="submit" class="form-control btn btn-default" ng-click="entity.updatePage()" > Search</button>                
-            </div>                                                
+<div ng-init="entity.initPage()" >               
+
+    <search-bar date-options= "entity.updateDates(startDate,endDate)" csv-data="entity.dataCsv"></search-bar>
+
+    <div class="row">   
+        
+        <div class="col-lg-5 col-lg-offset-1 ">     
+            <time-line-graph class="chart" data='entity.dataFileCount' select-Options= "entity.updateDfCount(value)"></time-line-graph>         
         </div>
-    </div>                        
-</div>
+        <div class="col-lg-5">     
+            <time-line-graph class="chart" data='entity.dataFileVolume' select-Options= "entity.updateDfVolume(value)"></time-line-graph>         
+        </div>
+    </div> 
 
-<div class="row">   
-    
-    <div class="col-lg-5 col-lg-offset-1 ">     
-        <time-line-graph class="chart" data='entity.dataFileCount' select-Options= "entity.updateDfCount(value)"></time-line-graph>         
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1">
+            <time-line-graph class="chart" data='entity.countEntity' select-Options= "entity.updateEntityCount(value)"></time-line-graph> 
+        </div>
     </div>
-    <div class="col-lg-5">     
-        <time-line-graph class="chart" data='entity.dataFileVolume' select-Options= "entity.updateDfVolume(value)"></time-line-graph>         
-    </div>
-</div> 
 
-<div class="row">
-    <div class="col-lg-10 col-lg-offset-1">
-        <time-line-graph class="chart" data='entity.countEntity' select-Options= "entity.updateEntityCount(value)"></time-line-graph> 
+    <div class="row">
+        <div class="col-lg-5 col-lg-offset-1">
+            <donut class="chart" data='entity.investigationDatafile'></donut>        
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-lg-5 col-lg-offset-1">
-        <donut class="chart" data='entity.investigationDatafile'></donut>        
-    </div>
 </div>

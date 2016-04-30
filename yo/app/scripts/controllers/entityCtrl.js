@@ -2,36 +2,21 @@
 	  'use strict';
 angular.module('dashboardApp').controller('EntityCtrl', EntityCtrl);
 
-EntityCtrl.$inject= ['$scope','googleChartApiPromise', 'entityService','$filter','$q'];	
+EntityCtrl.$inject= ['$scope','entityService','$filter','$q','$element'];	
 
 
-function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){		
+function EntityCtrl($scope,entityService, $filter,$q,$element){				
 		
-    		var vm=this;	
-
+    		var vm=this;   	
+    				
     		
-    		vm.format =  'yyyy-MM-dd';
-
-    		vm.endDate = new Date();
-    	
-    		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10));		
-
-		    //Date selection for the overall page
-		    vm.isStartDateOpen = false;
-	        vm.isEndDateOpen = false;       
-
-			    vm.openStartDate = function(){
-	            vm.isStartDateOpen = true;
-	            vm.isEndDateOpen = false;
-	        };
-
-	        vm.openEndDate = function(){
-	        	
-	            vm.isStartDateOpen = false;
-	            vm.isEndDateOpen = true;
-	        };
-
+    		//Initialise the page with the values it requires for the menus
 	        vm.initPage = function(){
+	        	//Set default dates
+	        	vm.endDate = new Date();
+    
+        		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10)); 
+
 	        	var getInstrumetNamesPromise = entityService.getInstrumetNames();
 	        	var getEntityNamesPromise = entityService.getEntityNames();
 
@@ -52,14 +37,30 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
 	        		vm.updatePage();
 	        	});       	
 
-	        }    		
+	        }  
 
-    		vm.updatePage = function(){	
+	        //Updates the date and the page
+	        vm.updateDates = function(startDate,endDate){
+	        	vm.startDate = startDate;
+	        	vm.endDate = endDate;
+	      
+	        	vm.updatePage();
 
+	        }  	
+
+	        //Will call all promises to update the data
+    		vm.updatePage = function(){  
+    		  
 
     		 	vm.updateDfCount(vm.selectedInstrument);
-    		 	vm.updateDfVolume(vm.selectedInstrument);
+    		 	var dfVolume = vm.updateDfVolume(vm.selectedInstrument);
     		 	vm.updateEntityCount(vm.selectedEntity);
+
+    		 	dfVolume.then(function(responseData){
+    		 		vm.dataCsv = (responseData)
+    		 	});
+
+    	
 
     		 	var investigationDatafileCountPromise = entityService.getInvestigationDatafileCount(getStartDate(),getEndDate());
 
@@ -67,7 +68,10 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
 
     		 	var investigationDatafilePromise = $q.all([investigationDatafileCountPromise,investigationDatafileVolumePromise]);
 
-    		 	investigationDatafilePromise.then(function(responseData){    					
+    		 	investigationDatafilePromise.then(function(responseData){  
+
+    		 		//vm.dataCsv.push({"Investigation Datafile number":responseData[0]}); 
+    		 		//vm.dataCsv.push({"Investigation Datafile volume":responseData[1]});  					
 			
 					var number = _.map(responseData[0], function(data){
 							return [data.investigationId, data.value];
@@ -111,18 +115,19 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
 					    title :"Investigation datafile information"
 					};
 
+			
+
 				});		    		 	
 
-
+    		 	console.log(vm.dataCsv)
+	     
         	}
-
-        	vm.updateDfVolume = function(instrument){
-        		
+        	
+        	vm.updateDfVolume = function(instrument){       		
 				
+				return entityService.getInstrumentFileVolume(getStartDate(),getEndDate(),instrument).then(function(responseData){
 
-				var instrumentDatafileVolume = entityService.getInstrumentFileVolume(getStartDate(),getEndDate(),instrument);				
-
-				instrumentDatafileVolume.then(function(responseData){
+					//vm.dataCsv.push({"Instrument Datafile Volume":responseData});  
 
 					var data = responseData;		   
 
@@ -168,16 +173,21 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
 						
 				    } 
 
+				 return responseData;
+
 				});
+
+
+
+		
 
         	}
         	vm.updateDfCount = function(instrument){
         		
 
-    			var instrumentDatafileCount = entityService.getInstrumentFileCount(getStartDate(),getEndDate(), instrument);
+    			entityService.getInstrumentFileCount(getStartDate(),getEndDate(), instrument).then(function(responseData){
 
-    			instrumentDatafileCount.then(function(responseData){
-
+    				//vm.dataCsv.push({"Instrument Datafile Count":responseData});    	
 				
 					var formattedData = formatData(responseData);	
 
@@ -209,9 +219,9 @@ function EntityCtrl($scope,googleChartApiPromise, entityService, $filter,$q){
     		vm.updateEntityCount = function(entity){
 
     			
-    			var entityCount = entityService.getEntityCount(getStartDate(),getEndDate(), entity);
+    			entityService.getEntityCount(getStartDate(),getEndDate(), entity).then(function(responseData){
 
-    			entityCount.then(function(responseData){
+    				//vm.dataCsv.push({"Enity Count":responseData});  
 
     				var formattedData = formatData(responseData);	
 
