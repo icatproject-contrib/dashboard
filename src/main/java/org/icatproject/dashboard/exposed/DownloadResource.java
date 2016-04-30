@@ -273,10 +273,10 @@ public class DownloadResource {
     @Path("frequency")
     @Produces(MediaType.APPLICATION_JSON)
     public String getDownloadFrequency(@QueryParam("sessionID") String sessionID,
-            @QueryParam("startDate") String startDate,
-            @QueryParam("endDate") String endDate,
-            @QueryParam("userName") String userName,
-            @QueryParam("method") String method) throws DashboardException {
+                                        @QueryParam("startDate") String startDate,
+                                        @QueryParam("endDate") String endDate,
+                                        @QueryParam("userName") String userName,
+                                        @QueryParam("method") String method) throws DashboardException {
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
         }
@@ -312,7 +312,7 @@ public class DownloadResource {
             LocalDate downloadBeginning = RestUtility.convertToLocalDate((Date) singleDownload[0]);
             LocalDate downloadEnd;
             //To deal with downloads still currently going. Just set it to the current date
-            if (singleDownload[1] == null) {
+            if (singleDownload[1] == null) {             
                 downloadEnd = LocalDate.now();
             } else {
                 downloadEnd = RestUtility.convertToLocalDate((Date) singleDownload[1]);

@@ -33,6 +33,7 @@ import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ICATLog;
 import org.icatproject.dashboard.entity.InstrumentMetaData;
+import org.icatproject.dashboard.entity.InvestigationMetaData;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
@@ -226,7 +227,7 @@ public class IcatResource {
     
     /**
      * Gets a list of entities that have been counted from the ICAT.
-     * @return A JSONArray of entities.
+     * @return A JSONArray of entity objects e.g. {name:"DATAFILE"}.
      */
     @GET
     @Path("entity/name")
@@ -249,6 +250,47 @@ public class IcatResource {
 
         
     }
+    
+    @GET
+    @Path("investigation/datafile/volume")
+    public String getInvestigationDatafileVolume(
+                                 @QueryParam("sessionID") String sessionID,
+                                 @QueryParam("startDate") String startDate,
+                                 @QueryParam("endDate") String endDate,
+                                 @QueryParam("limit")int limit) throws BadRequestException, AuthenticationException{
+        
+        if (sessionID == null) {
+            throw new BadRequestException("sessionID must be provided");
+        }
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }      
+        
+                
+        return getInvestigationMetaData("datafileVolume",startDate,endDate,limit); 
+    }
+        
+    @GET
+    @Path("investigation/datafile/number")
+    public String getInvestigationDatafileNumber(
+                                 @QueryParam("sessionID") String sessionID,
+                                 @QueryParam("startDate") String startDate,
+                                 @QueryParam("endDate") String endDate,
+                                 @QueryParam("limit")int limit) throws BadRequestException, AuthenticationException{
+        
+        if (sessionID == null) {
+            throw new BadRequestException("sessionID must be provided");
+        }
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }      
+        
+                
+        return getInvestigationMetaData("datafileCount",startDate,endDate,limit); 
+    }
+    
+    
+    
 
     /***
      * Gets the number of datafiles created for the specified instrument over a specific date. 
@@ -375,6 +417,46 @@ public class IcatResource {
         
         return convertResultsToJson(result,dateMap);
         
+    }
+   
+    private String getInvestigationMetaData(String type, String startDate, String endDate, int limit){
+        
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));
+        
+        
+        //Criteria objects.
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<InvestigationMetaData> investigationMeta = query.from(InvestigationMetaData.class);        
+        
+        Predicate startGreater = cb.greaterThanOrEqualTo(investigationMeta.<Date>get("collectionDate"), start);
+        Predicate endLess = cb.lessThanOrEqualTo(investigationMeta.<Date>get("collectionDate"), end);         
+        
+        Predicate dateRange = cb.and(startGreater, endLess);   
+        
+        
+        query.multiselect(investigationMeta.<Long>get("investigationId"), cb.sum(investigationMeta.<Long>get(type))); 
+        
+        
+        query.where(dateRange);
+        query.groupBy(investigationMeta.get("investigationId"));
+        
+        query.orderBy(cb.desc(cb.sum(investigationMeta.<Long>get(type))));
+        
+        List<Object[]> result = manager.createQuery(query).setFirstResult(0).setMaxResults(limit).getResultList();
+        
+        JSONArray resultArray =  new JSONArray();
+        
+        for(Object[] investigation: result){
+            JSONObject obj = new JSONObject();
+            obj.put("investigationId",investigation[0]);
+            obj.put("value",investigation[1]);
+            resultArray.add(obj);
+            
+        }
+        
+        return resultArray.toJSONString();
     }
     
     private String getInstrumentMetaData(String type, String startDate, String endDate, String instrument){
