@@ -63,9 +63,8 @@ public class DataCollector {
     @PostConstruct
     private void init() {
         createTimer(prop.getCollectionTime());
-                
         initialiseEntityCollection();
-
+                
     }
     
     /**
@@ -113,16 +112,36 @@ public class DataCollector {
       
         LOG.info("Entity Collection initiated for ",today.toString());
         
-        LocalDate earliestImport = earliestImportPass();       
+        LocalDate earliestEntityImport = earliestImportPass("entity");   
+        LocalDate earliestInstrumentImport = earliestImportPass("instrument"); 
+        LocalDate earliestInvestigationImport = earliestImportPass("investigation"); 
         
         
         //An actual import has happened
-        if(earliestImport!=null){
-            counter.performCollection(earliestImport, today);
-        }               
+        if(earliestEntityImport!=null && !isYesterday(earliestEntityImport)){
+            counter.performEntityCountCollection(earliestEntityImport, today);
+        } 
+        if(earliestInstrumentImport!=null && !isYesterday(earliestInstrumentImport)){
+            counter.performInstrumentMetaCollection(earliestInstrumentImport, today);
+        }
+        if(earliestInvestigationImport!=null && !isYesterday(earliestInvestigationImport)){
+            counter.performInvestigationMetaCollection(earliestInvestigationImport, today);
+        }
                
         LOG.info("Entity collection completed for ",today.toString());
-    }  
+    } 
+    /**
+     * Simple method to check if the date is the day before. Do not want to 
+     * run it through the collection as the collection is always a day behind.
+     * @param date to check
+     * @return if the date is yesterday
+     */
+    private boolean isYesterday(LocalDate date){
+        date = date.plusDays(1);
+        
+        return date.equals(LocalDate.now());
+    }
+    
     
     
     /**
@@ -130,9 +149,9 @@ public class DataCollector {
      * @return the date of the earliest import check. If no check was found then 
      * null is returned.
      */
-    private LocalDate earliestImportPass(){
+    private LocalDate earliestImportPass(String type){
         
-        Query importCheckQuery = manager.createQuery("SELECT ic.checkDate FROM ImportCheck ic WHERE ic.passed=1 ORDER BY ic.checkDate desc");
+        Query importCheckQuery = manager.createQuery("SELECT ic.checkDate FROM ImportCheck ic WHERE ic.passed=1 AND ic.type='"+type+"' ORDER BY ic.checkDate desc");
                     
         importCheckQuery.setMaxResults(1);
         //Have to use getResultList as getSingleResult will fail if no collection has occured.        

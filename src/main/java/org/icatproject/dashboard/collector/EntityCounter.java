@@ -7,17 +7,25 @@ package org.icatproject.dashboard.collector;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.entity.EntityCount;
+import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ImportCheck;
 import org.icatproject.dashboard.entity.InstrumentMetaData;
 import org.icatproject.dashboard.entity.InvestigationMetaData;
@@ -63,25 +71,61 @@ public class EntityCounter  {
      * @param startDate to work from.
      * @param endDate up to but no including this date.
      */
-    public void performCollection(LocalDate startDate, LocalDate endDate){
+    public void performEntityCountCollection(LocalDate startDate, LocalDate endDate){
        
         //Only want to go to the day before
         while(startDate.isBefore(endDate)){
             
-            Date currentDate = convertToDate(startDate);
+                       
+            boolean countPassed = countEntities(startDate);  
             
-            boolean countPassed = countEntities(startDate);
-            boolean instrumentPassed = collectInstrumentMeta(startDate);
-            boolean investigationPassed = collectInvestigationMeta(startDate); 
-            
-            insertImportCheck(currentDate, countPassed, "entityCount");
-            insertImportCheck(currentDate,instrumentPassed,"instrumentMeta");
-            insertImportCheck(currentDate,investigationPassed,"investigationMeta");            
+                       
+            checkImport(startDate, countPassed, "entity");                     
             
             startDate = startDate.plusDays(1);
         }
              
     }
+    
+    /**
+     * Performs collection of data for instrument meta data.
+     * @param startDate to work from.
+     * @param endDate up to but no including this date.
+     */
+    public void performInstrumentMetaCollection(LocalDate startDate, LocalDate endDate){
+        //Only want to go to the day before
+        while(startDate.isBefore(endDate)){  
+               
+           
+            boolean instrumentPassed = collectInstrumentMeta(startDate);           
+            
+            checkImport(startDate,instrumentPassed,"instrument");                    
+            
+            startDate = startDate.plusDays(1);
+        }
+        
+    }
+    
+    /**
+     * Performs collection of data for investigation meta data.
+     * @param startDate to work from.
+     * @param endDate up to but no including this date.
+     */
+    public void performInvestigationMetaCollection(LocalDate startDate, LocalDate endDate){
+        //Only want to go to the day before
+        while(startDate.isBefore(endDate)){            
+                  
+           
+            boolean investigationPassed = collectInvestigationMeta(startDate);           
+            
+            checkImport(startDate,investigationPassed,"investigation");            
+            
+            startDate = startDate.plusDays(1);
+        }
+        
+    }
+    
+    
     
     /***
      * Counts all of the ICAT entities created on a specific date.
@@ -213,35 +257,55 @@ public class EntityCounter  {
          LOG.info("Completed Instrument meta data collection for ", collectionLocalDate.toString());
          
          return passed;
-    }
+    }   
     
-    
-    
-    
-    /***
-    * Converts a LocalDate object to a Java.util.date object.
-    * @param localDate to convert.
-    * @return a Date object.
-    */
-    private Date convertToDate(LocalDate localDate){
-        Instant instant = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        return Date.from(instant);
-        
-    }
-    
-    
-    private void insertImportCheck(Date date,boolean passed,String importType){
-        
-        ImportCheck check = new ImportCheck(date,passed,importType);
-        
-        try {
-            beanManager.create(check, manager);
-        } catch (DashboardException ex) {
-            LOG.error("Issue inserting import check into dashboard ", ex);
+    private void checkImport(LocalDate date,boolean passed,String importType){
+        if(passed){
+            LOG.info("Successful import for "+importType+" on "+date.toString());
+        }
+        else{
+            LOG.warn("Failed import for "+importType+" on "+date.toString());
         }
         
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object> query = cb.createQuery(Object.class);
+        Root<ImportCheck> importCheckEntity = query.from(ImportCheck.class);
+        
+        Predicate betweenDatePred = cb.between(importCheckEntity.<Date>get("checkDate"), convertToDate(date), convertToDate(date.plusDays(1)));
+        Predicate importTypePred = cb.equal(importCheckEntity.get("type"),importType);
+        Predicate finalPred = cb.and(betweenDatePred,importTypePred);
+        
+        query.multiselect(importCheckEntity);
+        query.where(finalPred);      
+        
+        
+        List<Object> imports = manager.createQuery(query).getResultList();
+        
+        ImportCheck importCheck;
+        //Incase it has failed before and needs updating
+        if(!imports.isEmpty()){
+            importCheck =  (ImportCheck) imports.get(0);
+            importCheck.setPassed(passed);
+            
+            beanManager.update(importCheck, manager);
+            
+        }else{
+            //Create a new one if one has not been found.            
+            importCheck = new ImportCheck(convertToDate(date),passed,importType);
+            try {
+                beanManager.create(importCheck, manager);
+            } catch (DashboardException ex) {
+            LOG.error("Issue inserting import check into dashboard ", ex);
+            }
+        }   
+        
+  
     }
- 
+    
+    
+    private Date convertToDate(LocalDate date){
+        return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
    
     
     

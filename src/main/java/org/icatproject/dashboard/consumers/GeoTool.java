@@ -44,7 +44,9 @@ public class GeoTool {
         
         List<GeoLocation> locations = manager.createNamedQuery("GeoLocation.ipCheck").setParameter("ipAddress", ipAddress).getResultList();
         
+        //If not found from the ipAddress then contact the API to get the long and latitude
         if(locations.isEmpty()){
+                        
             JSONParser parser = new JSONParser();
             JSONObject result = new JSONObject();
             try {
@@ -59,13 +61,20 @@ public class GeoTool {
             String countryCode = (String) result.get("country");
             String isp = (String) result.get("isp");
             
-            location = new GeoLocation( longitude, latitude, countryCode, city,  isp, ipAddress);            
+            locations = manager.createNamedQuery("GeoLocation.check").setParameter("longitude", longitude).setParameter("latitude", latitude).getResultList();
+            if (locations.size() > 0) {
+                location = locations.get(0);
+            }
+            else{
+                location = new GeoLocation( longitude, latitude, countryCode, city,  isp, ipAddress);            
             
             try {
                 beanManager.create(location, manager);
             } catch (DashboardException ex) {
                 Logger.getLogger(GeoTool.class.getName()).log(Level.SEVERE, null, ex);
             }  
+                
+           }         
             
         } 
         else{
