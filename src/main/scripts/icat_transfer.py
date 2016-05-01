@@ -115,9 +115,9 @@ def exportLogs(icatCon, dashboardCon,database):
 	print("Exporting the logs from the ICAT")
 	        
 	if(database=="mySql"):
-		importQuery = "INSERT INTO ICATLOG (QUERY,OPERATION,ENTITYID,ENTITYNAME,LOGTIME,DURATION, CREATE_TIME,MOD_TIME,USER_ID) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+		importQuery = "INSERT INTO ICATLOG (QUERY,OPERATION,ENTITYID,ENTITYTYPE,LOGTIME,DURATION, CREATE_TIME,MOD_TIME,USER_ID) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 	elif(database=="oracle"):
-		importQuery = "INSERT INTO ICATLOG (QUERY,OPERATION,ENTITYID,ENTITYNAME,LOGTIME,DURATION, CREATE_TIME,MOD_TIME,USER_ID,ID) VALUES(:0,:1,:2,:3,:4,:5,:6,:7,:8,ID_SEQ.NEXTVAL)"
+		importQuery = "INSERT INTO ICATLOG (QUERY,OPERATION,ENTITYID,ENTITYTYPE,LOGTIME,DURATION, CREATE_TIME,MOD_TIME,USER_ID,ID) VALUES(:0,:1,:2,:3,:4,:5,:6,:7,:8,ID_SEQ.NEXTVAL)"
 
 	searchQuery= "SELECT LOG.CREATE_ID as user_name, query, operation, entityId, entityName, MOD_TIME AS LOGTIME,duration FROM LOG"
 	
@@ -142,7 +142,7 @@ def exportLogs(icatCon, dashboardCon,database):
 
 	for row_data in cursExport:
 		
-		print(counter, "Inserted" )
+		print str(counter)+ " Inserted" 
 
 		userId = userIds.get(row_data[0])
 		
@@ -398,19 +398,19 @@ def importInvestigationMeta(dashboardCon,icatCon,database):
 	print "Import of investigation meta data complete"	
 
 #Final method that sets the integrity flag in the dashboard for the previous day so the dashboard can begin collecting data the next day.
-def insertIntegrityFlag(dashboardCon,database):
+def insertIntegrityFlag(dashboardCon,database,integrityType):
 	now = datetime.datetime.now()
 	yesterday = now - datetime.timedelta(days = 1)
 
 	cursIntegrity = dashboardCon.cursor()
 
 	if(database=="mySql"):
-		importQuery="INSERT INTO IMPORTCHECK(CHECKDATE,PASSED,CREATE_TIME,MOD_TIME) VALUES(%s,%s,%s,%s)"
+		importQuery="INSERT INTO IMPORTCHECK(TYPE,CHECKDATE,PASSED,CREATE_TIME,MOD_TIME) VALUES(%s,%s,%s,%s,%s)"
 	elif(database=="oracle"):
-		importQuery = " INSERT INTO IMPORTCHECK(CHECKDATE,PASSED,CREATE_TIME,MOD_TIME,ID) VALUES(:0,:1,:2,:3,ID_SEQ.NEXTVAL)"
+		importQuery = " INSERT INTO IMPORTCHECK(TYPE,CHECKDATE,PASSED,CREATE_TIME,MOD_TIME,ID) VALUES(:0,:1,:2,:3,:4,ID_SEQ.NEXTVAL)"
 	
 	
-	data = (yesterday,1,now,now)
+	data = (integrityType,yesterday,1,now,now)
 
 	try:
 
@@ -448,13 +448,17 @@ if __name__ == "__main__":
 		dashboardCon = connectToOracle(configuration,"dashboard")		
 
 
-	exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
-	exportLogs(icatCon,dashboardCon,database)	
+	#exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
+	#exportLogs(icatCon,dashboardCon,database)	
 	importEntitiesCount(dashboardCon, icatCon, database,configuration)
+	insertIntegrityFlag(dashboardCon,database,"entity")
+
 	importInstrumentMeta(dashboardCon,icatCon,database)
+	insertIntegrityFlag(dashboardCon,database,"instrument")
+
 	importInvestigationMeta(dashboardCon,icatCon,database)
+	insertIntegrityFlag(dashboardCon,database,"investigation")
 	
-	insertIntegrityFlag(dashboardCon,database)	
 
 	icatCon.close()
 	dashboardCon.close()
