@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name="Users.LoggedIn",
                 query="SELECT u.fullName, u.name FROM ICATUser u WHERE u.logged=1"),
     @NamedQuery(name="Users.LoggedOut",
-                query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"), 
+                query="SELECT u.fullName FROM ICATUser u WHERE u.logged=0"),
     
     
 })

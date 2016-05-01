@@ -133,7 +133,7 @@ public class DownloadResource {
     }
 
     @GET
-    @Path("entities")
+    @Path("entity")
     @Produces(MediaType.APPLICATION_JSON)
     public String getDownloadEntities(@QueryParam("sessionID") String sessionID,
             @QueryParam("queryConstraint") String queryConstraint,
@@ -188,7 +188,7 @@ public class DownloadResource {
      * @throws DashboardException Issues with accessing the dashboard database.
      */
     @GET
-    @Path("entities/age")
+    @Path("entity/age")
     @Produces(MediaType.APPLICATION_JSON)
     public String getEntityAge(@QueryParam("sessionID") String sessionID,
             @QueryParam("startDate") String startDate,
@@ -685,7 +685,7 @@ public class DownloadResource {
         for (int i = 0; i < methodTypes.size(); i++) {
             JSONObject obj = new JSONObject();
             String method = methodTypes.get(i);
-            obj.put("method", method);
+            obj.put("name", method);
             ary.add(obj);
         }
 

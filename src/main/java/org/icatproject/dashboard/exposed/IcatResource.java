@@ -28,7 +28,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.icatproject.dashboard.consumers.GeoTool;
-import org.icatproject.dashboard.entity.EntityBaseBean;
 import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ICATLog;

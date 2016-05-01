@@ -89,7 +89,8 @@ public class UserResource {
 
         return ary.toString();
     }
-
+    
+    
     /**
      * Returns the geo location of currently logged in users.
      *
@@ -163,7 +164,7 @@ public class UserResource {
      */
     private String getLatestOperation(String name) {
 
-        String operation = null;
+        String operation;
 
         //First check if the users is downloading or preparing a downloading.            
         Query query = manager.createQuery("SELECT download.status FROM Download download JOIN download.user user WHERE (download.status='preparing' OR download.status='inProgress') AND user.name= :name ORDER BY download.createTime desc");
