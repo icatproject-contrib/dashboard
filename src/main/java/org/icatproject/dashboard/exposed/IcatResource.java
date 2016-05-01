@@ -288,7 +288,31 @@ public class IcatResource {
         return getInvestigationMetaData("datafileCount",startDate,endDate,limit); 
     }
     
-    
+    /**
+     * Retrieves the volume of datafiles created on a day to day basis between
+     * the two dates provided.
+     * @param sessionID for authentication.
+     * @param startDate to search from.
+     * @param endDate to search to.
+     * @return a JSONArray containing JSONObjects with date and value pairs.
+     * @throws BadRequestException incorrect value passed.
+     * @throws AuthenticationException incorrect sessionId passed.
+     */
+    @GET
+    @Path("datafile/volume")
+    public String getDatafileNumber(
+                                 @QueryParam("sessionID") String sessionID,
+                                 @QueryParam("startDate") String startDate,
+                                 @QueryParam("endDate") String endDate) throws BadRequestException, AuthenticationException{
+        
+        if (sessionID == null) {
+            throw new BadRequestException("sessionID must be provided");
+        }
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }      
+        return getDatafileVolume(startDate,endDate);
+    }
     
 
     /***
@@ -364,7 +388,13 @@ public class IcatResource {
 
         return geoLocation;
     }
-
+    
+    /**
+     * Creates a date TreeMap of LocalDate from the specified dates
+     * @param startDate of the map
+     * @param endDate of the map
+     * @return a treemap of dates.
+     */
     private TreeMap<LocalDate,Long> createDateMap(String startDate,String endDate){
         
         LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
@@ -375,6 +405,13 @@ public class IcatResource {
         return dateMap;
     }
     
+    /**
+     * Converts a List results and inserts them into a treeMap. It then converts that into JSON to be sent
+     * via the RESTFul API.
+     * @param result is the list of objects
+     * @param dateMap is the map of dates to have values assigned to.
+     * @return a JSONArray of JSONObjects each with a date and value.
+     */
     private String convertResultsToJson(List<Object[]> result, TreeMap<LocalDate,Long> dateMap){
         
         for(Object[] day : result){
@@ -386,6 +423,14 @@ public class IcatResource {
         return RestUtility.convertMapToJSON(dateMap).toJSONString();
     }
     
+    /**
+     * Creates a query to search for the amount of entities created in the ICAT
+     * between the specified times.
+     * @param startDate to search from.
+     * @param endDate to search to.
+     * @param entityType the type of entity to look for.
+     * @return a JSONArray of JSONObjects containing dates and values.
+     */
     private String getEntityCountData(String startDate, String endDate, String entityType){
         
         TreeMap<LocalDate,Long> dateMap = createDateMap(startDate,endDate);
@@ -417,7 +462,47 @@ public class IcatResource {
         return convertResultsToJson(result,dateMap);
         
     }
+    
+    private String getDatafileVolume(String startDate, String endDate){
+        
+        TreeMap<LocalDate,Long> dateMap = createDateMap(startDate,endDate);
+        
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));       
+      
+        
+        //Criteria objects.
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<InvestigationMetaData> datafileVolume = query.from(InvestigationMetaData.class);        
+        
+        Predicate startGreater = cb.greaterThanOrEqualTo(datafileVolume.<Date>get("collectionDate"), start);
+        Predicate endLess = cb.lessThanOrEqualTo(datafileVolume.<Date>get("collectionDate"), end);        
+        
+        Predicate dateRange = cb.and(startGreater, endLess);           
+       
+        query.multiselect(datafileVolume.<Date>get("collectionDate"),cb.sum(datafileVolume.<Long>get("datafileVolume")));
+
+        query.groupBy(datafileVolume.<Date>get("collectionDate"));
+        
+        query.where(dateRange);     
+       
+        
+        List<Object[]> result = manager.createQuery(query).getResultList();
+        
+        return convertResultsToJson(result,dateMap);
+        
+    }
    
+   /**
+    * Creates and executes a query on the investigationMeta entity. It gathers the
+    * datafile count and volume between the provided dates and up to a limit.
+    * @param type datafile volume or count.
+    * @param startDate to search from.
+    * @param endDate to search up to.
+    * @param limit of how many investigations to search up to.
+    * @return a JSONArray of JSONObjects each containing an investigation id and either the volume or number of data files between the set period.
+    */ 
     private String getInvestigationMetaData(String type, String startDate, String endDate, int limit){
         
         Date start = new Date(Long.valueOf(startDate));
@@ -458,6 +543,15 @@ public class IcatResource {
         return resultArray.toJSONString();
     }
     
+    /**
+    * Creates and executes a query on the instrumentMeta entity. It gathers the
+    * datafile count and volume between the provided dates and for the specified instrument.
+    * @param type datafile volume or count.
+    * @param startDate to search from.
+    * @param endDate to search up to.
+    * @param instrument to search for.
+    * @return a JSONArray of JSONObjects each containing an instrument name and either the volume or number of data files between the set period.
+    */
     private String getInstrumentMetaData(String type, String startDate, String endDate, String instrument){
         
         TreeMap<LocalDate,Long> dateMap = createDateMap(startDate,endDate);
