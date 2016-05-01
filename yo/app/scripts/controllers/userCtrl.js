@@ -94,11 +94,6 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
 
        });
 
-        vm.updatePage = function(){	
-
-
-
-        }
 
 
 		

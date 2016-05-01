@@ -20,7 +20,7 @@
 				var services = {
 
 					getDownloadEntities: function(queryConstraint, initialLimit, maxLimit, canceller){
-						return $http.get(baseURL+"/entities?sessionID="+ $sessionStorage.sessionData.sessionID+"&queryConstraint="+encodeURIComponent(queryConstraint)+"&initalLimit="+initialLimit+"&maxLimit="+maxLimit,{timeout:canceller.promise})
+						return $http.get(baseURL+"/entity?sessionID="+ $sessionStorage.sessionData.sessionID+"&queryConstraint="+encodeURIComponent(queryConstraint)+"&initalLimit="+initialLimit+"&maxLimit="+maxLimit,{timeout:canceller.promise})
 							.then(function(response){
 
 								return response.data; 
@@ -160,7 +160,7 @@
 					},
 					getDownloadEntityAge : function(startDate, endDate, userName, method){
 
-						return $http.get(baseURL+"/entities/age?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
+						return $http.get(baseURL+"/entity/age?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
 							.then(function(response){
 
 								return response.data;

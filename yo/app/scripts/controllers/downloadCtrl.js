@@ -12,25 +12,10 @@
         
 		var globalIdentifiers = ['Country', 'number of Downloads'];
 		
-		vm.format =  'yyyy-MM-dd';
+		vm.userOption = true;
 
-		vm.endDate = new Date();
 		
-		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10));		
-
-		vm.isStartDateOpen = false;
-        vm.isEndDateOpen = false;
-
-		vm.openStartDate = function(){
-            this.isStartDateOpen = true;
-            this.isEndDateOpen = false;
-        };
-
-        vm.openEndDate = function(){
-            this.isStartDateOpen = false;
-            this.isEndDateOpen = true;
-        };	
-
+		
         vm.europeOptions = [
         	{area:"Northern Europe", geoCode:"154"},
 			{area:"Western Europe", geoCode:"155"},
@@ -102,41 +87,98 @@
 
        		});
        	}
-    	 	
 
-        var downloadMethodTypes = downloadService.getDownloadMethodTypes();
+
+       	//Initialise the page with the values it requires for the menus
+        vm.initPage = function(){
+        	//Set default dates
+        	vm.endDate = new Date();
+
+    		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10)); 
+
+        	 var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
         	downloadMethodTypes.then(function(responseData){
         		
-        		responseData.push({method:"All"});
+        		responseData.push({name:"All"});
         		vm.downloadMethodTypes = responseData;
+        		
+        		vm.updatePage()
 
-        });
+        	});  	
+
+        }  
+
+         //Updates the date and the page
+        vm.updateOptions = function(startDate,endDate,userName){
+        	vm.startDate = startDate;
+        	vm.endDate = endDate;
+        	vm.userName = userName;
+      
+        	vm.updatePage();
+
+        }  
 
 
-        
+        vm.updatePage = function(){	
+			
+			var method = vm.selectedMethod === "All"?"":vm.selectedMethod;	
 
-		vm.updatePage = function(){	
+			//Create all of the promises 
+			var updateUserDownloadPromise = vm.updateUserDownload(method)
+			var updateMethodDownloadPromise	= vm.updateMethodDownload()
+			var updateDownloadStatusPromise = vm.updateDownloadStatus(method)
+			var updadeDownloadEntityAgePromise = vm.updadeDownloadEntityAge(method)
+			var updateLocalLocationPromise = vm.updateLocalLocation(method)
+			var updateGlobalLocationPromise = vm.updateGlobalLocation(method)
+			var updateDownloadFrequencyPromise = vm.updateDownloadFrequency(method)
+			var updateISPBandwidthPromise = vm.updateISPBandwidth(method)
+			var updateDownloadVolumePromise = vm.updateDownloadVolume(method)
 
-			//Have to set the time to midnight otherwise will use current time.
-     		var startDate = moment(vm.startDate);			
 
-			startDate.set('hour','00');
-			startDate.set('minute','00');
-			startDate.set('second','00');
-						
-			var endDate = Date.parse(vm.endDate);
-			var userName = vm.userName;
-			var method = vm.selectedMethod === "All"?"":vm.selectedMethod;				
+			var groupPromise = $q.all([updateUserDownloadPromise,updateMethodDownloadPromise,updateDownloadStatusPromise,updadeDownloadEntityAgePromise,updateLocalLocationPromise,updateGlobalLocationPromise,updateDownloadFrequencyPromise,updateISPBandwidthPromise,updateDownloadVolumePromise])
 
-			//Create the promises for the user download data.
-			var userFrequencyPromise = downloadService.getUsersDownloadFrequency(startDate,endDate, method);
-			var userVolumePromise = downloadService.getUsersDownloadVolume(startDate,endDate, method);
+    		 	groupPromise.then(function(responseData){
+    		 		var user = vm.userName; 
+
+    		 		vm.dataCsv = [
+
+    		 			["User Download Frequency. Method: "+method,responseData[0][0]],
+    		 			["User Download Volume. Method: "+method,responseData[0][1]],
+    		 			["Method Frequency. User: "+user,responseData[1][0]],
+    		 			["Method volume. User: "+user,responseData[1][1]],
+    		 			["Download Status. Method:"+method+" User: "+user,responseData[2]],
+    		 			["Download Entity Age. Method:"+method+" User: "+user,responseData[3]],
+    		 			["Download Local location. Method:"+method+" User: "+user,responseData[4]],
+    		 			["Download Global Location. Method:"+method+" User: "+user,responseData[5]],
+    		 			["Download Frequency. Method:"+method+" User: "+user,responseData[6]],
+    		 			["Download ISP Bandwidth. Method:"+method+" User: "+user,responseData[7]],
+    		 			["Download Volume. Method:"+method+" User: "+user,responseData[8]],
+
+    		 		]
+
+    		 		
+    		 	});			
+
+			
+				
+			}
+    	 	
+
+       
+
+        vm.updateUserDownload = function(method){
+
+        	var selectedMethod = method === "All"?"":method;
+
+        	//Create the promises for the user download data.
+			var userFrequencyPromise = downloadService.getUsersDownloadFrequency(getStartDate(),getEndDate(), selectedMethod);
+			var userVolumePromise = downloadService.getUsersDownloadVolume(getStartDate(),getEndDate(), selectedMethod);
 
 			//Combine the user promises together.
 			var userDownloadData = $q.all([userVolumePromise,userFrequencyPromise]);
 
-			userDownloadData.then(function(responseData){
+			return userDownloadData.then(function(responseData){
 
 				var volumeRaw = _.map(responseData[0], function(data){
 						return data.volume;
@@ -174,20 +216,27 @@
 						"title":"Volume per user ("+byteFormat+")"
 					},					
 					description :  "This donut chart displays the number and volume of downloads per user.",
-				    title :"User Downloads"
+				    title :"User Downloads",
+				    selectOp:vm.downloadMethodTypes,
+				    optionTitle:"Method",
 				};
 
-			});	    
+				return responseData;	
 
-			//Create the promises for the download method data.
-			var methodNumberPromise = downloadService.getDownloadMethodNumber(startDate,endDate, userName);			
-			var methodVolumePromise = downloadService.getDownloadMethodVolume(startDate,endDate, userName);
+			});	    
+        }
+
+
+        vm.updateMethodDownload =function(){
+        	//Create the promises for the download method data.
+			var methodNumberPromise = downloadService.getDownloadMethodNumber(getStartDate(),getEndDate(), vm.userName);			
+			var methodVolumePromise = downloadService.getDownloadMethodVolume(getStartDate(),getEndDate(), vm.userName);
 
 			//Combine the promises for multiple datasets per graph
 			var downloadMethod = $q.all([methodNumberPromise,methodVolumePromise]);
 
 
-			downloadMethod.then(function(responseData){
+			return downloadMethod.then(function(responseData){
 				//Extract the data from the response.
 				var number = _.map(responseData[0], function(data){
 						return [data.method, data.number];
@@ -228,9 +277,16 @@
 				    title :"Download Methods"
 				};
 
+				return responseData;
+
 			});			
 			
-			downloadService.getDownloadStatusNumber(startDate, endDate, userName,method).then(function(responseData){
+        }
+
+        vm.updateDownloadStatus = function(method){
+        	var selectedMethod = method === "All"?"":method;
+
+        	return downloadService.getDownloadStatusNumber(getStartDate(),getEndDate(), vm.userName,selectedMethod).then(function(responseData){
 				
 
 				var failedTemp;
@@ -265,11 +321,20 @@
 					title:"Download Success Rate",
 					inProgress:inProgress,
 					failed:failed,
-					successful:finished
+					successful:finished,
+					selectOp:vm.downloadMethodTypes,
+					optionTitle:"Method",
 				}
-			});			
 
-			downloadService.getDownloadEntityAge(startDate,endDate,userName,method).then(function(responseData){
+				return responseData;
+			});			
+        }
+
+        vm.updadeDownloadEntityAge = function(method){
+        	var selectedMethod = method === "All"?"":method;
+
+
+        	return downloadService.getDownloadEntityAge(getStartDate(),getEndDate(),vm.userName,selectedMethod).then(function(responseData){
 
 				var age  = _.map(responseData, function(responseData){
 					return responseData.age;
@@ -295,18 +360,21 @@
 				    title : "Download File Age",
 				    zoom : true,
 				    xLabel:"Age of files",
-				    yLabel:"Number of files"
-				} 			
+				    yLabel:"Number of files",
+				    selectOp:vm.downloadMethodTypes,
+				    optionTitle:"Method",
+				} 
 
-					
-			 
-				
-				
+				return responseData;		
 	
 				
 			});
+        }
 
-			downloadService.getLocalDownloadLocation(startDate,endDate, userName, method).then(function(responseData){
+         vm.updateLocalLocation = function(method){
+         	var selectedMethod = method === "All"?"":method;
+
+         	return downloadService.getLocalDownloadLocation(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){
 				
 				googleChartApiPromise.then(function(){
 					var dataTable = new google.visualization.DataTable();
@@ -337,12 +405,18 @@
 				    	localChart.options.region = vm.selectedRegion.geoCode;
 				    }
 				    vm.localChart = localChart;
+
+				    
 					
 				});
-				
-			});
+			return responseData;	
+			});	
+         }
 
-			downloadService.getGlobalDownloadLocation(startDate,endDate, userName, method).then(function(responseData){ 			   				  		
+         vm.updateGlobalLocation = function(method){
+         	var selectedMethod = method === "All"?"":method;
+
+         	return downloadService.getGlobalDownloadLocation(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){ 			   				  		
 				
 				googleChartApiPromise.then(function(){
 				    responseData = _.map(responseData, function(responseData){
@@ -360,12 +434,16 @@
 
 				    vm.worldChart = worldChart;
 				});
+
+				return responseData;
 			    
 			});
+         }
 
-					
+         vm.updateDownloadFrequency = function(method){
+         	var selectedMethod = method === "All"?"":method;
 
-		    downloadService.getDownloadFrequency(startDate,endDate, userName, method).then(function(responseData){
+         	return downloadService.getDownloadFrequency(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){
 
 		    	var data = responseData;		    	
 
@@ -418,17 +496,21 @@
 					xLabel:"Dates",
 					yLabel:"Number of Downloads",
 					total: countTotal,
-					busiestDay: busiestDay
+					busiestDay: busiestDay,
+					selectOp:vm.downloadMethodTypes,
+					optionTitle:"Method",
 			    } 
 
-			  
+			  return responseData;
 
 					
 		    });	
+         }
 
-		    
+         vm.updateISPBandwidth = function(method){
+         	var selectedMethod = method === "All"?"":method;
 
-		    downloadService.getDownloadISPBandwidth(startDate,endDate, userName, method).then(function(responseData){		     		
+         	 return downloadService.getDownloadISPBandwidth(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){		     		
 		     		
 		     		var average = _.map(responseData, function(data){
 		     			
@@ -483,14 +565,21 @@
 				    	description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
 				    	title : "ISP Download Bandwidth MB/S",
 				    	xLabel:"ISP",
-				    	yLabel: "Bandwidth MB/S"
+				    	yLabel: "Bandwidth MB/S",
+				    	selectOp:vm.downloadMethodTypes,
+				    	 optionTitle:"Method",
 					};	
 
-
+					return responseData;	
 						
 		    });
-			
-	    	downloadService.getDownloadVolume(startDate,endDate, userName, method).then(function(responseData){
+
+         }
+
+         vm.updateDownloadVolume = function(method){
+         	var selectedMethod = method === "All"?"":method;
+
+         	return downloadService.getDownloadVolume(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){
 
 	    		var data = responseData;
 
@@ -554,18 +643,47 @@
 				    title : "Download Volume",
 				    xLabel:"Dates",
 					yLabel:"Volume of Downloads "+byteFormat,
+					selectOp:vm.downloadMethodTypes,
+					 optionTitle:"Method",
 
 	    		};
-
+	    		return responseData;
 	    		
-	    	});			
+	    	});	
 
-		};
+
+	    }
+
+	    //Gets the start date with its formatted values
+		function getStartDate(){
+
+			var startDate = moment(vm.startDate).subtract(1,'seconds');   			
+
+			startDate.set('hour','00');
+			startDate.set('minute','00');
+			startDate.set('second','00');
+
+			return startDate;
+
+		}  	
+
+		//Gets the end date with its formatted values
+		function getEndDate(){
+			       
+			return Date.parse(vm.endDate);
+			
+	    }		    	
+
+		
 
 		vm.globalLocationDescription = "This map displays the number of downloads that have occured within each country during the requested period.";
 		vm.localLocationDescription = "This map displays the number of downloads that have occured within the selected area. The circles center position is based on the longitude and latitude of the download.";
 			
- 	}	
+ 	}
+
+
+
+ 	
 	
 	function getDateArray(startDate,stopDate) {
 		var dateArray = [];

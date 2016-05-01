@@ -8,7 +8,8 @@ EntityCtrl.$inject= ['$scope','entityService','$filter','$q','$element'];
 function EntityCtrl($scope,entityService, $filter,$q,$element){				
 		
     		var vm=this;   	
-    				
+    			
+    		vm.userOption = false;	
     		
     		//Initialise the page with the values it requires for the menus
 	        vm.initPage = function(){
@@ -31,6 +32,8 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
 	        		vm.entityNames = responseData[1];
 	        		vm.selectedEntity = vm.entityNames[0].name;
+
+	        		console.log(vm.instrumentNames)
 	        		
 
 	        		//Only want to update the page once the instrument has been returned
@@ -50,53 +53,70 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
 	        //Will call all promises to update the data
     		vm.updatePage = function(){  
+
+    			var instrument = vm.selectedInstrument;
+    			var entity = vm.selectedEntity;
     		  
 
-    		 	vm.updateDfCount(vm.selectedInstrument);
-    		 	var dfVolume = vm.updateDfVolume(vm.selectedInstrument);
-    		 	vm.updateEntityCount(vm.selectedEntity);
+    		 	var dfCountPromise = vm.updateDfCount(instrument);
+    		 	var dfVolumePromise = vm.updateDfVolume(instrument);
+    		 	var entityCountPromise = vm.updateEntityCount(entity);
+    		 	var invDataPromise = vm.updateInvData();
 
-    		 	dfVolume.then(function(responseData){
-    		 		vm.dataCsv = (responseData)
-    		 	});
+    		 	var groupPromise = $q.all([dfCountPromise,dfVolumePromise,entityCountPromise,invDataPromise])
 
-    	
+    		 	groupPromise.then(function(responseData){
+    		 		vm.dataCsv = [
 
-    		 	var investigationDatafileCountPromise = entityService.getInvestigationDatafileCount(getStartDate(),getEndDate());
+    		 			["Datafile count for "+instrument,responseData[0]],
+    		 			["Datafile volume for "+instrument,responseData[1]],
+    		 			["Entity count for "+entity,responseData[2]],
+    		 			["Investigation Datafile count",responseData[3][0]],
+    		 			["Investigation Datafile volume",responseData[3][1]]
+
+    		 		]
+
+    		 		
+    		 	});	
+
+
+	     
+        	}
+
+        	vm.updateInvData = function(){
+
+        		var investigationDatafileCountPromise = entityService.getInvestigationDatafileCount(getStartDate(),getEndDate());
 
     		 	var investigationDatafileVolumePromise= entityService.getInvestigationDatafileVolume(getStartDate(),getEndDate());
 
-    		 	var investigationDatafilePromise = $q.all([investigationDatafileCountPromise,investigationDatafileVolumePromise]);
+    		 	var investigationDatafilePromise = $q.all([investigationDatafileVolumePromise,investigationDatafileCountPromise]);
 
-    		 	investigationDatafilePromise.then(function(responseData){  
+    		 	return investigationDatafilePromise.then(function(responseData){  
 
-    		 		//vm.dataCsv.push({"Investigation Datafile number":responseData[0]}); 
-    		 		//vm.dataCsv.push({"Investigation Datafile volume":responseData[1]});  					
-			
-					var number = _.map(responseData[0], function(data){
-							return [data.investigationId, data.value];
+    		 					
+					var volumeRaw = _.map(responseData[0], function(data){
+						return data.value;
 					});
 
-					var volumeMethods = _.map(responseData[1], function(data){
+					var investigationId = _.map(responseData[1], function(data){
 							return data.investigationId;
+
 					});
 
-					var volumeRaw = _.map(responseData[1], function(data){
-							return data.value;
+					var frequency = _.map(responseData[1], function(data){
+							return [data.investigationId,data.value];
 					});
 
 					var largestVolume = Math.max.apply(Math,volumeRaw);
 
-					//Conver the data to human readable format.
-					var formattedVolume = $filter('bytes')(volumeRaw,largestVolume);
-					var formattedVolumeData = formattedVolume[0];
+					var filteredData = $filter('bytes')(volumeRaw,largestVolume);	
 					
-
-					var byteFormat = formattedVolume[1]; 
+					var formattedVolume = filteredData[0];
+					var byteFormat = filteredData[1]; 			
 
 					//Combine the data into one array for the c3.js donut.
-					var volume =  formattedVolumeData.map(function(value,index){
-					    return [volumeMethods[index], formattedVolumeData[index]];
+					var volume =  formattedVolume.map(function(value,index){
+					    return [investigationId[index], formattedVolume[index]];
 					});
 
 					
@@ -104,7 +124,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 					vm.investigationDatafile = {
 						datasets:["number","volume"],
 						number : {
-							"data":number,
+							"data":frequency,
 							"title":"Number of datafiles per investigation."
 						},
 						volume : {
@@ -115,20 +135,18 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 					    title :"Investigation datafile information"
 					};
 
+					return responseData;
 			
 
-				});		    		 	
+				});		    
 
-    		 	console.log(vm.dataCsv)
-	     
         	}
         	
         	vm.updateDfVolume = function(instrument){       		
 				
 				return entityService.getInstrumentFileVolume(getStartDate(),getEndDate(),instrument).then(function(responseData){
 
-					//vm.dataCsv.push({"Instrument Datafile Volume":responseData});  
-
+				
 					var data = responseData;		   
 
 					var dates  = _.map(data, function(data){
@@ -185,9 +203,9 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
         	vm.updateDfCount = function(instrument){
         		
 
-    			entityService.getInstrumentFileCount(getStartDate(),getEndDate(), instrument).then(function(responseData){
+    		return	entityService.getInstrumentFileCount(getStartDate(),getEndDate(), instrument).then(function(responseData){
 
-    				//vm.dataCsv.push({"Instrument Datafile Count":responseData});    	
+    			
 				
 					var formattedData = formatData(responseData);	
 
@@ -210,7 +228,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						
 				    } 
 
-					
+					return responseData
 
 				});
 
@@ -219,9 +237,9 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
     		vm.updateEntityCount = function(entity){
 
     			
-    			entityService.getEntityCount(getStartDate(),getEndDate(), entity).then(function(responseData){
+    			return entityService.getEntityCount(getStartDate(),getEndDate(), entity).then(function(responseData){
 
-    				//vm.dataCsv.push({"Enity Count":responseData});  
+    			
 
     				var formattedData = formatData(responseData);	
 
@@ -244,7 +262,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						
 				    }
 
-				  
+				  return responseData
     			});
 
 

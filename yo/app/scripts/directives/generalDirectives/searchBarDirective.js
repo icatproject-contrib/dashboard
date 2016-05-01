@@ -10,7 +10,9 @@
 			restrict: 'EA',			
 			scope: {
 				csvData: '=',
-                dateOptions:'&',				
+                selectValues:'&',
+                userOption:'=',	
+
 
 			},
 
@@ -23,6 +25,8 @@
 
     app.controller('SearchBarController', function($scope, $element, $attrs){
         var vm = this;
+
+        vm.showUserSearch = $scope.userOption
 
         vm.format =  'yyyy-MM-dd';
 
@@ -46,32 +50,45 @@
         };
 
 
-        vm.updateDates = function(){
+        vm.updateSelection = function(){
            
-            $scope.dateOptions({startDate:vm.startDate,endDate:vm.endDate});
+            $scope.selectValues({startDate:vm.startDate,endDate:vm.endDate,userName:vm.userName});
         }
 
-        var dropdownElement = $($element).find('.datetime-picker');		       
-    
-        var CSV = 'ttttttt';
+        var dropdownElement = $($element).find('.datetime-picker');
 
-        var fileName = "test"
-        //Initialize file format you want csv or xls
-        var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+
+        //Watches for changes in csvData and modifies the link with the new data
+        $scope.$watch('csvData', function(data){
+            if($scope.csvData){
+                var CSV ='';
+               for(var i =0; i<data.length;i++){
+                    
+                    CSV += JSONToCSVConvertor(data[i][1],data[i][0]);
+                }
+           
+                 //Initialize file format you want csv or xls
+                var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+                
+                
+                
+                //this trick will generate a temp <a /> tag
+                link = document.createElement("a");    
+                link.href = uri;
+                
+                var fileName = "Dashboard"
         
-        // Now the little tricky part.
-        // you can use either>> window.open(uri);
-        // but this will not work in some browsers
-        // or you will not get the correct file extension    
-        
-        //this trick will generate a temp <a /> tag
-        var link = document.createElement("a");    
-        link.href = uri;
-        
-        //set the visibility hidden so it will not effect on your web-layout
-        
-        link.download = fileName + ".csv";
-        
+                link.download = fileName + ".csv";         
+                
+                
+                
+            }
+        });		       
+    
+       
+        //Create the link and append it to the csvAnchor class
+        var link;
+
         var divElement = $element.find('.csvAnchor');
 
         divElement.append(link); 
@@ -80,13 +97,51 @@
         vm.downloadCsv = function(){
                 link.click()
                 console.log("Download")
-            }   
+        } 
 
-        $scope.$watch('csvData', function(data){
-            if($scope.csvData){
-                console.log(data)
-              }
-          });
+
+        function JSONToCSVConvertor(JSONData, ReportTitle) {  
+            
+
+            //If JSONData is not an object then JSON.parse will parse the JSON string in an Object
+           var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
+
+
+            var CSV = ''; 
+
+            CSV+= ReportTitle + '\r\n'; 
+            
+            var row = "";
+
+            //This loop will extract the label from 1st index of on array
+            for (var index in arrData[0]) {
+                //Now convert each value to string and comma-seprated
+                row += index + ',';
+            }
+            row = row.slice(0, -1);
+            //append Label row with line break
+            CSV += row + '\r\n';
+                        
+
+            //1st loop is to extract each row
+            for (var i = 0; i < arrData.length; i++) {
+                var row = "";
+                //2nd loop will extract each column and convert it in string comma-seprated
+                for (var index in arrData[i]) {
+                    row += '"' + arrData[i][index] + '",';
+
+                }
+                row.slice(0, row.length - 1);
+                //add a line break after each row
+                CSV += row + '\r\n';
+            }
+
+            return CSV
+
+            
+        }        
+
+       
 
     });   
                

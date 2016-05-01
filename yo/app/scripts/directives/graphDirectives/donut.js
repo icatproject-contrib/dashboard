@@ -9,7 +9,8 @@
     	return {
 			restrict: 'EA',			
 			scope: {
-				data: '=',					
+				data: '=',	
+				selectOptions:'&',						
 
 			},
 
@@ -32,6 +33,10 @@
 						$scope.description =  graphObject.description;
 						$scope.options = graphObject.datasets;
 						$scope.title = graphObject.number.title;
+						$scope.selectOp = graphObject.selectOp;
+						$scope.selectTitle = graphObject.optionTitle;
+
+					
 
 						chart  = c3.generate({
 							bindto:divElement[0],
@@ -59,8 +64,7 @@
 				chart.unload();
 
 				var dataset = $scope.data[option];
-				
-				console.log(dataset.data)
+	
 				chart.load({
 
 					columns: dataset.data,
