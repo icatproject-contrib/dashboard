@@ -33,9 +33,6 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 	        		vm.entityNames = responseData[1];
 	        		vm.selectedEntity = vm.entityNames[0].name;
 
-	        		console.log(vm.instrumentNames)
-	        		
-
 	        		//Only want to update the page once the instrument has been returned
 	        		vm.updatePage();
 	        	});       	
@@ -58,12 +55,13 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
     			var entity = vm.selectedEntity;
     		  
 
-    		 	var dfCountPromise = vm.updateDfCount(instrument);
-    		 	var dfVolumePromise = vm.updateDfVolume(instrument);
+    		 	var insCountPromise = vm.updateInsDfCount(instrument);
+    		 	var insVolumePromise = vm.updateInsDfVolume(instrument);
     		 	var entityCountPromise = vm.updateEntityCount(entity);
     		 	var invDataPromise = vm.updateInvData();
+    		 	var dfVolumePromise = vm.updateDfVolume();
 
-    		 	var groupPromise = $q.all([dfCountPromise,dfVolumePromise,entityCountPromise,invDataPromise])
+    		 	var groupPromise = $q.all([insCountPromise,insVolumePromise,entityCountPromise,invDataPromise,dfVolumePromise])
 
     		 	groupPromise.then(function(responseData){
     		 		vm.dataCsv = [
@@ -72,7 +70,8 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
     		 			["Datafile volume for "+instrument,responseData[1]],
     		 			["Entity count for "+entity,responseData[2]],
     		 			["Investigation Datafile count",responseData[3][0]],
-    		 			["Investigation Datafile volume",responseData[3][1]]
+    		 			["Investigation Datafile volume",responseData[3][1]],
+    		 			["Datafile Volume",responseData[4]]
 
     		 		]
 
@@ -81,6 +80,58 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
 
 	     
+        	}
+
+        	vm.updateDfVolume = function(){
+        		return entityService.getDatafileVolume(getStartDate(),getEndDate()).then(function(responseData){
+
+				
+					var data = responseData;		   
+
+					var dates  = _.map(data, function(data){
+						return data.date;
+					});
+
+					var byteArray = _.map(data, function(data){
+					
+						return Math.round(data.number);
+					});
+
+					//Need to format the bytes into human readable format
+					var formattedData = $filter('bytes')(byteArray);
+
+					var dataForGraph = formattedData[0];
+
+					var byteFormat = formattedData[1];
+
+					dates.unshift("x");		
+							
+					dataForGraph.unshift('Volume');	 
+
+					var formattedData = [dates,dataForGraph];
+
+
+					vm.dataFileVolume = {
+						data:{
+							x:"x",				 	 
+				       	    columns : formattedData,
+				       		types:{
+				       			Volume:'bar',
+				       		}
+				       	},	
+				    	description : "This bar graph shows the volume of datafiles created between the specified dates",
+						title:"Datafile Volume",					
+						zoom:true,
+						xLabel:"Insertion Date",
+						yLabel:"Volume of Datafiles "+byteFormat,
+						
+						
+				    } 
+
+				 return responseData;
+
+				});
+
         	}
 
         	vm.updateInvData = function(){
@@ -120,7 +171,6 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 					});
 
 					
-					
 					vm.investigationDatafile = {
 						datasets:["number","volume"],
 						number : {
@@ -142,7 +192,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
         	}
         	
-        	vm.updateDfVolume = function(instrument){       		
+        	vm.updateInsDfVolume = function(instrument){       		
 				
 				return entityService.getInstrumentFileVolume(getStartDate(),getEndDate(),instrument).then(function(responseData){
 
@@ -172,7 +222,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 					var formattedData = [dates,dataForGraph];
 
 
-					vm.dataFileVolume = {
+					vm.insDataFileVolume = {
 						data:{
 							x:"x",				 	 
 				       	    columns : formattedData,
@@ -180,7 +230,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 				       			Volume:'bar',
 				       		}
 				       	},	
-				    	description : "This line graph shows the volume of datafiles created for that instrument on a specific day. Please not this is only correct if you follow one investigation instrument per investigation",
+				    	description : "This bar graph shows the volume of datafiles created for that instrument on a specific day. Please not this is only correct if you follow one investigation instrument per investigation",
 						title:"Datafile Volume "+instrument,
 						type:'line',
 						zoom:true,
@@ -200,7 +250,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 		
 
         	}
-        	vm.updateDfCount = function(instrument){
+        	vm.updateInsDfCount = function(instrument){
         		
 
     		return	entityService.getInstrumentFileCount(getStartDate(),getEndDate(), instrument).then(function(responseData){
@@ -210,7 +260,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 					var formattedData = formatData(responseData);	
 
 
-					vm.dataFileCount = {
+					vm.insDataFileCount = {
 						data:{
 							x:"x",				 	 
 				       	    columns : formattedData,

@@ -1,14 +1,14 @@
 <div ng-init="entity.initPage()" >               
 
-    <search-bar select-options= "entity.updateDates(startDate,endDate)" csv-data="entity.dataCsv" user-option="entity.userOption"></search-bar>
+    <search-bar select-values= "entity.updateDates(startDate,endDate)" csv-data="entity.dataCsv" user-option="entity.userOption"></search-bar>
 
     <div class="row">   
         
         <div class="col-lg-5 col-lg-offset-1 ">     
-            <time-line-graph class="chart" data='entity.dataFileCount' select-Options= "entity.updateDfCount(value)"></time-line-graph>         
+            <time-line-graph class="chart" data='entity.insDataFileCount' select-Options= "entity.updateInsDfCount(value)"></time-line-graph>         
         </div>
         <div class="col-lg-5">     
-            <time-line-graph class="chart" data='entity.dataFileVolume' select-Options= "entity.updateDfVolume(value)"></time-line-graph>         
+            <time-line-graph class="chart" data='entity.insDataFileVolume' select-Options= "entity.updateInsDfVolume(value)"></time-line-graph>         
         </div>
     </div> 
 
@@ -21,6 +21,9 @@
     <div class="row">
         <div class="col-lg-5 col-lg-offset-1">
             <donut class="chart" data='entity.investigationDatafile'></donut>        
+        </div>
+         <div class="col-lg-5">     
+            <time-line-graph class="chart" data='entity.dataFileVolume'></time-line-graph>         
         </div>
     </div>
 

@@ -60,7 +60,14 @@
 							.then(function(response){
 								return response.data; 
 							});
+					},
+					getDatafileVolume:function(startDate,endDate){
+						return $http.get(baseURL+"/icat/datafile/volume?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate)
+							.then(function(response){
+								return response.data; 
+							});
 					}
+
 
 
 				}

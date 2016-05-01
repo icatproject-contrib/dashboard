@@ -35,7 +35,7 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
         vm.gridOptions = {}
         
         vm.gridOptions.columnDefs = [
-        	{field: 'id',  displayName: 'Location', width:80, type:'button', cellTemplate:'<div class="button-holder" align=center><button class="btn btn-default btn-large text-center" ng-click="grid.appScope.loadGridLocationModal(row.entity.id)"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span></button></div>' },
+        	{field: 'id',  displayName: 'Location', width:80, type:'button', cellTemplate:'<div class="button-holder" ng-if="row.entity.ipAddress" align=center><button class="btn btn-default btn-large text-center" ng-click="grid.appScope.loadGridLocationModal(row.entity.id)"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span></button></div>' },
         	{field: 'entityId', type:'number', displayName: 'Entity ID', width:80},
         	{field: 'entityType',  type:"string", displayName: 'Entity Type', width:140},        	
         	{field: 'ipAddress', type:"string", displayName: 'ipAddress', width:120 },        	
