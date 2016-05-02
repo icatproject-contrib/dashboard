@@ -5,9 +5,7 @@
  */
 package org.icatproject.dashboard.collector;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Iterator;
@@ -17,7 +15,6 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -25,7 +22,6 @@ import javax.persistence.criteria.Root;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.entity.EntityCount;
-import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ImportCheck;
 import org.icatproject.dashboard.entity.InstrumentMetaData;
 import org.icatproject.dashboard.entity.InvestigationMetaData;
@@ -112,7 +108,7 @@ public class EntityCounter  {
      * @param endDate up to but no including this date.
      */
     public void performInvestigationMetaCollection(LocalDate startDate, LocalDate endDate){
-        //Only want to go to the day before
+       
         while(startDate.isBefore(endDate)){            
                   
            
@@ -167,6 +163,12 @@ public class EntityCounter  {
         return passed;
     }
     
+    /**
+     * Collects instrument meta data from the ICAT on the specified date.
+     * @param collectionLocalDate the date to check for.
+     * @return if it was successful in contacting the ICAT and getting the required
+     * information.
+     */
     private boolean collectInstrumentMeta(LocalDate collectionLocalDate){
          LOG.info("Starting Instrument meta data collection for ", collectionLocalDate.toString());
          
@@ -214,7 +216,11 @@ public class EntityCounter  {
          return passed;
     }
     
-    
+    /**
+     * Collects investigation meta data for the passed date.
+     * @param collectionLocalDate The date to check for.
+     * @return if it was successful in getting this data.
+     */
     private boolean collectInvestigationMeta(LocalDate collectionLocalDate){
         LOG.info("Starting Instrument meta data collection for ", collectionLocalDate.toString());
         
@@ -258,7 +264,12 @@ public class EntityCounter  {
          
          return passed;
     }   
-    
+    /**
+     * Checks to see if the ImportCheck for the specified date needs updating or creating.
+     * @param date The date to check
+     * @param passed If it has passed or not.
+     * @param importType The type of import e.g. instrument, entity or investigation.
+     */
     private void checkImport(LocalDate date,boolean passed,String importType){
         if(passed){
             LOG.info("Successful import for "+importType+" on "+date.toString());
@@ -302,7 +313,11 @@ public class EntityCounter  {
   
     }
     
-    
+    /**
+     * Converts a LocalDate to a date
+     * @param date to be converted.
+     * @return a LocalDate of the date passed.
+     */
     private Date convertToDate(LocalDate date){
         return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }

@@ -112,44 +112,35 @@ public class DataCollector {
       
         LOG.info("Entity Collection initiated for ",today.toString());
         
-        LocalDate earliestEntityImport = earliestImportPass("entity");   
-        LocalDate earliestInstrumentImport = earliestImportPass("instrument"); 
-        LocalDate earliestInvestigationImport = earliestImportPass("investigation"); 
+        LocalDate earliestEntityImport = getNextImportDate("entity");   
+        LocalDate earliestInstrumentImport = getNextImportDate("instrument"); 
+        LocalDate earliestInvestigationImport = getNextImportDate("investigation"); 
         
         
-        //An actual import has happened
-        if(earliestEntityImport!=null && !isYesterday(earliestEntityImport)){
+        //An actual import has happened. 
+        if(earliestEntityImport!=null){
             counter.performEntityCountCollection(earliestEntityImport, today);
         } 
-        if(earliestInstrumentImport!=null && !isYesterday(earliestInstrumentImport)){
+        if(earliestInstrumentImport!=null){
             counter.performInstrumentMetaCollection(earliestInstrumentImport, today);
         }
-        if(earliestInvestigationImport!=null && !isYesterday(earliestInvestigationImport)){
+        if(earliestInvestigationImport!=null){
             counter.performInvestigationMetaCollection(earliestInvestigationImport, today);
         }
                
         LOG.info("Entity collection completed for ",today.toString());
     } 
-    /**
-     * Simple method to check if the date is the day before. Do not want to 
-     * run it through the collection as the collection is always a day behind.
-     * @param date to check
-     * @return if the date is yesterday
-     */
-    private boolean isYesterday(LocalDate date){
-        date = date.plusDays(1);
-        
-        return date.equals(LocalDate.now());
-    }
+    
     
     
     
     /**
-     * Finds out the earliest LocalDate that an import check has been inserted
-     * @return the date of the earliest import check. If no check was found then 
+     * Finds out the earliest LocalDate that an import check has been inserted and then
+     * returns the next day
+     * @return the date of when to perform the next import. If no check was found then 
      * null is returned.
      */
-    private LocalDate earliestImportPass(String type){
+    private LocalDate getNextImportDate(String type){
         
         Query importCheckQuery = manager.createQuery("SELECT ic.checkDate FROM ImportCheck ic WHERE ic.passed=1 AND ic.type='"+type+"' ORDER BY ic.checkDate desc");
                     
@@ -161,6 +152,7 @@ public class DataCollector {
         
         if(!dates.isEmpty()){
             earliestImport =  toLocalDate((Date)dates.get(0));
+            earliestImport = earliestImport.plusDays(1);
         }                
                 
         return earliestImport;
