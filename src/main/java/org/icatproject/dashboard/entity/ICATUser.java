@@ -6,7 +6,6 @@
 package org.icatproject.dashboard.entity;
 
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
