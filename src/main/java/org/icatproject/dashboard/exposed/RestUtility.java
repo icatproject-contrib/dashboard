@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.persistence.EntityManager;
@@ -115,6 +116,7 @@ public class RestUtility {
      /**
          * Gets the full name of a user.
          * @param name of the user in the ICAT. This is the unique name e.g. uows/123456
+         * @param manager
          * @return the full name of the user provided.
          */
         public static String getFullName(String name, EntityManager manager){
@@ -134,6 +136,24 @@ public class RestUtility {
         
         
         }
+        
+    /**
+     * Converts a List results and inserts them into a treeMap. It then converts that into JSON to be sent
+     * via the RESTFul API.
+     * @param result is the list of objects
+     * @param dateMap is the map of dates to have values assigned to.
+     * @return a JSONArray of JSONObjects each with a date and value.
+     */
+    public static String convertResultsToJson(List<Object[]> result, TreeMap<LocalDate,Long> dateMap){
+        
+        for(Object[] day : result){
+            LocalDate collectionDate = RestUtility.convertToLocalDate((Date) day[0]);
+            
+            dateMap.put(collectionDate, (Long) day[1]);
+        }     
+
+        return RestUtility.convertMapToJSON(dateMap).toJSONString();
+    }    
           
     
 }

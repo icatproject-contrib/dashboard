@@ -37,6 +37,7 @@ import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.InternalException;
+import static org.icatproject.dashboard.exposed.RestUtility.convertResultsToJson;
 import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDateTime;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.IcatDataManager;
@@ -405,23 +406,7 @@ public class IcatResource {
         return dateMap;
     }
     
-    /**
-     * Converts a List results and inserts them into a treeMap. It then converts that into JSON to be sent
-     * via the RESTFul API.
-     * @param result is the list of objects
-     * @param dateMap is the map of dates to have values assigned to.
-     * @return a JSONArray of JSONObjects each with a date and value.
-     */
-    private String convertResultsToJson(List<Object[]> result, TreeMap<LocalDate,Long> dateMap){
-        
-        for(Object[] day : result){
-            LocalDate collectionDate = RestUtility.convertToLocalDate((Date) day[0]);
-            
-            dateMap.put(collectionDate, (Long) day[1]);
-        }     
-
-        return RestUtility.convertMapToJSON(dateMap).toJSONString();
-    }
+    
     
     /**
      * Creates a query to search for the amount of entities created in the ICAT
