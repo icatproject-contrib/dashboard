@@ -2,33 +2,15 @@
 	  'use strict';
 angular.module('dashboardApp').controller('UserCtrl', UserCtrl);
 
-UserCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridService','$uibModal'];	
+UserCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridService','$uibModal',"$q"];	
 
 
-function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibModal){		
+function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibModal,$q){		
 		
     		var vm=this;		
-    		
-    		vm.format =  'yyyy-MM-dd';
+    	 
+        vm.userOption = true;
 
-    		vm.endDate = new Date();
-    	
-    		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10));		
-
-		    //Date selection for the overall page
-		    vm.isStartDateOpen = false;
-        vm.isEndDateOpen = false;       
-
-		    vm.openStartDate = function(){
-            vm.isStartDateOpen = true;
-            vm.isEndDateOpen = false;
-        };
-
-        vm.openEndDate = function(){
-        	
-            vm.isStartDateOpen = false;
-            vm.isEndDateOpen = true;
-        };
 
        //Setup the ui-grid for log tables.
 
@@ -58,6 +40,71 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
 
       vm.gridOptions = uiGridService.setupGrid(vm.gridOptions,$scope,"log", gridDataCall);  	
 
+
+    //Initialise the page with the values it requires for the menus
+      vm.initPage = function(){
+        //Set default dates
+        vm.endDate = new Date();
+
+        vm.startDate = new Date(new Date().setDate(new Date().getDate()-10)); 
+
+        vm.updatePage();
+      }
+
+       //Updates the date and the page
+        vm.updateOptions = function(startDate,endDate,userName){
+          vm.startDate = startDate;
+          vm.endDate = endDate;
+          vm.userName = userName;
+      
+          vm.updatePage();
+
+        }  
+
+        vm.updatePage = function(){ 
+           var loggedFrequencyPromise = vm.updateLoggedFrequency();
+
+           var groupPromise = $q.all([loggedFrequencyPromise]);
+
+           groupPromise.then(function(responseData){
+              var user = vm.userName;
+
+              vm.dataCsv = [
+                  ["User login frequency. User "+user,responseData[0]]
+              ]
+           });
+
+        }
+
+
+        vm.updateLoggedFrequency = function(){
+          return userService.getLoggedFrequency(getStartDate(),getEndDate(),vm.userName).then(function(responseData){
+
+            var formattedData = formatData(responseData); 
+
+
+            vm.loginFrequency = {
+              data:{
+                x:"x",           
+                      columns : formattedData,
+                    types:{
+                      Number:'line',
+                    }
+                  },
+              description : "This line graph shows the frequency of user logins per day.",   
+              title: "Number of user logins per day.",           
+              zoom:true,
+              xLabel:"Login Date",
+              yLabel:"Number of Logins",
+            
+              
+              } 
+
+
+            return responseData;
+
+          });
+        }
 
   		//Use of scope is to allow the ui-grid to access the call.
       $scope.loadGridLocationModal = function(logId,entity){
@@ -94,6 +141,46 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
 
        });
 
+
+      function getStartDate(){
+
+        var startDate = moment(vm.startDate).subtract(1,'seconds');         
+
+        startDate.set('hour','00');
+        startDate.set('minute','00');
+        startDate.set('second','00');
+
+      return startDate;
+
+    }   
+
+    //Gets the end date with its formatted values
+    function getEndDate(){
+             
+        return Date.parse(vm.endDate);
+      
+      } 
+
+      //Formats data where the values are date and number
+        function formatData(data){
+
+
+          var dates  = _.map(data, function(data){
+          return data.date;
+        });
+
+        var numbers = _.map(data, function(data){
+          return data.number;
+        });
+
+        dates.unshift("x");   
+            
+        numbers.unshift('Number');   
+
+
+        return [dates,numbers];
+
+        }  
 
 
 		

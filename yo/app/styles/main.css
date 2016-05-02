@@ -20,7 +20,8 @@ html,body, .cotainer-fluid,.row  {
 
 .pop-up, .tooltip{
   
-  z-index: 999999999;
+  z-index: 999999999 !important; 
+
 
 }
 

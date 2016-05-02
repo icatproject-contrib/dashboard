@@ -27,6 +27,14 @@
 							});
 					},
 
+					getLoggedFrequency: function(startDate,endDate,userName){
+						return $http.get(baseURL+"user/logged/frequency?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName)
+							.then(function(response){
+
+								return response.data; 
+						});
+					},
+
 					getUserLocation: function(name){
 						return $http.get(baseURL+"user/location?sessionID="+ $sessionStorage.sessionData.sessionID+"&name="+name)
 							.then(function(response){

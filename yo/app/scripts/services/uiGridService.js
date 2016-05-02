@@ -46,7 +46,7 @@
 
 			            	if(field ==='query'){
 
-			            		column.cellTemplate = '<div class="ui-grid-cell-contents" uib-tooltip={{row.entity.'+field+'}}>{{row.entity.'+field+'}}</div>';
+			            		column.cellTemplate = '<div class="ui-grid-cell-contents pop-up" tooltip-append-to-body="true" uib-tooltip={{row.entity.'+field+'}}>{{row.entity.'+field+'}}</div>';
 			            	}
 
 			            	if(type ==='button'){
