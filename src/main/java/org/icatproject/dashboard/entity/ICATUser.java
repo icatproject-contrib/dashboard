@@ -69,6 +69,15 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     public ICATUser(){
         
     }
+
+    public ICATUser(boolean logged, Long userICATID, String fullName, String name) {
+        this.logged = logged;
+        this.userICATID = userICATID;
+        this.fullName = fullName;
+        this.name = name;
+    }
+    
+    
     
     public void setUserICATID(Long userICATID) {
         this.userICATID = userICATID;

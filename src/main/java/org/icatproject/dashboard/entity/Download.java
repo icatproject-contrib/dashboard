@@ -82,6 +82,37 @@ public class Download extends EntityBaseBean implements Serializable {
 
     }
 
+    public Download(ICATUser user, List<DownloadEntity> downloadEntities, List<DownloadEntityAge> downloadEntityAges, GeoLocation location, String preparedID, Date downloadStart, Date downloadEnd, String method, Long downloadSize, double bandwidth, long duriation, String status, long transferID) {
+        this.user = user;
+        this.downloadEntities = downloadEntities;
+        this.downloadEntityAges = downloadEntityAges;
+        this.location = location;
+        this.preparedID = preparedID;
+        this.downloadStart = downloadStart;
+        this.downloadEnd = downloadEnd;
+        this.method = method;
+        this.downloadSize = downloadSize;
+        this.bandwidth = bandwidth;
+        this.duriation = duriation;
+        this.status = status;
+        this.transferID = transferID;
+    }
+    //Constructor used for testing
+    public Download(GeoLocation location,ICATUser user, String preparedID, Date downloadStart, Date downloadEnd, String method, Long downloadSize, double bandwidth, long duriation, String status, long transferID) {
+        this.user = user;
+        this.location = location;
+        this.preparedID = preparedID;
+        this.downloadStart = downloadStart;
+        this.downloadEnd = downloadEnd;
+        this.method = method;
+        this.downloadSize = downloadSize;
+        this.bandwidth = bandwidth;
+        this.duriation = duriation;
+        this.status = status;
+        this.transferID = transferID;
+    }
+    
+
     public long getTransferID() {
         return transferID;
     }

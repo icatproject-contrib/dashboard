@@ -5,10 +5,7 @@
 package org.icatproject.dashboard.collector;
 
 import org.icatproject.dashboard.manager.PropsManager;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +24,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import org.icatproject.*;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,10 +69,12 @@ public class DataCollector {
      * Creates the timers for the daily data collection.
      * @param collectionTime the hour on which the collection will commence.
      */
-    private void createTimer(int collectionTime) {
+    protected void createTimer(int collectionTime) {
 
         TimerConfig dataCollect = new TimerConfig("dataCollect", false);
         timerService.createCalendarTimer(new ScheduleExpression().hour(collectionTime), dataCollect);
+        
+        
 
     } 
    
@@ -94,14 +94,7 @@ public class DataCollector {
         
     } 
     
-   
-    private LocalDate toLocalDate(Date date) {
-        Instant instant = Instant.ofEpochMilli(date.getTime());
-        
-        LocalDate localDate = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalDate(); 
-        
-        return localDate;
-    }
+  
 
     /***
      * Initialises the collection of entity information from the ICAT into the Dashboard.
@@ -140,7 +133,7 @@ public class DataCollector {
      * @return the date of when to perform the next import. If no check was found then 
      * null is returned.
      */
-    private LocalDate getNextImportDate(String type){
+    public LocalDate getNextImportDate(String type){
         
         Query importCheckQuery = manager.createQuery("SELECT ic.checkDate FROM ImportCheck ic WHERE ic.passed=1 AND ic.type='"+type+"' ORDER BY ic.checkDate desc");
                     
@@ -151,7 +144,7 @@ public class DataCollector {
         LocalDate earliestImport = null;
         
         if(!dates.isEmpty()){
-            earliestImport =  toLocalDate((Date)dates.get(0));
+            earliestImport =  convertToLocalDate((Date)dates.get(0));
             earliestImport = earliestImport.plusDays(1);
         }                
                 

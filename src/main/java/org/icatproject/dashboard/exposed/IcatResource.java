@@ -5,6 +5,7 @@
  */
 package org.icatproject.dashboard.exposed;
 
+import org.icatproject.dashboard.utility.RestUtility;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -37,11 +38,16 @@ import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.InternalException;
-import static org.icatproject.dashboard.exposed.RestUtility.convertResultsToJson;
-import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDateTime;
+import static org.icatproject.dashboard.exposed.PredicateCreater.getDatePredicate;
+import static org.icatproject.dashboard.exposed.PredicateCreater.getEntityCountPredicate;
+import static org.icatproject.dashboard.exposed.PredicateCreater.getInstrumentPredicate;
+import static org.icatproject.dashboard.utility.RestUtility.convertResultsToJson;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.manager.PropsManager;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTime;
+import static org.icatproject.dashboard.utility.RestUtility.createPrePopulatedMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -216,10 +222,29 @@ public class IcatResource {
         }
         if (!(beanManager.checkSessionID(sessionID, manager))) {
             throw new AuthenticationException("An invalid sessionID has been provided");
-        }      
+        }         
         
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));   
+        
+        TreeMap<LocalDate,Long> dateMap = createPrePopulatedMap(convertToLocalDate(start), convertToLocalDate(end));
+      
+        
+        //Criteria objects.
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<EntityCount> entityCount = query.from(EntityCount.class);         
+        
+        Predicate finalPredicate = getEntityCountPredicate(cb, entityCount, start,end,entity);
+        
+        query.multiselect(entityCount.<Date>get("countDate"), entityCount.<Long>get("entityCount"));        
+        
+        query.where(finalPredicate); 
+       
+        
+        List<Object[]> result = manager.createQuery(query).getResultList();
 
-        return getEntityCountData(startDate,endDate,entity);
+        return convertResultsToJson(result,dateMap);
         
         
         
@@ -311,8 +336,30 @@ public class IcatResource {
         }
         if (!(beanManager.checkSessionID(sessionID, manager))) {
             throw new AuthenticationException("An invalid sessionID has been provided");
-        }      
-        return getDatafileVolume(startDate,endDate);
+        } 
+        
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));   
+        
+        TreeMap<LocalDate,Long> dateMap = createPrePopulatedMap(convertToLocalDate(start), convertToLocalDate(end));     
+        
+        //Criteria objects.
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<InvestigationMetaData> datafileVolume = query.from(InvestigationMetaData.class);  
+        
+        Predicate dateRange = getDatePredicate(cb,datafileVolume, start,end,"collectionDate");   
+        
+        query.multiselect(datafileVolume.<Date>get("collectionDate"),cb.sum(datafileVolume.<Long>get("datafileVolume")));
+
+        query.groupBy(datafileVolume.<Date>get("collectionDate"));
+        
+        query.where(dateRange);      
+        
+        List<Object[]> result = manager.createQuery(query).getResultList();
+        
+        return convertResultsToJson(result,dateMap);
+        
     }
     
 
@@ -343,6 +390,15 @@ public class IcatResource {
         return getInstrumentMetaData("datafileCount", startDate, endDate, instrument);
     }
     
+    /**
+     * Gets the volume of datafiles for the specified instrument over the specified time.
+     * @param sessionID for authentication.
+     * @param instrument to search for.
+     * @param startDate range from.
+     * @param endDate range to.
+     * @return a JSONArray of JSON
+     * @throws DashboardException 
+     */
     @GET
     @Path("{instrument}/datafile/volume")
     @Produces(MediaType.APPLICATION_JSON)
@@ -388,96 +444,8 @@ public class IcatResource {
         }
 
         return geoLocation;
-    }
-    
-    /**
-     * Creates a date TreeMap of LocalDate from the specified dates
-     * @param startDate of the map
-     * @param endDate of the map
-     * @return a treemap of dates.
-     */
-    private TreeMap<LocalDate,Long> createDateMap(String startDate,String endDate){
-        
-        LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();
-        
-        TreeMap<LocalDate, Long> dateMap = RestUtility.createPrePopulatedMap(startRange, endRange);
-        
-        return dateMap;
-    }
-    
-    
-    
-    /**
-     * Creates a query to search for the amount of entities created in the ICAT
-     * between the specified times.
-     * @param startDate to search from.
-     * @param endDate to search to.
-     * @param entityType the type of entity to look for.
-     * @return a JSONArray of JSONObjects containing dates and values.
-     */
-    private String getEntityCountData(String startDate, String endDate, String entityType){
-        
-        TreeMap<LocalDate,Long> dateMap = createDateMap(startDate,endDate);
-        
-        Date start = new Date(Long.valueOf(startDate));
-        Date end = new Date(Long.valueOf(endDate));       
-      
-        
-        //Criteria objects.
-        CriteriaBuilder cb = manager.getCriteriaBuilder();
-        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
-        Root<EntityCount> entityCount = query.from(EntityCount.class);        
-        
-        Predicate startGreater = cb.greaterThanOrEqualTo(entityCount.<Date>get("countDate"), start);
-        Predicate endLess = cb.lessThanOrEqualTo(entityCount.<Date>get("countDate"), end); 
-        Predicate entity = cb.equal(entityCount.<Long>get("entityType"), entityType);
-        
-        Predicate dateRange = cb.and(startGreater, endLess); 
-        
-        Predicate finalPredicate = cb.and(dateRange,entity);       
-       
-        query.multiselect(entityCount.<Date>get("countDate"), entityCount.<Long>get("entityCount"));        
-        
-        query.where(finalPredicate);     
-       
-        
-        List<Object[]> result = manager.createQuery(query).getResultList();
-        
-        return convertResultsToJson(result,dateMap);
-        
-    }
-    
-    private String getDatafileVolume(String startDate, String endDate){
-        
-        TreeMap<LocalDate,Long> dateMap = createDateMap(startDate,endDate);
-        
-        Date start = new Date(Long.valueOf(startDate));
-        Date end = new Date(Long.valueOf(endDate));       
-      
-        
-        //Criteria objects.
-        CriteriaBuilder cb = manager.getCriteriaBuilder();
-        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
-        Root<InvestigationMetaData> datafileVolume = query.from(InvestigationMetaData.class);        
-        
-        Predicate startGreater = cb.greaterThanOrEqualTo(datafileVolume.<Date>get("collectionDate"), start);
-        Predicate endLess = cb.lessThanOrEqualTo(datafileVolume.<Date>get("collectionDate"), end);        
-        
-        Predicate dateRange = cb.and(startGreater, endLess);           
-       
-        query.multiselect(datafileVolume.<Date>get("collectionDate"),cb.sum(datafileVolume.<Long>get("datafileVolume")));
-
-        query.groupBy(datafileVolume.<Date>get("collectionDate"));
-        
-        query.where(dateRange);     
-       
-        
-        List<Object[]> result = manager.createQuery(query).getResultList();
-        
-        return convertResultsToJson(result,dateMap);
-        
-    }
+    }  
+  
    
    /**
     * Creates and executes a query on the investigationMeta entity. It gathers the
@@ -491,22 +459,17 @@ public class IcatResource {
     private String getInvestigationMetaData(String type, String startDate, String endDate, int limit){
         
         Date start = new Date(Long.valueOf(startDate));
-        Date end = new Date(Long.valueOf(endDate));
-        
+        Date end = new Date(Long.valueOf(endDate));       
         
         //Criteria objects.
         CriteriaBuilder cb = manager.getCriteriaBuilder();
         CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
         Root<InvestigationMetaData> investigationMeta = query.from(InvestigationMetaData.class);        
         
-        Predicate startGreater = cb.greaterThanOrEqualTo(investigationMeta.<Date>get("collectionDate"), start);
-        Predicate endLess = cb.lessThanOrEqualTo(investigationMeta.<Date>get("collectionDate"), end);         
-        
-        Predicate dateRange = cb.and(startGreater, endLess);   
+        Predicate dateRange = getDatePredicate(cb,investigationMeta,start,end,"collectionDate"); 
         
         
-        query.multiselect(investigationMeta.<Long>get("investigationId"), cb.sum(investigationMeta.<Long>get(type))); 
-        
+        query.multiselect(investigationMeta.<Long>get("investigationId"), cb.sum(investigationMeta.<Long>get(type)));        
         
         query.where(dateRange);
         query.groupBy(investigationMeta.get("investigationId"));
@@ -537,33 +500,26 @@ public class IcatResource {
     * @param instrument to search for.
     * @return a JSONArray of JSONObjects each containing an instrument name and either the volume or number of data files between the set period.
     */
-    private String getInstrumentMetaData(String type, String startDate, String endDate, String instrument){
+    private String getInstrumentMetaData(String type, String startDate, String endDate, String instrument){      
         
-        TreeMap<LocalDate,Long> dateMap = createDateMap(startDate,endDate);
         
         Date start = new Date(Long.valueOf(startDate));
         Date end = new Date(Long.valueOf(endDate));
         
-        Long instrumentId = icatData.getInstrumentIdMapping().get(instrument);
+        TreeMap<LocalDate,Long> dateMap = createPrePopulatedMap(convertToLocalDate(start), convertToLocalDate(end));     
+        
+        String instrumentId = String.valueOf(icatData.getInstrumentIdMapping().get(instrument));
         
         //Criteria objects.
         CriteriaBuilder cb = manager.getCriteriaBuilder();
         CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
-        Root<InstrumentMetaData> instrumentMeta = query.from(InstrumentMetaData.class);        
-        
-        Predicate startGreater = cb.greaterThanOrEqualTo(instrumentMeta.<Date>get("collectionDate"), start);
-        Predicate endLess = cb.lessThanOrEqualTo(instrumentMeta.<Date>get("collectionDate"), end); 
-        Predicate instrumentName = cb.equal(instrumentMeta.<Long>get("instrumentId"), instrumentId);
-        
-        Predicate dateRange = cb.and(startGreater, endLess); 
-        
-        Predicate finalPredicate = cb.and(dateRange,instrumentName);       
+        Root<InstrumentMetaData> instrumentMeta = query.from(InstrumentMetaData.class);      
        
         query.multiselect(instrumentMeta.<Date>get("collectionDate"), instrumentMeta.<Long>get(type));  
         
+        Predicate finalPredicate = getInstrumentPredicate(cb,instrumentMeta,start,end,instrumentId,"collectionDate");
         
-        query.where(finalPredicate);
-        
+        query.where(finalPredicate);    
        
         
         List<Object[]> result = manager.createQuery(query).getResultList();

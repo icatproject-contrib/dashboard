@@ -26,6 +26,7 @@ import org.icatproject.dashboard.entity.ImportCheck;
 import org.icatproject.dashboard.entity.InstrumentMetaData;
 import org.icatproject.dashboard.entity.InvestigationMetaData;
 import org.icatproject.dashboard.exceptions.DashboardException;
+import static org.icatproject.dashboard.utility.DateUtility.convertToDate;
 import org.icatproject.icat.client.Session;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
@@ -313,14 +314,7 @@ public class EntityCounter  {
   
     }
     
-    /**
-     * Converts a LocalDate to a date
-     * @param date to be converted.
-     * @return a LocalDate of the date passed.
-     */
-    private Date convertToDate(LocalDate date){
-        return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    }
+    
    
     
     

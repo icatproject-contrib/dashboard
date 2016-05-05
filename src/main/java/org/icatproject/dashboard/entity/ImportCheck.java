@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 
 @Comment("The overal data intergrity of Entity Count.")
-@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "CHECKDATE","PASSED", "TYPE" }) })
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "CHECKDATE", "TYPE" }) })
 @Entity
 @XmlRootElement
 public class ImportCheck extends EntityBaseBean implements Serializable {

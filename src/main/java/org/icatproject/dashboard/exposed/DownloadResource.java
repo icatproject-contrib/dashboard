@@ -5,6 +5,7 @@
  */
 package org.icatproject.dashboard.exposed;
 
+import org.icatproject.dashboard.utility.RestUtility;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,9 +36,13 @@ import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
-import static org.icatproject.dashboard.exposed.RestUtility.convertToLocalDateTime;
+import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadLocationPredicate;
+import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadPredicate;
+import static org.icatproject.dashboard.exposed.PredicateCreater.createJoinDatePredicate;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.PropsManager;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -145,9 +150,7 @@ public class DownloadResource {
         }
         if (!(beanManager.checkSessionID(sessionID, manager))) {
             throw new AuthenticationException("An invalid sessionID has been provided");
-        }
-
-        JSONArray ary = new JSONArray();
+        }     
 
         String query = "SELECT entity from Entity_ entity JOIN entity.downloadEntities de JOIN de.download download ";
 
@@ -217,14 +220,7 @@ public class DownloadResource {
 
         query.multiselect(cb.sum(downloadEntityAge.<Long>get("amount")), downloadEntityAge.get("age"));
 
-        Predicate startGreater = cb.greaterThan(downloadJoin.<Date>get("downloadStart"), start);
-        Predicate endLess = cb.lessThan(downloadJoin.<Date>get("downloadEnd"), end);
-        Predicate betweenStart = cb.between(downloadJoin.<Date>get("downloadStart"), start, end);
-        Predicate betweenEnd = cb.between(downloadJoin.<Date>get("downloadEnd"), start, end);
-
-        Predicate combineBetween = cb.or(betweenStart, betweenEnd);
-        Predicate combineGL = cb.and(startGreater, endLess);
-        Predicate finalPredicate = cb.or(combineBetween, combineGL);
+        Predicate finalPredicate = createJoinDatePredicate(cb,"downloadStart","downloadEnd",start,end,downloadUserJoin);
 
         if (!("undefined".equals(method)) && !("".equals(method))) {
             Predicate methodPredicate = cb.equal(downloadJoin.get("method"), method);
@@ -309,13 +305,13 @@ public class DownloadResource {
 
         for (Object[] singleDownload : downloads) {
 
-            LocalDate downloadBeginning = RestUtility.convertToLocalDate((Date) singleDownload[0]);
+            LocalDate downloadBeginning = convertToLocalDate((Date) singleDownload[0]);
             LocalDate downloadEnd;
             //To deal with downloads still currently going. Just set it to the current date
             if (singleDownload[1] == null) {             
                 downloadEnd = LocalDate.now();
             } else {
-                downloadEnd = RestUtility.convertToLocalDate((Date) singleDownload[1]);
+                downloadEnd = convertToLocalDate((Date) singleDownload[1]);
             }
 
             //Bring the download date up to the requested start date.
@@ -732,31 +728,14 @@ public class DownloadResource {
         //Join between download and download location.
         Join<Download, GeoLocation> downloadJoin = download.join("location");
 
-        Join<Download, ICATUser> downloadUserJoin = download.join("user");
+        Join<Download, ICATUser> userJoin = download.join("user");
 
-        query.multiselect(cb.avg(download.<Long>get("bandwidth")), cb.min(download.<Long>get("bandwidth")), cb.max(download.<Long>get("bandwidth")), downloadJoin.get("isp"));
+        query.multiselect(cb.avg(download.<Long>get("bandwidth")), cb.min(download.<Long>get("bandwidth")), cb.max(download.<Long>get("bandwidth")), downloadJoin.get("isp"));        
 
-        Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
-        Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"), end);
-        Predicate betweenStart = cb.between(download.<Date>get("downloadStart"), start, end);
-        Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"), start, end);
-
-        Predicate completeDownload = cb.equal(download.get("status"), finished);
-
-        Predicate combineBetween = cb.or(betweenStart, betweenEnd);
-        Predicate combineGL = cb.and(startGreater, endLess);
-        Predicate finalPredicate = cb.and(completeDownload, cb.or(combineBetween, combineGL));
-
-        if (!("undefined".equals(method)) && !("".equals(method))) {
-            Predicate methodPredicate = cb.equal(download.get("method"), method);
-            finalPredicate = cb.and(finalPredicate, methodPredicate);
-        }
-
-        if (!("undefined".equals(userName)) && !(("").equals(userName))) {
-            Predicate userPredicate = cb.equal(downloadUserJoin.get("name"), userName);
-            finalPredicate = cb.and(finalPredicate, userPredicate);
-        }
-
+        Predicate completeDownload = cb.equal(download.get("status"), finished);       
+        
+        Predicate finalPredicate = cb.and(completeDownload, createDownloadPredicate(cb, start, end, download, userJoin, "", method));
+        
         query.groupBy(downloadJoin.get("isp"));
 
         query.where(finalPredicate);
@@ -974,80 +953,7 @@ public class DownloadResource {
         return resultArray.toJSONString();
     }
 
-    /**
-     * *
-     * Creates a predicate that applies a restriction to gather all downloads
-     * between the start and end date and any during those period.
-     *
-     * @param cb CriteriaBuilder to build the Predicate.
-     * @param start Start time of the predicate statement.
-     * @param end End time of the predicate statement.
-     * @param userName The name of a ICATuser to add to the predicate.
-     * @param method The name of a method to add to the predicate.
-     * @return a predicate object that contains restrictions to gather all
-     * downloads during the start and end date.
-     */
-    private Predicate createDownloadPredicate(CriteriaBuilder cb, Date start, Date end, Root<Download> download, Join<Download, ICATUser> userJoin, String userName, String method) {
+    
 
-        Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
-        Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"), end);
-        Predicate betweenStart = cb.between(download.<Date>get("downloadStart"), start, end);
-        Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"), start, end);
-
-        Predicate combineBetween = cb.or(betweenStart, betweenEnd);
-        Predicate combineGL = cb.and(startGreater, endLess);
-        Predicate finalPredicate = cb.or(combineBetween, combineGL);
-
-        if (!("undefined".equals(method)) && !("".equals(method))) {
-            Predicate methodPredicate = cb.equal(download.get("method"), method);
-            finalPredicate = cb.and(finalPredicate, methodPredicate);
-        }
-
-        if (!("undefined".equals(userName)) && !(("").equals(userName))) {
-            Predicate userPredicate = cb.equal(userJoin.get("name"), userName);
-            finalPredicate = cb.and(finalPredicate, userPredicate);
-        }
-
-        return finalPredicate;
-
-    }
-
-    /**
-     * *
-     * Creates a predicate that applies a restriction to gather all
-     * downloadLocations between the start and end date and any during those
-     * period.
-     *
-     * @param cb CriteriaBuilder to build the Predicate.
-     * @param start Start time of the predicate statement.
-     * @param end End time of the predicate statement.
-     * @param userName The name of a ICATuser to add to the predicate.
-     * @param method The name of a method to add to the predicate.
-     * @return a predicate object that contains restrictions to gather all
-     * downloadLocations during the start and end date.
-     */
-    private Predicate createDownloadLocationPredicate(CriteriaBuilder cb, Date start, Date end, Join<Download, GeoLocation> downloadLocationJoin, String userName, String method) {
-
-        Predicate startGreater = cb.greaterThan(downloadLocationJoin.<Date>get("downloadStart"), start);
-        Predicate endLess = cb.lessThan(downloadLocationJoin.<Date>get("downloadEnd"), end);
-        Predicate betweenStart = cb.between(downloadLocationJoin.<Date>get("downloadStart"), start, end);
-        Predicate betweenEnd = cb.between(downloadLocationJoin.<Date>get("downloadEnd"), start, end);
-
-        Predicate combineBetween = cb.or(betweenStart, betweenEnd);
-        Predicate combineGL = cb.and(startGreater, endLess);
-        Predicate finalPredicate = cb.or(combineBetween, combineGL);
-
-        if (!("undefined".equals(method)) && !("".equals(method))) {
-            Predicate methodPredicate = cb.equal(downloadLocationJoin.get("method"), method);
-            finalPredicate = cb.and(finalPredicate, methodPredicate);
-        }
-
-        if (!("undefined".equals(userName)) && !(("").equals(userName))) {
-            Join<ICATUser, Download> downloadUserJoin = downloadLocationJoin.join("user");
-            Predicate userPredicate = cb.equal(downloadUserJoin.get("name"), userName);
-            finalPredicate = cb.and(finalPredicate, userPredicate);
-        }
-
-        return finalPredicate;
-    }
+    
 }

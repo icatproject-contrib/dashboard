@@ -5,11 +5,15 @@
  */
 package org.icatproject.dashboard.exposed;
 
+import org.icatproject.dashboard.utility.RestUtility;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
+import static org.icatproject.dashboard.utility.DateUtility.calculateHourDifference;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTime;
 
 
 /**
@@ -23,7 +27,7 @@ public class DownloadSizeProcessor {
     
    
     
-    DownloadSizeProcessor(LocalDate start, LocalDate end){
+    public DownloadSizeProcessor(LocalDate start, LocalDate end){
         
         startPoint = start;
         endPoint = end;
@@ -44,8 +48,8 @@ public class DownloadSizeProcessor {
         
          for(Object[] download : downloadList){               
                 
-                LocalDate beginningDate = RestUtility.convertToLocalDate((Date) download[0]);
-                LocalDate endDate = RestUtility.convertToLocalDate((Date) download[1]);
+                LocalDate beginningDate = convertToLocalDate((Date) download[0]);
+                LocalDate endDate = convertToLocalDate((Date) download[1]);
                 
                 long size = (long)download[2];
                 
@@ -60,10 +64,10 @@ public class DownloadSizeProcessor {
                 }
                 else{
                     
-                    LocalDateTime beginningTime = RestUtility.convertToLocalDateTime((Date) download[0]);
-                    LocalDateTime endTime = RestUtility.convertToLocalDateTime((Date) download[1]); 
+                    LocalDateTime beginningTime = convertToLocalDateTime((Date) download[0]);
+                    LocalDateTime endTime = convertToLocalDateTime((Date) download[1]); 
                 
-                    long durationInHours = RestUtility.calculateHourDifference(beginningTime, endTime);
+                    long durationInHours = calculateHourDifference(beginningTime, endTime);
                     long bytesPerHour = size/durationInHours;
                     long bytesPerDay = bytesPerHour*24;
                     

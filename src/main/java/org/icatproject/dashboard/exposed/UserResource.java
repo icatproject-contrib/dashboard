@@ -5,6 +5,7 @@
  */
 package org.icatproject.dashboard.exposed;
 
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -38,10 +39,13 @@ import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
-import static org.icatproject.dashboard.exposed.RestUtility.convertMapToJSON;
-import static org.icatproject.dashboard.exposed.RestUtility.convertResultsToJson;
+import static org.icatproject.dashboard.utility.RestUtility.convertMapToJSON;
+import static org.icatproject.dashboard.utility.RestUtility.convertResultsToJson;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.PropsManager;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
+import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTime;
+import static org.icatproject.dashboard.utility.RestUtility.createPrePopulatedMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -137,7 +141,7 @@ public class UserResource {
         LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();
 
-        TreeMap<LocalDate, Long> loginDates = RestUtility.createPrePopulatedMap(startRange, endRange);
+        TreeMap<LocalDate, Long> loginDates = createPrePopulatedMap(startRange, endRange);
 
         //Criteria objects.
         CriteriaBuilder cb = manager.getCriteriaBuilder();
@@ -168,7 +172,7 @@ public class UserResource {
         List<Object> result = manager.createQuery(query).getResultList();
         
         for(Object day : result){
-            LocalDate collectionDate = RestUtility.convertToLocalDate((Date) day);
+            LocalDate collectionDate = convertToLocalDate((Date) day);
             
             if(loginDates.containsKey(collectionDate)){
                 Long value  = loginDates.get(collectionDate);
@@ -245,7 +249,7 @@ public class UserResource {
 
         Date loginTime = (Date) query.getSingleResult();
 
-        Duration loggedTime = Duration.between((RestUtility.convertToLocalDateTime(loginTime)), LocalDateTime.now());
+        Duration loggedTime = Duration.between((convertToLocalDateTime(loginTime)), LocalDateTime.now());
 
         return loggedTime;
 
