@@ -11,7 +11,7 @@ and open the template in the editor.
     <ejb>
       <ejb-name>DownloadListener</ejb-name>
       <mdb-connection-factory>
-        <jndi-name>jms/idsFactory</jndi-name>
+        <jndi-name>jms/idsConnectionFactory</jndi-name>
       </mdb-connection-factory>
       <bean-pool>
         <resize-quantity>1</resize-quantity>
@@ -22,7 +22,7 @@ and open the template in the editor.
     <ejb>
       <ejb-name>ICATListener</ejb-name>
       <mdb-connection-factory>
-        <jndi-name>jms/icatFactory</jndi-name>
+        <jndi-name>jms/icatConnectionFactory</jndi-name>
       </mdb-connection-factory>      
     </ejb>
   </enterprise-beans>
