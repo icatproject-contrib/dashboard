@@ -1,7 +1,5 @@
 package org.icatproject.dashboard.entity;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -19,8 +17,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 
 import org.icatproject.dashboard.exceptions.DashboardException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 @SuppressWarnings("serial")
@@ -28,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public abstract class EntityBaseBean implements Serializable {
 
 	
-	private static final Logger logger = LoggerFactory.getLogger(EntityBaseBean.class);
+	
 	
 
 	@Column(name = "CREATE_TIME", nullable = false)
@@ -71,12 +67,7 @@ public abstract class EntityBaseBean implements Serializable {
 	
 
 
-	private void reportUnexpected(Throwable e) {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		e.printStackTrace(new PrintStream(baos));
-		logger.error("Internal exception: " + baos);
-	}
-
+	
 	
 
 	public void setCreateTime(Date createTime) {

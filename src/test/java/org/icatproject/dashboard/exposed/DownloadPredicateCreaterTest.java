@@ -21,8 +21,10 @@ import org.icatproject.dashboard.entity.Download;
 
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ICATUser;
+import org.icatproject.dashboard.exceptions.DashboardException;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadLocationPredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadPredicate;
+import org.icatproject.dashboard.utility.DateUtility;
 import static org.icatproject.dashboard.utility.DateUtility.convertToDate;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -46,8 +48,12 @@ public class DownloadPredicateCreaterTest {
                 .addPackage(GeoLocation.class.getPackage())
                 .addPackage(Download.class.getPackage())
                 .addPackage(ICATUser.class.getPackage())
-                .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+                .addPackage(DashboardException.class.getPackage())
+                .addPackage(PredicateCreater.class.getPackage())
+                .addPackage(DateUtility.class.getPackage())
+                .addAsWebInfResource("web.xml")
+            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+            .addAsResource("test-persistence.xml", "META-INF/persistence.xml");
     }
 
     @PersistenceContext
