@@ -22,7 +22,6 @@ import org.icatproject.dashboard.entity.ICATLog;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.InternalException;
 import org.icatproject.dashboard.manager.EntityBeanManager;
-import org.icatproject.dashboard.manager.PropsManager;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -33,9 +32,9 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/ICAT/log"),
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),
     @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
-    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),     
+   @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),     
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"), 
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "icat5331"),
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "icat5221"),
     
     
   
@@ -51,10 +50,8 @@ public class ICATListener implements MessageListener {
     private EntityBeanManager beanManager;
     
     @EJB
-    private UserCollector userCollector;
+    private UserCollector userCollector;    
     
-    @EJB
-    private PropsManager properties;
     
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;   
@@ -106,12 +103,14 @@ public class ICATListener implements MessageListener {
         
         if("login".equals(operation)){
              user.setLogged(true);
+             beanManager.update(user, manager);
         }
         else if("logout".equals(operation)){
             user.setLogged(false);
+            beanManager.update(user, manager);
         }      
         
-        beanManager.update(user, manager);
+        
         
         
     }
@@ -144,7 +143,7 @@ public class ICATListener implements MessageListener {
             if(json.containsKey("query")){
                 String query = (String)json.get("query");
                 if(query.length() > 4000){
-                    query = query.substring(0, 3996) + "...";
+                    query = query.substring(0, 3990) + "...";
                 }
                 icatLog.setQuery(query);
             }                    
@@ -181,7 +180,7 @@ public class ICATListener implements MessageListener {
         
         List<Object> user = beanManager.search("SELECT u FROM ICATUser u WHERE u.name= '"+name+"'", manager);        
         
-        if(user.get(0)==null){           
+        if(user.isEmpty()){           
             dashBoardUser = userCollector.insertUser(name);           
         }
         else{           
