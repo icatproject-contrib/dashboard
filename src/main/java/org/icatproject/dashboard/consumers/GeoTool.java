@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManager;
+import org.icatproject.dashboard.entity.GeoIpAddress;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.manager.EntityBeanManager;
@@ -44,9 +45,10 @@ public class GeoTool {
         
         List<GeoLocation> locations = manager.createNamedQuery("GeoLocation.ipCheck").setParameter("ipAddress", ipAddress).getResultList();
         
-        //If not found from the ipAddress then contact the API to get the long and latitude
+        //If not found from the ipAddress then contact the API to get the long and latitude. 
         if(locations.isEmpty()){
                         
+                      
             JSONParser parser = new JSONParser();
             JSONObject result = new JSONObject();
             try {
@@ -66,16 +68,24 @@ public class GeoTool {
                 location = locations.get(0);
             }
             else{
-                location = new GeoLocation( longitude, latitude, countryCode, city,  isp, ipAddress);            
+                location = new GeoLocation( longitude, latitude, countryCode, city,  isp);      
+                
             
             try {
                 beanManager.create(location, manager);
             } catch (DashboardException ex) {
-                Logger.getLogger(GeoTool.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.error("Issue creating GeoLocation: "+ex);
             }  
                 
-           }         
-            
+           }   
+                        
+            //Add the GeoIpAddress to the GeoLocation.
+            try {
+                GeoIpAddress geoIp = new GeoIpAddress(location,ipAddress);
+                beanManager.create(geoIp, manager);
+            } catch (DashboardException ex) {
+                LOG.error("Issue creating GeoIpAddress: "+ex);
+            }
         } 
         else{
             location = locations.get(0);
