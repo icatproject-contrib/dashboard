@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),   
    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),     
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"), 
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "icat581"),
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "icat55581"),
     
     
     

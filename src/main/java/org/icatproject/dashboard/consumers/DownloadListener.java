@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.ActivationConfigProperty;
+import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.jms.JMSException;
@@ -54,6 +55,7 @@ import org.icatproject.IcatException_Exception;
 import org.icatproject.Investigation;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
 import org.icatproject.dashboard.entity.GeoLocation;
+import org.icatproject.dashboard.manager.ConsumerController;
 import org.icatproject.dashboard.manager.DashboardSessionManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -69,7 +71,7 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),    
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),  
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub2"),
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "id2s21"),
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "id211s21"),
     
     
 })
@@ -83,7 +85,6 @@ import org.slf4j.LoggerFactory;
  * and properties. It will then collect extra information from the ICAT and then from TopCat. 
  * With all this information it then pushes the data to the database.
  */
-
 
 public class DownloadListener implements MessageListener {
     
@@ -100,6 +101,9 @@ public class DownloadListener implements MessageListener {
 
     @EJB
     private UserCollector userCollector;
+    
+    @EJB
+    private ConsumerController controller;
 
     protected ICAT icat;
 
@@ -144,6 +148,8 @@ public class DownloadListener implements MessageListener {
     @Override
     public void onMessage(Message message) {
         
+        checkController();
+        
         LOG.info("Recieved a JMS message from the IDS");
 
         TextMessage text = (TextMessage) message;
@@ -165,6 +171,22 @@ public class DownloadListener implements MessageListener {
         } catch (JMSException | ParseException ex) {
             LOG.error("An error has occured", ex);
         }
+    }
+    
+    /** 
+     * Checks the controller to see if it can process the message if not 
+     * it waits.
+     */
+    private void checkController(){
+        
+        while(!controller.getImportFlag()){
+            try {
+                Thread.sleep(100000);
+            } catch (InterruptedException ex) {
+                LOG.error("Issue with controlling the DownloadListener");
+            }
+        }
+        
     }
 
     /**
