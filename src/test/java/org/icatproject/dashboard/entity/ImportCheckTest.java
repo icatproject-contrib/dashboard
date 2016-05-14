@@ -27,11 +27,11 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 
-//@RunWith(Arquillian.class)
+@RunWith(Arquillian.class)
 public class ImportCheckTest {
     
-    
-   // @Deployment
+  
+   @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "test.war")
             .addPackage(ImportCheck.class.getPackage())
@@ -43,18 +43,18 @@ public class ImportCheckTest {
             
     }
     
-    //@PersistenceContext
+    @PersistenceContext
     EntityManager entityManager;
     
-    //@Inject
+    @Inject
     UserTransaction userTransaction;
     
-    //@Rule
+    @Rule
     public ExpectedException thrown= ExpectedException.none();
     
     
     
-    //@Test
+    @Test
     public void no_duplicate_imports_on_same_day() throws Exception {
        
             userTransaction.begin();

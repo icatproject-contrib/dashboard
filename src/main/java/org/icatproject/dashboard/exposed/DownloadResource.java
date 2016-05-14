@@ -220,7 +220,7 @@ public class DownloadResource {
 
         query.multiselect(cb.sum(downloadEntityAge.<Long>get("amount")), downloadEntityAge.get("age"));
 
-        Predicate finalPredicate = createJoinDatePredicate(cb,"downloadStart","downloadEnd",start,end,downloadUserJoin);
+        Predicate finalPredicate = createJoinDatePredicate(cb,"downloadStart","downloadEnd",start,end,downloadJoin);
 
         if (!("undefined".equals(method)) && !("".equals(method))) {
             Predicate methodPredicate = cb.equal(downloadJoin.get("method"), method);

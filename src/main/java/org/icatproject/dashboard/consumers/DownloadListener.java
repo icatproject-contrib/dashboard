@@ -66,11 +66,10 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
     @ActivationConfigProperty(propertyName="maxSessions",propertyValue="1"),
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/IDS/log"),
-    @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),
-    @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
+    @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),    
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),  
-    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"),
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "ids5331"),
+    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub2"),
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "id2s21"),
     
     
 })
@@ -88,7 +87,7 @@ import org.slf4j.LoggerFactory;
 
 public class DownloadListener implements MessageListener {
     
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(DashboardSessionManager.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(DashboardSessionManager.class);
 
     @EJB
     private PropsManager prop;
@@ -144,6 +143,8 @@ public class DownloadListener implements MessageListener {
      */
     @Override
     public void onMessage(Message message) {
+        
+        LOG.info("Recieved a JMS message from the IDS");
 
         TextMessage text = (TextMessage) message;
         downloadSize = 0;
@@ -162,7 +163,7 @@ public class DownloadListener implements MessageListener {
             }
 
         } catch (JMSException | ParseException ex) {
-            logger.error("An error has occured", ex);
+            LOG.error("An error has occured", ex);
         }
     }
 
@@ -190,7 +191,7 @@ public class DownloadListener implements MessageListener {
             
 
         } catch (IcatException_Exception| JMSException | DashboardException | SecurityException | IllegalStateException ex) {
-            logger.error("A Fatal Error has Occured ",ex);
+            LOG.error("A Fatal Error has Occured ",ex);
         }
     }
     
@@ -252,7 +253,7 @@ public class DownloadListener implements MessageListener {
            
             
         } catch (DashboardException | JMSException |  ParseException | InterruptedException | IcatException_Exception ex) {
-             logger.error("A Fatal Error has Occured",ex);
+             LOG.error("A Fatal Error has Occured",ex);
         } 
     }
     
@@ -311,7 +312,7 @@ public class DownloadListener implements MessageListener {
             download.setStatus(inProgress);
             beanManager.create(download, manager);
         } catch (DashboardException | JMSException | ParseException ex) {
-            logger.error("A Fatal Error has Occured ",ex);
+            LOG.error("A Fatal Error has Occured ",ex);
         }
         
                 
@@ -365,7 +366,7 @@ public class DownloadListener implements MessageListener {
             }
             
         } catch (ParseException ex) {
-            logger.info("Issue with parsing the JMS message body: ",ex.getMessage());
+            LOG.info("Issue with parsing the JMS message body: ",ex.getMessage());
         }
         
         return messageValues;
@@ -466,7 +467,7 @@ public class DownloadListener implements MessageListener {
         try {        
             entityQuery = beanManager.search("SELECT e FROM Entity_ e JOIN e.downloadEntities ed JOIN ed.download d WHERE d.id='"+ downloadID +"'", manager);
         } catch (InternalException ex) {
-            logger.error("A Fatal Error has Occured ",ex);
+            LOG.error("A Fatal Error has Occured ",ex);
         }
         
         for(Object e : entityQuery){
@@ -513,7 +514,7 @@ public class DownloadListener implements MessageListener {
             topCatOutput = (JSONObject) jsonArray.get(0);
         }
         catch (IOException | ParseException ex) {
-             logger.error("A Fatal Error has Occured ",ex);
+             LOG.error("A Fatal Error has Occured ",ex);
         }
         
         return topCatOutput;
@@ -608,7 +609,7 @@ public class DownloadListener implements MessageListener {
        
         ICATUser dashBoardUser;
         
-        logger.info("Searching for user: " + name + " in dashboard.");
+        LOG.info("Searching for user: " + name + " in dashboard.");
         List<Object> user = null;
         try {
             user = beanManager.search("SELECT u FROM ICATUser u WHERE u.name='" + name + "'", manager);
@@ -616,12 +617,12 @@ public class DownloadListener implements MessageListener {
             Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        if (user.size()==0) {
-            logger.info("No user found in the Dashboard. Retrieving from ICAT.");
+        if (user.isEmpty()) {
+            LOG.info("No user found in the Dashboard. Retrieving from ICAT.");
             dashBoardUser = userCollector.insertUser(name);
 
         } else {
-            logger.info("Found the user in the dashboard");
+            LOG.info("Found the user in the dashboard");
             dashBoardUser = (ICATUser) user.get(0);
         }
 
@@ -938,7 +939,7 @@ public class DownloadListener implements MessageListener {
         try {
             inv = (Investigation) icat.get(sessionID, "Investigation", id);
         } catch (IcatException_Exception ex) {
-            logger.error("A fatal error has occured ",ex);
+            LOG.error("A fatal error has occured ",ex);
         }
 
         return inv;
@@ -956,7 +957,7 @@ public class DownloadListener implements MessageListener {
         try {
             ds = (Dataset) icat.get(sessionID, "Dataset", id);
         } catch (IcatException_Exception ex) {
-            logger.error("A fatal error has occured ",ex);
+            LOG.error("A fatal error has occured ",ex);
         }
         return ds;
     }
@@ -973,7 +974,7 @@ public class DownloadListener implements MessageListener {
         try {
             df = (Datafile) icat.get(sessionID, "Datafile", id);
         } catch (IcatException_Exception ex) {
-            logger.error("A fatal error has occured ",ex);
+            LOG.error("A fatal error has occured ",ex);
         }
         return df;
 
@@ -992,7 +993,7 @@ public class DownloadListener implements MessageListener {
         try {
             size = Long.parseLong((icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds JOIN ds.investigation i WHERE i.id=" + id).toArray()[0].toString()));
         } catch (IcatException_Exception ex) {
-            logger.error("A fatal error has occured ",ex);
+            LOG.error("A fatal error has occured ",ex);
         }
         return size;
     }
@@ -1010,7 +1011,7 @@ public class DownloadListener implements MessageListener {
         try {
             size = Long.parseLong(icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds WHERE ds.id=" + id).toArray()[0].toString());
         } catch (IcatException_Exception ex) {
-            logger.error("A fatal error has occured ",ex);
+            LOG.error("A fatal error has occured ",ex);
         }
 
         return size;
@@ -1032,7 +1033,7 @@ public class DownloadListener implements MessageListener {
             icat = service.getICATPort();
 
         } catch (MalformedURLException ex) {
-           logger.error("A fatal error has occured ",ex);
+           LOG.error("A fatal error has occured ",ex);
         }
 
         return icat;

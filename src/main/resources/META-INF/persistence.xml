@@ -5,15 +5,14 @@
     <jta-data-source>jdbc/dashboard</jta-data-source>
     <properties>
       <property name="eclipselink.cache.shared.default" value="false"/>
-      <property name="eclipselink.logging.level" value="WARNING"/>
-      <!--property name="eclipselink.logging.level" value="FINE" /-->
-      <!--property name="eclipselink.logging.level.sql" value="FINE" /-->
-      <property name="eclipselink.logging.parameters" value="true"/>
+      <!-- <property name="eclipselink.logging.level" value="WARNING" /> -->
+      <!-- <property name="eclipselink.logging.level" value="FINE" /> -->
+      <!-- <property name="eclipselink.logging.level.sql" value="FINE" /> -->
+      <!-- <property name="eclipselink.logging.parameters" value="true" /> -->
       <property name="eclipselink.ddl-generation" value="create-tables"/>
       <property name="eclipselink.ddl-generation.output_mode" value="both"/>
       <property name="eclipselink.deploy-on-startup" value="true"/>
-      <property name="eclipselink.target-server" value="Glassfish"/>
+     
     </properties>
   </persistence-unit>
-  
 </persistence>

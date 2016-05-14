@@ -103,7 +103,7 @@ public class DataCollector {
         
         LocalDate today = LocalDate.now();
       
-        LOG.info("Entity Collection initiated for ",today.toString());
+        LOG.info("Entity Collection initiated for "+today.toString());
         
         LocalDate earliestEntityImport = getNextImportDate("entity");   
         LocalDate earliestInstrumentImport = getNextImportDate("instrument"); 
@@ -121,7 +121,7 @@ public class DataCollector {
             counter.performInvestigationMetaCollection(earliestInvestigationImport, today);
         }
                
-        LOG.info("Entity collection completed for ",today.toString());
+        LOG.info("Entity collection completed for "+today.toString());
     } 
     
     

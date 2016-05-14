@@ -88,12 +88,15 @@ public class IcatDataManager {
      * from the dashboard.properties file.
      */
     private void createTimers(){
+        LOG.info("Creating timers for ICAT data mangement");
         
         TimerConfig refreshSession = new TimerConfig("refreshSession", false);
         TimerConfig refreshData = new TimerConfig("refreshData", false);
         
         timerService.createIntervalTimer(1200000,1200000,refreshData);        
-        timerService.createIntervalTimer(3600000,3600000,refreshSession);         
+        timerService.createIntervalTimer(3600000,3600000,refreshSession);   
+        
+        LOG.info("Finished creating timers for ICAT data mangement.");
        
         
     }
@@ -137,6 +140,8 @@ public class IcatDataManager {
         } catch (IOException | ParseException ex) {
                 LOG.error("Unable to collect the authenticator list from the ICAT ",ex);
         }
+        
+        LOG.info("Collected authenticators from the ICAT: "+mnemonicArray.toJSONString());
 
         return mnemonicArray.toJSONString();
     }
@@ -154,12 +159,15 @@ public class IcatDataManager {
         try {
             URL hostUrl;
             
+            LOG.info("Getting sessionId from ICAT: "+properties.getICATUrl());
+            
             hostUrl = new URL(properties.getICATUrl());
             URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
             QName qName = new QName("http://icatproject.org", "ICATService");
             ICATService service = new ICATService(icatUrl, qName);
             icat = service.getICATPort();            
                                         
+            LOG.info("Successfuly retrieved a sessionId from ICAT: "+properties.getICATUrl());
                     
         } catch (MalformedURLException ex) {
             LOG.error("Error connecting to the ICAT ",ex);
@@ -169,7 +177,7 @@ public class IcatDataManager {
         
         try {
             session = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
-            LOG.info("Successfully Logged into ICAT");
+            LOG.info("Successfully created ICAT Rest Client.");
         } catch (IcatException_Exception ex) {
             LOG.error("Error logging into the ICAT ",ex);
         }
@@ -186,6 +194,7 @@ public class IcatDataManager {
      */
     @Timeout
     public void timeout(Timer timer){
+     
         if("refreshSession".equals(timer.getInfo())){
             refreshSession();
         }
@@ -221,6 +230,7 @@ public class IcatDataManager {
         } catch (IcatException | ParseException ex) {
             LOG.error("Issue with collecting instrument names and ids from the ICAT ",ex);
         }
+        LOG.info("Collected instument ids from the ICAT.");
         
         return instrumentIds;
     }

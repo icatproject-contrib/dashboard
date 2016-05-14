@@ -8,7 +8,6 @@ package org.icatproject.dashboard.exposed;
 //Creates predicate for all RESTFul calls.
 import java.util.Date;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -17,7 +16,6 @@ import org.icatproject.dashboard.entity.EntityBaseBean;
 import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.entity.InstrumentMetaData;
-import org.icatproject.dashboard.entity.InvestigationMetaData;
 
 public class PredicateCreater {
 
@@ -132,7 +130,7 @@ public class PredicateCreater {
      */
     public static Predicate getEntityCountPredicate(CriteriaBuilder cb, Root<EntityCount> entityCount, Date start, Date end, String entityType) {
        
-        Predicate entity = cb.equal(entityCount.<Long>get("entityType"), entityType);
+        Predicate entity = cb.equal(entityCount.get("entityType"), entityType);
 
         Predicate dateRange = getDatePredicate(cb,entityCount,start,end,"countDate");
 
@@ -154,10 +152,9 @@ public class PredicateCreater {
      */
     public static Predicate getDatePredicate(CriteriaBuilder cb, Root<?> entity, Date start, Date end, String dateType) {
         
-        Predicate startGreater = cb.greaterThanOrEqualTo(entity.<Date>get(dateType), start);
-        Predicate endLess = cb.lessThanOrEqualTo(entity.<Date>get(dateType), end);
+        Predicate betweenDate = cb.between(entity.<Date>get(dateType), start, end);
 
-        return cb.and(startGreater, endLess);
+        return betweenDate;
 
     }
 

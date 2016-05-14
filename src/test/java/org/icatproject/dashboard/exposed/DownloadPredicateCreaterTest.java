@@ -18,9 +18,13 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.UserTransaction;
 import org.icatproject.dashboard.entity.Download;
+import org.icatproject.dashboard.entity.EntityBaseBean;
+import org.icatproject.dashboard.entity.EntityCount;
 
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ICATUser;
+import org.icatproject.dashboard.entity.InstrumentMetaData;
+import org.icatproject.dashboard.entity.InvestigationMetaData;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadLocationPredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadPredicate;
@@ -37,23 +41,26 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertEquals;
 
 @RunWith(Arquillian.class)
 public class DownloadPredicateCreaterTest {
 
     @Deployment
     public static Archive<?> createDeployment() {
-        return ShrinkWrap.create(WebArchive.class, "test.war")
-                .addPackage(GeoLocation.class.getPackage())
+        return ShrinkWrap.create(WebArchive.class)
+                //.addPackage(GeoLocation.class.getPackage())
                 .addPackage(Download.class.getPackage())
                 .addPackage(ICATUser.class.getPackage())
                 .addPackage(DashboardException.class.getPackage())
-                .addPackage(PredicateCreater.class.getPackage())
+                .addClass(PredicateCreater.class)
+                .addPackage(InvestigationMetaData.class.getPackage())
+                .addPackage(EntityBaseBean.class.getPackage())
+                .addPackage(InstrumentMetaData.class.getPackage())
+                .addPackage(EntityCount.class.getPackage())
                 .addPackage(DateUtility.class.getPackage())
+                .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
                 .addAsWebInfResource("web.xml")
-            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-            .addAsResource("test-persistence.xml", "META-INF/persistence.xml");
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
     @PersistenceContext
@@ -62,11 +69,9 @@ public class DownloadPredicateCreaterTest {
     @Inject
     public UserTransaction userTransaction;
 
-    @Before
-    public void setupData() throws Exception {
+   
 
-    }
-
+    
     @Before
     public void preparePersistenceTest() throws Exception {
         clearData();
@@ -146,6 +151,7 @@ public class DownloadPredicateCreaterTest {
         userTransaction.commit();
 
     }
+    
 
     @Test
     public void download_predicate_retrieve_all_downloads() {
@@ -283,5 +289,7 @@ public class DownloadPredicateCreaterTest {
         return cq;
 
     }
+     
 
 }
+

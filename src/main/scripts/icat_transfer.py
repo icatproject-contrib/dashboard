@@ -157,16 +157,14 @@ def exportLogs(icatCon, dashboardCon,database):
 		if(loopCounter == 500000):
 			importMany(result,cursImport,importQuery)
 			loopCounter = 0
-			result = []
-			dashboardCon.commit()			
+			result = []						
 		counter +=1
 		loopCounter+=1	
 
 	#Import any remaining files 	
 	importMany(result,cursImport,importQuery)
 	
-	dashboardCon.commit()
-
+	
 	#Closes connections
 	cursImport.close()
 	cursExport.close()		
@@ -448,15 +446,14 @@ if __name__ == "__main__":
 		dashboardCon = connectToOracle(configuration,"dashboard")		
 
 
-	#exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
-	#exportLogs(icatCon,dashboardCon,database)	
+	exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
+	exportLogs(icatCon,dashboardCon,database)	
 	importEntitiesCount(dashboardCon, icatCon, database,configuration)
-	insertIntegrityFlag(dashboardCon,database,"entity")
-
 	importInstrumentMeta(dashboardCon,icatCon,database)
-	insertIntegrityFlag(dashboardCon,database,"instrument")
-
 	importInvestigationMeta(dashboardCon,icatCon,database)
+	
+	insertIntegrityFlag(dashboardCon,database,"entity")
+	insertIntegrityFlag(dashboardCon,database,"instrument")	
 	insertIntegrityFlag(dashboardCon,database,"investigation")
 	
 

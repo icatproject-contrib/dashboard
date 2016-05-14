@@ -128,7 +128,7 @@
 			var updateUserDownloadPromise = vm.updateUserDownload(method)
 			var updateMethodDownloadPromise	= vm.updateMethodDownload()
 			var updateDownloadStatusPromise = vm.updateDownloadStatus(method)
-			var updadeDownloadEntityAgePromise = vm.updadeDownloadEntityAge(method)
+			var updadeDownloadEntityAgePromise = vm.updateDownloadEntityAge(method)
 			var updateLocalLocationPromise = vm.updateLocalLocation(method)
 			var updateGlobalLocationPromise = vm.updateGlobalLocation(method)
 			var updateDownloadFrequencyPromise = vm.updateDownloadFrequency(method)
@@ -330,8 +330,10 @@
 			});			
         }
 
-        vm.updadeDownloadEntityAge = function(method){
+        vm.updateDownloadEntityAge = function(method){
         	var selectedMethod = method === "All"?"":method;
+
+        	
 
 
         	return downloadService.getDownloadEntityAge(getStartDate(),getEndDate(),vm.userName,selectedMethod).then(function(responseData){
@@ -521,6 +523,7 @@
 		     			
 						return data.min;
 					});
+			
 
 					var max = _.map(responseData, function(data){
 		     			

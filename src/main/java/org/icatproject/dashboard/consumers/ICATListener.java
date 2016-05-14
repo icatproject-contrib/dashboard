@@ -30,11 +30,11 @@ import org.slf4j.LoggerFactory;
 @MessageDriven(activationConfig = {
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),  
     @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/ICAT/log"),
-    @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),
-    @ActivationConfigProperty(propertyName="acknowledgeMode", propertyValue="Auto-acknowledge"),
+    @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),   
    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),     
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"), 
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "icat5221"),
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "icat581"),
+    
     
     
   
@@ -64,6 +64,9 @@ public class ICATListener implements MessageListener {
      */
     @Override
     public void onMessage(Message message) {
+        
+        LOG.info("Recieved a JMS message from the ICAT");
+
         
         TextMessage text = (TextMessage) message;       
       

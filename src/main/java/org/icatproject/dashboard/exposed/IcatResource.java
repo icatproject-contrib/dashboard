@@ -5,10 +5,7 @@
  */
 package org.icatproject.dashboard.exposed;
 
-import org.icatproject.dashboard.utility.RestUtility;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;

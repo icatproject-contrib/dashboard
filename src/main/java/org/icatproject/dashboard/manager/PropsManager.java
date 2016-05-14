@@ -80,11 +80,13 @@ public class PropsManager {
            collectionTime = Integer.parseInt(props.getProperty("collectionTime").trim());
             
            
-           LOG.info("Functional accounts set as: ",functionalAccounts);
-           LOG.info("ICAT set as: ",ICATUrl);
-           LOG.info("TopCat set as: ",topCatURL);
-           LOG.info("Reader account set as ",userName);
-           LOG.info("Collection time set as (24 Hour Clock)",collectionTime);
+           LOG.info("Functional accounts set as: "+functionalAccounts);
+           LOG.info("ICAT set as: "+ICATUrl);
+           LOG.info("TopCat set as: "+topCatURL);
+           LOG.info("Reader account set as "+userName);
+           LOG.info("Collection time set as (24 Hour Clock) "+collectionTime);
+           
+           LOG.info("Finished collecting properties.");
           
            
     }

@@ -89,22 +89,23 @@ public class UserCollector  {
     /**
      * Overloaded insertUser method to allow MDB to inject into this class and add new users that appear.
      * @param name Unique name of the user in the ICAT.
+     * @return the created user.
      */
     public ICATUser insertUser(String name){
         String query = "SELECT u from User u WHERE u.name= '"+name+"'";
-        User u = null;        
+        User user = null;        
         
         try {
-            List<Object> user = icat.search(sessionID,query);
-            u=(User)user.get(0);
+            List<Object> icatUser = icat.search(sessionID,query);
+            user=(User)icatUser.get(0);
         } catch (IcatException_Exception ex) {
             Logger.getLogger(UserCollector.class.getName()).log(Level.SEVERE, null, ex);
         }
         ICATUser dashBoardUser = new ICATUser();
         
-        dashBoardUser.setUserICATID(u.getId());
-        dashBoardUser.setFullName(u.getFullName());
-        dashBoardUser.setName(u.getName());
+        dashBoardUser.setUserICATID(user.getId());
+        dashBoardUser.setFullName(user.getFullName());
+        dashBoardUser.setName(user.getName());
         
         insertUser(dashBoardUser);
         
