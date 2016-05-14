@@ -191,21 +191,21 @@ def exportUsers(icatCon,dashboardCon, database,rootName):
 
 	
 	cursExport = icatCon.cursor()
-    	cursImport = dashboardCon.cursor()
+	cursImport = dashboardCon.cursor()
 
 	userCount = getEntityAmount("USER_",icatCon)
 
 	print "Importing: "+str(userCount)+" users"
 	print "Current Amount Inserted: "
 
-    	userQuery= "SELECT FULLNAME, ID as userICATID, name  FROM USER_"
+	userQuery= "SELECT FULLNAME, ID as userICATID, name  FROM USER_"
 
-    	cursExport.execute(userQuery)
+	cursExport.execute(userQuery)
 
 	now = datetime.datetime.now()
 
-    	counter = 0
-    	#First insert the root user into the Dashboard
+	counter = 0
+	#First insert the root user into the Dashboard
 	importSingle(cursImport,(rootName,99999999,rootName,now,now),importQuery)
 
     	for row_data in cursExport:
@@ -226,8 +226,8 @@ def importSingle(cursImport,data,query):
 	try:
 		cursImport.execute(query,data)
 	except Exception as e:
-		print(e)
-		sys.exit(1)	
+		print("Entity has already been inserted by the dashboard. Carrying on...")
+		
 	
 
 #Retrieves the amount of entities from the entity and the provided connection
