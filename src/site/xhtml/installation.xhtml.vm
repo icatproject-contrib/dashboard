@@ -9,7 +9,7 @@
 	<h1>Installation</h1>
 
 	<h2>Compatibility</h2>
-	<p>This will work with an ICAT version of 4.5.0 or greater, TopCat 2.0.0 and requires 
+	<p>For the Dashboard to work it must be connected to an ICAT version of 4.7.0 or greater, TopCat 2.0.0 or greater and requires 
 		ids.server 1.6.0 or greater. </p>
 
 	<h2>Prerequisites</h2>
@@ -33,6 +33,7 @@
 		
 
 		<li>Python (version 2.4 to 2.7) installed on the server.</li>
+                
 	</ul>
 
 	<h2>Summary of steps</h2>
@@ -43,9 +44,68 @@
 			href="http://icatproject.org/installation/component/"> the
 				generic installation instructions</a>
 		</li>
+                
+                <li>If it is the first time you are installing the Dashboard you will 
+                    need to run the import script. </li>
 
 		<li>Check that it works.</li>
 	</ol>
+
+        <h2>ICAT transfer script<h2>
+
+        <p>This is a python script that will perform an initial database transfer of data from the ICAT to the dashboard. </p>
+
+        <p>To run the script just type python icat_transfer.py --vendor. The vendor option is currently either --oracle or --mysql </p>
+
+        <h3>Prerequisites</h3>
+
+        <ul>
+		<li>The database for the dashboard must be empty to prevent data clashes. </li>
+                <li>Python package cx_Oracle is installed.</li>
+                <li>Python package pymysql is installed.</li>
+              
+	</ul>
+
+        <h3>The icat_transfer.ini file</h3>
+
+        <p>[Dashboard]</p>
+        <dl>
+		<dt>oracle.username</dt>
+		<dd>The username used to login into the Oracle Dashboard database.</dd>
+                <dt>oracle.password</dt>
+		<dd>The password used to login into the Oracle Dashboard database.</dd>
+                <dt>oracle.url</dt>
+		<dd>The URL of the Dashboard oracle Oracle database.</dd>
+                
+                <dt>mySql.host</dt>
+		<dd>The username used to login into the MySql Dashboard database.</dd>
+                <dt>mySql.port</dt>
+		<dd>The port of the MySql Dashboard database.</dd>
+                <dt>mySql.password</dt>
+		<dd>The password used to login into the MySql Dashboard database.</dd>
+                <dt>mySql.db</dt>
+		<dd>The schema name of the MySql Dashboard database.</dd>
+	</dl>
+
+        <p>[ICAT]</p>
+
+        <dl>
+		<dt>oracle.username</dt>
+		<dd>The username used to login into the Oracle ICAT database.</dd>
+                <dt>oracle.password</dt>
+		<dd>The password used to login into the Oracle ICAT database.</dd>
+                <dt>oracle.url</dt>
+		<dd>The URL of the ICAT oracle Oracle database.</dd>
+                
+                <dt>mySql.host</dt>
+		<dd>The username used to login into the MySql ICAT database.</dd>
+                <dt>mySql.port</dt>
+		<dd>The port of the MySql ICAT database.</dd>
+                <dt>mySql.password</dt>
+		<dd>The password used to login into the MySql ICAT database.</dd>
+                <dt>mySql.db</dt>
+		<dd>The schema name of the MySql ICAT database.</dd>
+	</dl>
 
 	<h2>The dashboard-setup.properties file</h2>
 
@@ -78,7 +138,9 @@
 		<dt>db.password</dt>
 		<dd>password to connect to your database.</dd>
 		<dt>ids.server</dt>
-		<dd>the url of the server that will send JMS messages to the dashboard.</dd>
+		<dd>the url of the IDS server that will send JMS messages to the dashboard. For example: idsdev.facility.ac.uk. Please note no prefix.</dd>
+                <dt>ids.server</dt>
+		<dd>the url of the ICAT server that will send JMS messages to the dashboard.For example: icatdev.facility.ac.uk. Please note no prefix.</dd>
 		
 	</dl>
 
@@ -107,6 +169,9 @@
 		<dt>authorised_accounts</dt>
 		<dd>List of accounts in the format mnemonic/name to be allowed access to the dashboard.</dd>
 
+                <dt>collectionTime</dt>
+		<dd>The hour that the Dashboard should do its daily collection of data from the ICAT. (24 Hour Clock)</dd>
+
 		<dt>topCatURL</dt>
 		<dd>The URL of the TopCat to gather download statistics.</dd>
 
@@ -118,7 +183,7 @@
 	<h2>Check that the dashboard works</h2>
 	<p>
 		Enter a url of the form
-		<code>https://example.com/api/v1/ping</code>
+		<code>https://example.com/dashboard/ping</code>
 		into a web browse and it should respond:
 		<code>The Dashboard is doing fine!</code>
 		
