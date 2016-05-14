@@ -7,7 +7,6 @@ package org.icatproject.dashboard.entity;
 
 import java.util.List;
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -21,9 +20,9 @@ import javax.persistence.UniqueConstraint;
                 query="SELECT ge FROM GeoLocation ge WHERE ge.longitude = :longitude AND ge.latitude = :latitude"), 
     
     @NamedQuery(name="GeoLocation.ipCheck",
-                query="SELECT ge FROM GeoLocation ge WHERE ge.ipAddress= :ipAddress "),
+                query="SELECT ge FROM GeoLocation ge JOIN ge.geoIpAddresses geoIp WHERE geoIp.ipAddress= :ipAddress "),
 })
-@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "LONGITUDE", "LATITUDE","IPADDRESS" }) })
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "LONGITUDE", "LATITUDE"}) })
 @Entity
 public class GeoLocation extends EntityBaseBean {
     
@@ -34,6 +33,10 @@ public class GeoLocation extends EntityBaseBean {
     @Comment("A geolocation has many ICATLogs")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "location")    
     private List<ICATLog> logs;
+    
+    @Comment("A GeoLocation has a collection of ipAddress associated with it.")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "location") 
+    private List<GeoIpAddress> geoIpAddresses;
     
     @Comment("The longtitude of a download")
     private double longitude;
@@ -50,37 +53,29 @@ public class GeoLocation extends EntityBaseBean {
     @Comment("The ISP at this location.")
     private String isp;
     
-    @Comment("ip address of the geo location")
-    @Column( nullable = false)
-    private String ipAddress;
+    
 
-    public GeoLocation(double longitude, double latitude, String countryCode, String city, String isp, String ipAddress) {
+    public GeoLocation(double longitude, double latitude, String countryCode, String city, String isp) {
         this.longitude = longitude;
         this.latitude = latitude;
         this.countryCode = countryCode;
         this.city = city;
         this.isp = isp;
-        this.ipAddress = ipAddress;
+        
     }
     
     public GeoLocation(){
         
     }
-    
-    
 
-    public String getIpAddress() {
-        return ipAddress;
+    public List<GeoIpAddress> getGeoIpAddresses() {
+        return geoIpAddresses;
     }
-    
-    
 
-    public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
+    public void setGeoIpAddresses(List<GeoIpAddress> geoIpAddresses) {
+        this.geoIpAddresses = geoIpAddresses;
     }
-    
-    
-    
+   
     
     public List<ICATLog> getLogs() {
         return logs;
