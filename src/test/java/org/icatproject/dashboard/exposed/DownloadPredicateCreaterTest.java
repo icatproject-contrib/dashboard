@@ -95,9 +95,9 @@ public class DownloadPredicateCreaterTest {
         testUser.preparePersist();
         testUser2.preparePersist();
         
-        GeoLocation location1 =  new GeoLocation(51.2, -41.3, "GB", "Towny McTownFace", "Internet", "192.168.0.1");
-        GeoLocation location2 =  new GeoLocation(52.2, -41.3, "GB", "Town Land", "Internet", "192.168.0.3");
-        GeoLocation location3 =  new GeoLocation(54.2, -41.2, "GB", "Town upton Town", "Internet", "192.168.0.4");
+        GeoLocation location1 =  new GeoLocation(51.2, -41.3, "GB", "Towny McTownFace", "Internet");
+        GeoLocation location2 =  new GeoLocation(52.2, -41.3, "GB", "Town Land", "Internet");
+        GeoLocation location3 =  new GeoLocation(54.2, -41.2, "GB", "Town upton Town", "Internet");
         
         location1.preparePersist();
         location2.preparePersist();
