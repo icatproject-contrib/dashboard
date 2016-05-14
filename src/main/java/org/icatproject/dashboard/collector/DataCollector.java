@@ -24,6 +24,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import org.icatproject.*;
+import org.icatproject.dashboard.entity.ImportCheck;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +92,7 @@ public class DataCollector {
     public void timeout(Timer timer) {
        
         initialiseEntityCollection();
+        checkForFailedImports();
         
     } 
     
@@ -103,7 +105,7 @@ public class DataCollector {
         
         LocalDate today = LocalDate.now();
       
-        LOG.info("Entity Collection initiated for "+today.toString());
+        LOG.info("Data Collection initiated for "+today.toString());
         
         LocalDate earliestEntityImport = getNextImportDate("entity");   
         LocalDate earliestInstrumentImport = getNextImportDate("instrument"); 
@@ -121,8 +123,54 @@ public class DataCollector {
             counter.performInvestigationMetaCollection(earliestInvestigationImport, today);
         }
                
-        LOG.info("Entity collection completed for "+today.toString());
+        LOG.info("Data collection completed for "+today.toString());
+        
+       
+        
+      
+        
+        
     } 
+    
+    /**
+     * Checks to see if there have been any failed imports. If any are found then they are sent to be re-done.
+     */
+    public void checkForFailedImports(){
+         LOG.info("Check for missed data collections.");
+        Query failedImprotQuery = manager.createQuery("SELECT ic FROM ImportCheck ic WHERE ic.passed=0");
+        
+        List<Object> failedImports = failedImprotQuery.getResultList();
+        
+        if(!failedImports.isEmpty()){
+            
+            for(Object result : failedImports){
+                
+                ImportCheck ic = (ImportCheck) result;
+                String type = ic.getType();
+                LocalDate failedDate = convertToLocalDate(ic.getCheckDate());
+                
+                LOG.info("Found a failed import for "+type+" on the "+failedDate.toString());
+                
+                if("instrument".equals(type)){
+                    counter.performInstrumentMetaCollection(failedDate, failedDate.plusDays(1));
+                }else if("investigation".equals(type)){
+                     counter.performInvestigationMetaCollection(failedDate, failedDate.plusDays(1));
+                    
+                }else if("entity".equals(type)){
+                    counter.performEntityCountCollection(failedDate, failedDate.plusDays(1));
+                    
+                }
+                
+                
+                
+            }
+            
+            
+        }
+        
+        LOG.info("Finished checking for missed data collections.");
+        
+    }
     
     
     
