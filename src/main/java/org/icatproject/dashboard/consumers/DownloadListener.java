@@ -55,7 +55,6 @@ import org.icatproject.IcatException_Exception;
 import org.icatproject.Investigation;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
 import org.icatproject.dashboard.entity.GeoLocation;
-import org.icatproject.dashboard.manager.ConsumerController;
 import org.icatproject.dashboard.manager.DashboardSessionManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -71,7 +70,7 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),    
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),  
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub2"),
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "id211s21"),
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "id2112s21"),
     
     
 })
@@ -102,9 +101,7 @@ public class DownloadListener implements MessageListener {
     @EJB
     private UserCollector userCollector;
     
-    @EJB
-    private ConsumerController controller;
-
+   
     protected ICAT icat;
 
     protected String sessionID;
@@ -148,7 +145,6 @@ public class DownloadListener implements MessageListener {
     @Override
     public void onMessage(Message message) {
         
-        checkController();
         
         LOG.info("Recieved a JMS message from the IDS");
 
@@ -173,21 +169,7 @@ public class DownloadListener implements MessageListener {
         }
     }
     
-    /** 
-     * Checks the controller to see if it can process the message if not 
-     * it waits.
-     */
-    private void checkController(){
-        
-        while(!controller.getImportFlag()){
-            try {
-                Thread.sleep(100000);
-            } catch (InterruptedException ex) {
-                LOG.error("Issue with controlling the DownloadListener");
-            }
-        }
-        
-    }
+    
 
     /**
      * 

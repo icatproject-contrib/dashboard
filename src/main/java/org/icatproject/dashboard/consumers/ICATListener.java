@@ -21,6 +21,7 @@ import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.entity.ICATLog;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.InternalException;
+
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),   
    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),     
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"), 
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "icat55581"),
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "222222"),
     
     
     
@@ -51,6 +52,8 @@ public class ICATListener implements MessageListener {
     
     @EJB
     private UserCollector userCollector;    
+    
+
     
     
     @PersistenceContext(unitName="dashboard")
@@ -84,6 +87,8 @@ public class ICATListener implements MessageListener {
         }
         
     }
+    
+    
     
     /**
      * Adds a geoLocation to the ICATLog.
