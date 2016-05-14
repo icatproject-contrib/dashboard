@@ -70,7 +70,7 @@ public class PropsManager {
                throw new IllegalStateException(msg);
 
            }
-           functionalAccounts = Arrays.asList(props.getProperty("functional_accounts").split("\\s+"));
+           
            ICATUrl = props.getProperty("icat.url").trim();
            loginAuth = props.getProperty("authenticator").trim();
            authorisedAccounts = Arrays.asList(props.getProperty("authorised_accounts").split("\\s+"));
@@ -80,7 +80,7 @@ public class PropsManager {
            collectionTime = Integer.parseInt(props.getProperty("collectionTime").trim());
             
            
-           LOG.info("Functional accounts set as: "+functionalAccounts);
+           LOG.info("Authorised accounts set as: "+authorisedAccounts);
            LOG.info("ICAT set as: "+ICATUrl);
            LOG.info("TopCat set as: "+topCatURL);
            LOG.info("Reader account set as "+userName);
@@ -109,10 +109,7 @@ public class PropsManager {
         return authorisedAccounts;
     }    
     
-    public List<String> getFunctionalAccounts(){
-        return functionalAccounts;
-    }
-    
+      
     public String getICATUrl(){
         return ICATUrl;
     }
