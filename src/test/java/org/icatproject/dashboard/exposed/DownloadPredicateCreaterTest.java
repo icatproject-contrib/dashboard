@@ -73,10 +73,10 @@ public class DownloadPredicateCreaterTest {
 
     
     @Before
-    public void preparePersistenceTest() throws Exception {
-        clearData();
+    public void preparePersistenceTest() throws Exception { 
         insertData();
         startTransaction();
+        clearData();
     }
 
     @After

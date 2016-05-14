@@ -30,9 +30,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -62,9 +60,9 @@ public class EntityPredicateCreaterTest {
    
     @Before
     public void preparePersistenceTest() throws Exception {
-        clearData();
         insertData();
         startTransaction();
+        clearData();
     }
 
     @After
