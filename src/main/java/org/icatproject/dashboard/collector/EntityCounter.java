@@ -6,7 +6,6 @@
 package org.icatproject.dashboard.collector;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -49,7 +48,7 @@ public class EntityCounter  {
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;    
      
-    private final String[] ENTITIES={"Application", "DataCollection", "DataCollectionDatafile", "DataCollectionDataset", "DataCollectionParameter", "Datafile", "DatafileFormat", "DatafileParameter", "Dataset", "DatasetParameter", "DatasetType", "Facility", "FacilityCycle", "Grouping", "Instrument", "InstrumentScientist", "Investigation", "InvestigationGroup", "InvestigationInstrument", "InvestigationParameter", "InvestigationType", "InvestigationUser", "Job", "Keyword", "ParameterType", "PermissibleStringValue", "PublicStep", "Publication", "RelatedDatafile", "Rule", "Sample", "SampleParameter", "SampleType", "Shift", "Study", "StudyInvestigation", "User","UserGroup"};
+    private final String[] ENTITIES={"APPLICATION", "DATACOLLECTION", "DATACOLLECTIONDATAFILE", "DATACOLLECTIONDATASET", "DATACOLLECTIONPARAMETER", "DATAFILE", "DATAFILEFORMAT", "DATAFILEPARAMETER", "DATASET", "DATASETPARAMETER", "DATASETTYPE", "FACILITY", "FACILITYCYCLE", "GROUPING", "INSTRUMENT", "INSTRUMENTSCIENTIST", "INVESTIGATION", "INVESTIGATIONGROUP", "INVESTIGATIONINSTRUMENT", "INVESTIGATIONPARAMETER", "INVESTIGATIONTYPE", "INVESTIGATIONUSER", "JOB", "KEYWORD", "PARAMETERTYPE", "PERMISSIBLESTRINGVALUE", "PUBLICSTEP", "PUBLICATION", "RELATEDDATAFILE", "RULE", "SAMPLE", "SAMPLEPARAMETER", "SAMPLETYPE", "SHIFT", "STUDY", "STUDYINVESTIGATION", "USER","USERGROUP"};
        
     private Session icatSession;
     
