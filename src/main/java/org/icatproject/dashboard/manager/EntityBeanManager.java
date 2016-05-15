@@ -112,15 +112,9 @@ public class EntityBeanManager {
             logger.info("Created :" + bean.getClass().getSimpleName() + " with id: " + beanId);
 
             return beanId;
-        } catch (EntityExistsException e) {
+        } catch (Exception e) {
             throw new InternalException(e.getMessage());
-
-        } catch (Throwable e) {
-            logger.trace("Transaction rolled back for creation of " + bean + " because of " + e.getClass() + " "
-                    + e.getMessage());
-        }
-
-        return new Long(0);
+        }    
     }
 
     /**
