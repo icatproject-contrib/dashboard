@@ -74,9 +74,10 @@ public class DownloadPredicateCreaterTest {
     
     @Before
     public void preparePersistenceTest() throws Exception { 
+        clearData();
         insertData();
         startTransaction();
-        clearData();
+     
     }
 
     @After
@@ -90,7 +91,7 @@ public class DownloadPredicateCreaterTest {
         manager.joinTransaction();
 
         ICATUser testUser = new ICATUser(true, new Long(1), "Bobby McBobFace", "uows/1");
-        ICATUser testUser2 = new ICATUser(true,new Long(1), "Gary", "uows/2");
+        ICATUser testUser2 = new ICATUser(true,new Long(3), "Gary", "uows/2");
         
         testUser.preparePersist();
         testUser2.preparePersist();
