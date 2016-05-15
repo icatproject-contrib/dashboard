@@ -5,18 +5,24 @@
  */
 package org.icatproject.dashboard.manager;
 
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.DependsOn;
@@ -27,12 +33,15 @@ import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.xml.namespace.QName;
 
 import org.icatproject.ICAT;
 import org.icatproject.ICATService;
 import org.icatproject.IcatException_Exception;
 import org.icatproject.Login;
+import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.icat.client.IcatException;
 import org.icatproject.icat.client.Session;
 import org.json.simple.JSONArray;
@@ -59,7 +68,13 @@ public class IcatDataManager {
     private String authenticators;
     private LinkedHashMap<String,Long> instrumentIdMapping;
     
+    @PersistenceContext(unitName = "dashboard")
+    private EntityManager manager;
     
+    @EJB
+    EntityBeanManager beanManager;
+
+
             
     @Resource
     private TimerService timerService;
@@ -92,9 +107,11 @@ public class IcatDataManager {
         
         TimerConfig refreshSession = new TimerConfig("refreshSession", false);
         TimerConfig refreshData = new TimerConfig("refreshData", false);
+        TimerConfig checkUserSession = new TimerConfig("loginCheck",false);
         
         timerService.createIntervalTimer(1200000,1200000,refreshData);        
-        timerService.createIntervalTimer(3600000,3600000,refreshSession);   
+        timerService.createIntervalTimer(3600000,3600000,refreshSession); 
+        timerService.createIntervalTimer(600000, 600000, checkUserSession);
         
         LOG.info("Finished creating timers for ICAT data mangement.");
        
@@ -202,7 +219,59 @@ public class IcatDataManager {
             authenticators = retrieveAuthenticators();
             instrumentIdMapping = mapInstrumentIds();
         }
+        else if("loginCheck".equals(timer.getInfo())){
+            checkUserStatus();
+        }
         
+    }
+    
+    /**
+     * Gets all the logged in users and checks to see if they are logged in or not. It then
+     * updates them in the database.
+     */
+    private void checkUserStatus(){
+        
+        List<Object> loggedInUsers = manager.createQuery("SELECT user FROM ICATUser user WHERE user.logged=1").getResultList(); 
+        
+        for(Object result:loggedInUsers){
+            ICATUser user = (ICATUser)result;
+            
+            boolean loggedInAnymore = isUserLoggedIn(user.getName());
+            
+            if(!loggedInAnymore){
+                user.setLogged(loggedInAnymore);
+                beanManager.update(user, manager);
+            }
+        }
+    
+    }
+    
+   
+    
+    //Contacts the ICAT
+    private boolean isUserLoggedIn(String userName){
+        
+        boolean isLoggedIn = false;
+        
+        try {
+            Client client = Client.create();            
+            WebResource webResource  = client.resource(properties.getICATUrl()+"/icat/user/"+userName);
+            ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
+            String result = response.getEntity(String.class);
+            
+            
+            JSONParser parser = new JSONParser();
+            
+            JSONObject resultObj = (JSONObject) parser.parse(result);            
+            
+            isLoggedIn = (boolean) resultObj.get("loggedIn");
+           
+            
+        } catch (ParseException ex) {
+            LOG.error("Issue contacting the ICAT to find out if "+userName+" is logged in. "+ex);
+        }
+        
+        return isLoggedIn;
     }
     
     /**
