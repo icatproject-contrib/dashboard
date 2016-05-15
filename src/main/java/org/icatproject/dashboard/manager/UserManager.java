@@ -26,6 +26,7 @@ import org.icatproject.ICATService;
 import org.icatproject.IcatException_Exception;
 import org.icatproject.User;
 import org.icatproject.dashboard.collector.DataCollector;
+import org.slf4j.LoggerFactory;
 
 
 
@@ -48,13 +49,14 @@ public class UserManager  {
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;
        
-    DateTimeFormatter format;
+
+    
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(DataCollector.class);
     
   
     
     @PostConstruct
-    public void init(){
-        format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public void init(){       
         icat = createICATLink();
         sessionID = session.getSessionID();
     }
@@ -77,7 +79,7 @@ public class UserManager  {
                                         
                     
         } catch (MalformedURLException ex) {
-            java.util.logging.Logger.getLogger(DataCollector.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.error("Issue creating WSDL link with the ICAT "+ex);
         }
         
        
@@ -97,7 +99,7 @@ public class UserManager  {
             List<Object> icatUser = icat.search(sessionID,query);
             user=(User)icatUser.get(0);
         } catch (IcatException_Exception ex) {
-            Logger.getLogger(UserManager.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.error("Issue searching for user "+name+" "+ex);
         }
         ICATUser dashBoardUser = new ICATUser();
         
@@ -112,16 +114,14 @@ public class UserManager  {
     /**
      * Inserts a user to the Dashboard database.
      * @param user the ICAT user to insert
-     * @return if it was successfully inserted or not.
      */
-    public boolean insertUser(ICATUser user){
+    public void insertUser(ICATUser user){
         try {
             beanManager.create(user, manager);
         } catch (DashboardException ex) {
-            Logger.getLogger(UserManager.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            LOG.error("Issue inserting user into the Dashboard "+ex);
         }
-        return true;
+    
     }
     
     
