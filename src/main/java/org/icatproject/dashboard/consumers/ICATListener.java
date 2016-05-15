@@ -16,7 +16,7 @@ import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import org.icatproject.dashboard.collector.UserCollector;
+import org.icatproject.dashboard.manager.UserManager;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.entity.ICATLog;
 import org.icatproject.dashboard.exceptions.DashboardException;
@@ -51,7 +51,7 @@ public class ICATListener implements MessageListener {
     private EntityBeanManager beanManager;
     
     @EJB
-    private UserCollector userCollector;    
+    private UserManager userCollector;    
     
 
     

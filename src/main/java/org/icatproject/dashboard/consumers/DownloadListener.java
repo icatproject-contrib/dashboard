@@ -37,7 +37,7 @@ import javax.persistence.PersistenceContext;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import org.icatproject.dashboard.manager.PropsManager;
-import org.icatproject.dashboard.collector.UserCollector;
+import org.icatproject.dashboard.manager.UserManager;
 import org.icatproject.dashboard.entity.Download;
 import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.Entity_;
@@ -99,7 +99,7 @@ public class DownloadListener implements MessageListener {
     private EntityBeanManager beanManager;
 
     @EJB
-    private UserCollector userCollector;
+    private UserManager userCollector;
     
    
     protected ICAT icat;
