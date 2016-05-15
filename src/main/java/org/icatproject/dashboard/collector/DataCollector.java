@@ -61,6 +61,7 @@ public class DataCollector {
     private void init() {
         createTimer(prop.getCollectionTime());
         initialiseEntityCollection();
+        checkForFailedImports();
                 
     }
     
