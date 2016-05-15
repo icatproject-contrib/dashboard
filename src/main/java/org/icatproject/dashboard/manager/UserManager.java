@@ -7,10 +7,7 @@ package org.icatproject.dashboard.manager;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -86,6 +83,7 @@ public class UserManager  {
         return icat;
         
     }
+  
     /**
      * Overloaded insertUser method to allow MDB to inject into this class and add new users that appear.
      * @param name Unique name of the user in the ICAT.
