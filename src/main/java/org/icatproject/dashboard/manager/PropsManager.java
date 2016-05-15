@@ -28,7 +28,6 @@ public class PropsManager {
     
     
     private static final Logger LOG = LoggerFactory.getLogger(PropsManager.class);
-    private List<String> functionalAccounts;
     private String ICATUrl;
     private String loginAuth;
     private String userName;
