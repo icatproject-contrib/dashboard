@@ -6,7 +6,6 @@ package org.icatproject.dashboard.collector;
 
 import org.icatproject.dashboard.manager.PropsManager;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -47,7 +46,6 @@ public class DataCollector {
     protected ICAT icat;
     protected String sessionID;
 
-    DateTimeFormatter format;
 
     private static final Logger LOG = LoggerFactory.getLogger(DataCollector.class);
 
