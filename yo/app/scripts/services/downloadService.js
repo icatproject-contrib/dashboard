@@ -89,7 +89,7 @@
 							});
 					},
 
-					getUsersDownloadFrequency : function(startDate,endDate, userName, method){
+					getUsersDownloadFrequency : function(startDate,endDate, method){
 
 						return $http.get(baseURL+"/frequency/users?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
 							.then(function(response){
@@ -99,7 +99,7 @@
 							});
 					},
 
-					getUsersDownloadVolume : function(startDate,endDate, userName, method){
+					getUsersDownloadVolume : function(startDate,endDate, method){
 
 						return $http.get(baseURL+"/method/volume/user?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
 							.then(function(response){
