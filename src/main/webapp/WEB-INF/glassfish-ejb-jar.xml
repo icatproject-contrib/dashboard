@@ -18,6 +18,11 @@
       <mdb-connection-factory>
         <jndi-name>jms/icatConnectionFactory</jndi-name>
       </mdb-connection-factory>
+      <bean-pool>
+        <resize-quantity>1</resize-quantity>
+        <max-pool-size>1</max-pool-size>
+        <steady-pool-size>1</steady-pool-size>
+      </bean-pool>
     </ejb>
    
   </enterprise-beans>
