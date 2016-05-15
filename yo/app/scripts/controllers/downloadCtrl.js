@@ -171,6 +171,7 @@
 
         	var selectedMethod = method === "All"?"":method;
 
+
         	//Create the promises for the user download data.
 			var userFrequencyPromise = downloadService.getUsersDownloadFrequency(getStartDate(),getEndDate(), selectedMethod);
 			var userVolumePromise = downloadService.getUsersDownloadVolume(getStartDate(),getEndDate(), selectedMethod);
@@ -491,7 +492,7 @@
 			       			Number:'line',
 			       		}
 			       	},	
-			    	description : "This line graph displays the number of downloads that occured on the requested days.",
+			    	description : "This line graph displays the number of downloads that have occured on the requested days.",
 					title:"Download Count",
 					zoom:true,
 					type:"line",

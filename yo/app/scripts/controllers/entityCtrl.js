@@ -28,10 +28,27 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 	        	optionsPromise.then(function(responseData){	  
 	        		     	
 	        		vm.instrumentNames = responseData[0];
-	        		vm.selectedInstrument = vm.instrumentNames[0].name;
-
 	        		vm.entityNames = responseData[1];
-	        		vm.selectedEntity = vm.entityNames[0].name;
+	        		console.log(vm.entityNames)
+
+	        		if(vm.instrumentNames.length == 0){
+	        			vm.selectedInstrument = "No Data";
+	        		}else{
+	        			vm.selectedInstrument = vm.instrumentNames[0].name;
+	        		}
+
+	        		if(vm.entityNames.length==0){
+	        			vm.selectedEntity = "No Data";
+	        		}
+	        		else{
+	        			vm.selectedEntity = vm.entityNames[0].name;
+	        		}
+
+	        		
+	        		
+	        		
+	        		
+	        		
 
 	        		//Only want to update the page once the instrument has been returned
 	        		vm.updatePage();

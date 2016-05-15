@@ -2,16 +2,14 @@
 	<tr>
 		<th>Full name</th>
 		<th>Name</th>
-		<th>Current Operation</th>
-		<th>Login Duration (Minutes) </th>
+		<th>Current Operation</th>		
 		<th>User Location </th>
 	</tr>	
 
 	<tr ng-repeat="user in loggedUsersCtrl.data ">
 		<td>{{user.fullName}}</td>
 		<td>{{user.name}}</td>		
-		<td>{{user.operation}}</td>
-		<td>{{user.loggedTime}}</td>
+		<td>{{user.operation}}</td>		
 		<td>
 			<button type="submit" class="btn btn-default" ng-click=loggedUsersCtrl.loadUserLocationModal(user.name)>		
 			  <span class="glyphicon glyphicon-globe" aria-hidden="true"></span>
