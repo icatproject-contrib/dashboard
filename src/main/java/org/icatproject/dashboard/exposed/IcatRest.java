@@ -51,7 +51,7 @@ import org.json.simple.JSONObject;
 @Stateless
 @LocalBean
 @Path("icat")
-public class IcatResource {
+public class IcatRest {
 
     @EJB
     EntityBeanManager beanManager;

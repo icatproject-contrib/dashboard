@@ -49,7 +49,7 @@ import org.json.simple.JSONObject;
 @Stateless
 @LocalBean
 @Path("download")
-public class DownloadResource {
+public class DownloadRest {
 
     @EJB
     EntityBeanManager beanManager;
@@ -734,7 +734,7 @@ public class DownloadResource {
 
         Predicate completeDownload = cb.equal(download.get("status"), finished);       
         
-        Predicate finalPredicate = cb.and(completeDownload, createDownloadPredicate(cb, start, end, download, userJoin, "", method));
+        Predicate finalPredicate = cb.and(completeDownload, createDownloadPredicate(cb, start, end, download, userJoin, userName, method));
         
         query.groupBy(downloadJoin.get("isp"));
 
