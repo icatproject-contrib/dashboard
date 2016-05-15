@@ -11,7 +11,6 @@ import java.util.List;
 import org.icatproject.dashboard.entity.Session;
 
 import javax.ejb.Stateless;
-import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
