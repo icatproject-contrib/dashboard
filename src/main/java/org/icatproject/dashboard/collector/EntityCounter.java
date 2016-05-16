@@ -48,7 +48,7 @@ public class EntityCounter  {
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;    
      
-    private final String[] ENTITIES={"APPLICATION", "DATACOLLECTION", "DATACOLLECTIONDATAFILE", "DATACOLLECTIONDATASET", "DATACOLLECTIONPARAMETER", "DATAFILE", "DATAFILEFORMAT", "DATAFILEPARAMETER", "DATASET", "DATASETPARAMETER", "DATASETTYPE", "FACILITY", "FACILITYCYCLE", "GROUPING", "INSTRUMENT", "INSTRUMENTSCIENTIST", "INVESTIGATION", "INVESTIGATIONGROUP", "INVESTIGATIONINSTRUMENT", "INVESTIGATIONPARAMETER", "INVESTIGATIONTYPE", "INVESTIGATIONUSER", "JOB", "KEYWORD", "PARAMETERTYPE", "PERMISSIBLESTRINGVALUE", "PUBLICSTEP", "PUBLICATION", "RELATEDDATAFILE", "RULE", "SAMPLE", "SAMPLEPARAMETER", "SAMPLETYPE", "SHIFT", "STUDY", "STUDYINVESTIGATION", "USER","USERGROUP"};
+    private final String[] ENTITIES={"Application", "Datacollection", "Datacollectiondatafile", "Datacollectiondataset", "Datacollectionparameter", "Datafile", "Datafileformat", "Datafileparameter", "Dataset", "Datasetparameter", "Datasettype", "Facility", "Facilitycycle", "Grouping", "Instrument", "Instrumentscientist", "Investigation", "Investigationgroup", "Investigationinstrument", "Investigationparameter", "Investigationtype", "Investigationuser", "Job", "Keyword", "Parametertype", "Permissiblestringvalue", "Publicstep", "Publication", "Relateddatafile", "Rule", "Sample", "Sampleparameter", "Sampletype", "Shift", "Study", "Studyinvestigation", "User","Usergroup"};
        
     private Session icatSession;
     
@@ -148,7 +148,7 @@ public class EntityCounter  {
                 Long countValue = (Long) resultArray.get(0);
                 
                 if(countValue!=0){
-                    EntityCount ec = new EntityCount(countDate,entity,countValue);
+                    EntityCount ec = new EntityCount(countDate,entity.toUpperCase(),countValue);
                     beanManager.create(ec, manager);
                 }
                 
