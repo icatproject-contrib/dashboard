@@ -48,7 +48,7 @@ public class EntityCounter  {
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;    
      
-    private final String[] ENTITIES={"Application", "Datacollection", "Datacollectiondatafile", "Datacollectiondataset", "Datacollectionparameter", "Datafile", "Datafileformat", "Datafileparameter", "Dataset", "Datasetparameter", "Datasettype", "Facility", "Facilitycycle", "Grouping", "Instrument", "Instrumentscientist", "Investigation", "Investigationgroup", "Investigationinstrument", "Investigationparameter", "Investigationtype", "Investigationuser", "Job", "Keyword", "Parametertype", "Permissiblestringvalue", "Publicstep", "Publication", "Relateddatafile", "Rule", "Sample", "Sampleparameter", "Sampletype", "Shift", "Study", "Studyinvestigation", "User","Usergroup"};
+    private final String[] ENTITIES={"Application", "DataCollection", "DataCollectionDatafile", "DataCollectionDataset", "DataCollectionParameter", "Datafile", "DatafileFormat", "DatafileParameter", "Dataset", "DatasetParameter", "DatasetType", "Facility", "FacilityCycle", "Grouping", "Instrument", "InstrumentScientist", "Investigation", "InvestigationGroup", "InvestigationInstrument", "InvestigationParameter", "InvestigationType", "InvestigationUser", "Job", "Keyword", "ParameterType", "PermissibleStringValue", "PublicStep", "Publication", "RelatedDatafile", "Rule", "Sample", "SampleParameter", "SampleType", "Shift", "Study", "StudyInvestigation", "User","UserGroup"};
        
     private Session icatSession;
     
