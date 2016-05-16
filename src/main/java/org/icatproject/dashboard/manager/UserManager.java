@@ -90,22 +90,32 @@ public class UserManager  {
      * @return the created user.
      */
     public ICATUser insertUser(String name){
-        String query = "SELECT u from User u WHERE u.name= '"+name+"'";
-        User user = null;        
+        String query = "SELECT u from User u WHERE u.name= '"+name+"'";             
+        List<Object> icatUser;
+        
+        ICATUser dashBoardUser = new ICATUser(); 
         
         try {
-            List<Object> icatUser = icat.search(sessionID,query);
-            user=(User)icatUser.get(0);
+            icatUser = icat.search(sessionID,query);     
+            //Haven't found the user in the ICAT. Try our best with what we have.
+            if(icatUser.isEmpty()){
+                dashBoardUser.setName(name);
+                dashBoardUser.setFullName(name);
+
+            }else{
+                User user = (User)icatUser.get(0);
+                dashBoardUser.setUserICATID(user.getId());
+                dashBoardUser.setFullName(user.getFullName());
+                dashBoardUser.setName(user.getName());
+
+            }       
+        
+        
+            insertUser(dashBoardUser);
+        
         } catch (IcatException_Exception ex) {
             LOG.error("Issue searching for user "+name+" "+ex);
         }
-        ICATUser dashBoardUser = new ICATUser();
-        
-        dashBoardUser.setUserICATID(user.getId());
-        dashBoardUser.setFullName(user.getFullName());
-        dashBoardUser.setName(user.getName());
-        
-        insertUser(dashBoardUser);
         
         return dashBoardUser;
     }

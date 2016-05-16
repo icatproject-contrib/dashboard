@@ -23,8 +23,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @Comment("A user that operates within the ICAT family. They can have downloads or be part of queries.")
 
 
-@Table(uniqueConstraints ={ @UniqueConstraint(columnNames ={"USER_ICAT_ID"}),
-                            @UniqueConstraint(columnNames={"name"})
+@Table(uniqueConstraints ={ @UniqueConstraint(columnNames={"name"})
        })
 @Entity
 
@@ -53,7 +52,7 @@ public class ICATUser extends EntityBaseBean implements Serializable {
     private boolean logged;
     
     @Comment("The users ID that can be matched in the ICAT")
-    @Column(name="USER_ICAT_ID", nullable = false)
+    @Column(name="USER_ICAT_ID")
     private Long userICATID;    
     
     @Comment("Name of the user")
