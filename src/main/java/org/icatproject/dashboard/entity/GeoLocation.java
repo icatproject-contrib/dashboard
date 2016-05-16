@@ -7,6 +7,7 @@ package org.icatproject.dashboard.entity;
 
 import java.util.List;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -39,10 +40,12 @@ public class GeoLocation extends EntityBaseBean {
     private List<GeoIpAddress> geoIpAddresses;
     
     @Comment("The longtitude of a download")
-    private double longitude;
+    @Column(precision = 38, scale = 19)
+    private Double longitude;
     
-    @Comment("The latitude of a download")    
-    private double latitude;
+    @Comment("The latitude of a download")
+    @Column(precision = 38, scale = 19)    
+    private Double latitude;
     
     @Comment("The country code of the location.")
     private String countryCode;
