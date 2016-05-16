@@ -60,12 +60,16 @@
 
         //Watches for changes in csvData and modifies the link with the new data
         $scope.$watch('csvData', function(data){
-            if($scope.csvData){
+            console.log(data)
+            if(data){
                 var CSV ='';
-               for(var i =0; i<data.length;i++){
+               data.forEach(function(entry){
+                    CSV += JSONToCSVConvertor(entry.data,entry.title);
+
+               });
                     
-                    CSV += JSONToCSVConvertor(data[i][1],data[i][0]);
-                }
+                    
+                
            
                  //Initialize file format you want csv or xls
                 var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);

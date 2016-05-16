@@ -83,12 +83,20 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
     		 	groupPromise.then(function(responseData){
     		 		vm.dataCsv = [
 
-    		 			["Datafile count for "+instrument,responseData[0]],
-    		 			["Datafile volume for "+instrument,responseData[1]],
-    		 			["Entity count for "+entity,responseData[2]],
-    		 			["Investigation Datafile count",responseData[3][0]],
-    		 			["Investigation Datafile volume",responseData[3][1]],
-    		 			["Datafile Volume",responseData[4]]
+    		 			{
+    		 				type:"insDfCount",
+    		 				title:"Datafile count for "+instrument,
+    		 				data:responseData[0]
+    		 			},
+    		 			//{"Datafile volume for "+instrument,responseData[1]},
+    		 			//["Entity count for "+entity,responseData[2]],
+    		 			//["Investigation Datafile count",responseData[3][0]],
+    		 			//["Investigation Datafile volume",responseData[3][1]],
+    		 			{
+    		 				type:"dfVolume",
+    		 				title:"Datafile Volume",
+    		 				data:responseData[4]
+    		 			}
 
     		 		]
 
@@ -144,6 +152,8 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						
 						
 				    } 
+
+
 
 				 return responseData;
 
@@ -258,6 +268,10 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						
 				    } 
 
+				    
+
+    		 		updateCSV("insDfCount",vm.insDataFileVolume.title,responseData)		
+
 				 return responseData;
 
 				});
@@ -335,6 +349,26 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
     		}
 
+    		//Updates the vm.dataCSV file with new values.
+    		function updateCSV(type,title,data){
+    			//Only want to check if it is been initially loaded.
+    			if(vm.dataCsv){
+	    			for(var i in vm.dataCsv){	    				
+
+	    				if(type===vm.dataCsv[i].type){
+	    		
+	    					vm.dataCsv[i].data = data;
+	    					vm.dataCsv[i].title = title;
+	    					
+	    				}  
+	    			}                  
+
+	               
+
+    			}
+    			console.log(vm.dataCsv)
+
+    		}
 
 
     		//Formats data where the values are date and number

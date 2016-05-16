@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
     @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),    
     @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),  
     @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub2"),
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "id2112s21"),
+    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "id21121"),
     
     
 })
