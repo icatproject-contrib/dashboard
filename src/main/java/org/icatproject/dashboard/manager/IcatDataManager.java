@@ -11,18 +11,15 @@ import com.sun.jersey.api.client.WebResource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.DependsOn;
@@ -184,7 +181,7 @@ public class IcatDataManager {
             ICATService service = new ICATService(icatUrl, qName);
             icat = service.getICATPort();            
                                         
-            LOG.info("Successfuly retrieved a sessionId from ICAT: "+properties.getICATUrl());
+           
                     
         } catch (MalformedURLException ex) {
             LOG.error("Error connecting to the ICAT ",ex);
@@ -194,7 +191,7 @@ public class IcatDataManager {
         
         try {
             session = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
-            LOG.info("Successfully created ICAT Rest Client.");
+            LOG.info("Successfuly retrieved a sessionId from ICAT: "+properties.getICATUrl());
         } catch (IcatException_Exception ex) {
             LOG.error("Error logging into the ICAT ",ex);
         }
