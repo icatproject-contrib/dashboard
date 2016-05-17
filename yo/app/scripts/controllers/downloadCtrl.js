@@ -115,66 +115,125 @@
         	vm.endDate = endDate;
         	vm.userName = userName;
       
-        	vm.updatePage();
+			vm.updateUserDownload()
+			vm.updateMethodDownload()
+			vm.updateDownloadStatus()
+			vm.updateDownloadEntityAge()
+			vm.updateLocalLocation()
+			vm.updateGlobalLocation()
+			vm.updateDownloadFrequency()
+			vm.updateISPBandwidth()
+			vm.updateDownloadVolume() 		
 
         }  
 
 
         vm.updatePage = function(){	
-			
-			var method = vm.selectedMethod === "All"?"":vm.selectedMethod;	
-
+        	var method = "All";
+            //Create all of the promises 
 			//Create all of the promises 
-			var updateUserDownloadPromise = vm.updateUserDownload(method)
-			var updateMethodDownloadPromise	= vm.updateMethodDownload()
-			var updateDownloadStatusPromise = vm.updateDownloadStatus(method)
-			var updadeDownloadEntityAgePromise = vm.updateDownloadEntityAge(method)
-			var updateLocalLocationPromise = vm.updateLocalLocation(method)
-			var updateGlobalLocationPromise = vm.updateGlobalLocation(method)
-			var updateDownloadFrequencyPromise = vm.updateDownloadFrequency(method)
-			var updateISPBandwidthPromise = vm.updateISPBandwidth(method)
-			var updateDownloadVolumePromise = vm.updateDownloadVolume(method)
-
+			var updateUserDownloadPromise = vm.updateUserDownload(method,true);
+			var updateMethodDownloadPromise	= vm.updateMethodDownload(true);
+			var updateDownloadStatusPromise = vm.updateDownloadStatus(method,true);
+			var updadeDownloadEntityAgePromise = vm.updateDownloadEntityAge(method,true);
+			var updateLocalLocationPromise = vm.updateLocalLocation(method,true);
+			var updateGlobalLocationPromise = vm.updateGlobalLocation(method,true);
+			var updateDownloadFrequencyPromise = vm.updateDownloadFrequency(method,true);
+			var updateISPBandwidthPromise = vm.updateISPBandwidth(method,true);
+			var updateDownloadVolumePromise = vm.updateDownloadVolume(method,true);
 
 			var groupPromise = $q.all([updateUserDownloadPromise,updateMethodDownloadPromise,updateDownloadStatusPromise,updadeDownloadEntityAgePromise,updateLocalLocationPromise,updateGlobalLocationPromise,updateDownloadFrequencyPromise,updateISPBandwidthPromise,updateDownloadVolumePromise])
 
-    		 	groupPromise.then(function(responseData){
-    		 		var user = vm.userName; 
+    		 	groupPromise.then(function(){
+					updateCSV(); 		 			
 
-    		 		vm.dataCsv = [
-
-    		 			["User Download Frequency. Method: "+method,responseData[0][0]],
-    		 			["User Download Volume. Method: "+method,responseData[0][1]],
-    		 			["Method Frequency. User: "+user,responseData[1][0]],
-    		 			["Method volume. User: "+user,responseData[1][1]],
-    		 			["Download Status. Method:"+method+" User: "+user,responseData[2]],
-    		 			["Download Entity Age. Method:"+method+" User: "+user,responseData[3]],
-    		 			["Download Local location. Method:"+method+" User: "+user,responseData[4]],
-    		 			["Download Global Location. Method:"+method+" User: "+user,responseData[5]],
-    		 			["Download Frequency. Method:"+method+" User: "+user,responseData[6]],
-    		 			["Download ISP Bandwidth. Method:"+method+" User: "+user,responseData[7]],
-    		 			["Download Volume. Method:"+method+" User: "+user,responseData[8]],
-
-    		 		]
-
-    		 		
-    		 	});			
+				});
 
 			
 				
-			}
+		}
+
+		function updateCSV(){
+
+			vm.dataCsv = [
+
+				{
+	 				type:"userDownloadNumber",
+	 				title:vm.users.number.title,
+	 				data:vm.users.number.rawData
+	 			},
+	 			{
+	 				type:"userDownloadVolume",
+	 				title:vm.users.volume.title,
+	 				data:vm.users.volume.rawData
+
+	 			},
+	 			{
+	 				type:"methodDownloadNumber",
+	 				title:vm.method.number.title,
+	 				data:vm.method.number.rawData
+	 			},
+	 			{
+	 				type:"methodDownloadVolume",
+	 				title:vm.method.volume.title,
+	 				data:vm.method.volume.rawData
+	 			},
+	 			{
+	 				type:"statusNumber",
+	 				title:vm.statusNumber.title,
+	 				data:vm.statusNumber.rawData
+	 			}, 
+	 			  		 			
+	 			{
+	 				type:"localChartData",
+	 				title:vm.localChartData.title,
+	 				data:vm.localChartData.rawData
+	 			},
+	 			{
+	 				type:"worldChartData",
+	 				title:vm.worldChartData.title,
+	 				data:vm.worldChartData.rawData
+	 			},
+	 			
+	 			{
+	 				type:"downloadNumber",
+	 				title:vm.count.title,
+	 				data:vm.count.rawData
+	 			},
+	 			{
+	 				type:"ispBandwidth",
+	 				title:vm.ispBandwidth.title,
+	 				data:vm.ispBandwidth.rawData
+	 			},  
+	 			{
+	 				type:"downloadVolume",
+	 				title:vm.volume.title,
+	 				data:vm.volume.rawData
+	 			}
+	 		]
+
+		}	
     	 	
 
        
 
-        vm.updateUserDownload = function(method){
-
-        	var selectedMethod = method === "All"?"":method;
+        vm.updateUserDownload = function(method,initialUpload){
+			//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  	
 
 
         	//Create the promises for the user download data.
-			var userFrequencyPromise = downloadService.getUsersDownloadFrequency(getStartDate(),getEndDate(), selectedMethod);
-			var userVolumePromise = downloadService.getUsersDownloadVolume(getStartDate(),getEndDate(), selectedMethod);
+			var userFrequencyPromise = downloadService.getUsersDownloadFrequency(getStartDate(),getEndDate(), method);
+			var userVolumePromise = downloadService.getUsersDownloadVolume(getStartDate(),getEndDate(), method);
 
 			//Combine the user promises together.
 			var userDownloadData = $q.all([userVolumePromise,userFrequencyPromise]);
@@ -210,11 +269,13 @@
 					datasets:["number","volume"],
 					number : {
 						"data":frequency,
-						"title":"Number of downloads per user"
+						"title":"Number of downloads per user",
+						"rawData":responseData[1]
 					},
 					volume : {
 						"data":volume,
-						"title":"Volume per user ("+byteFormat+")"
+						"title":"Volume per user ("+byteFormat+")",
+						"rawData":responseData[0]
 					},					
 					description :  "This donut chart displays the number and volume of downloads per user.",
 				    title :"User Downloads",
@@ -222,13 +283,16 @@
 				    optionTitle:"Method",
 				};
 
-				return responseData;	
+				if(!initialUpload){
+				    	 updateCSV();
+				}	
+					
 
 			});	    
         }
 
 
-        vm.updateMethodDownload =function(){
+        vm.updateMethodDownload =function(initialUpload){
         	//Create the promises for the download method data.
 			var methodNumberPromise = downloadService.getDownloadMethodNumber(getStartDate(),getEndDate(), vm.userName);			
 			var methodVolumePromise = downloadService.getDownloadMethodVolume(getStartDate(),getEndDate(), vm.userName);
@@ -268,26 +332,42 @@
 					datasets:["number","volume"],
 					number : {
 						"data":number,
-						"title":"Number of downloads"
+						"title":"Number of downloads",
+						"rawData":responseData[0]
 					},
 					volume : {
 						"data":volume,
-						"title":"Volume ("+byteFormat+")"
+						"title":"Volume ("+byteFormat+")",
+						"rawData":responseData[1]
 					},					
 					description :  "This donut chart displays the number and volume of downloads by download mechanism.",
 				    title :"Download Methods"
 				};
 
-				return responseData;
+				if(!initialUpload){
+				    updateCSV();
+				}	
+
 
 			});			
 			
         }
 
-        vm.updateDownloadStatus = function(method){
-        	var selectedMethod = method === "All"?"":method;
+        vm.updateDownloadStatus = function(method, initialUpload){
+        	//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  	
+ 
 
-        	return downloadService.getDownloadStatusNumber(getStartDate(),getEndDate(), vm.userName,selectedMethod).then(function(responseData){
+        	return downloadService.getDownloadStatusNumber(getStartDate(),getEndDate(), vm.userName,method).then(function(responseData){
 				
 
 				var failedTemp;
@@ -312,7 +392,10 @@
 
 				var failed = failedTemp === undefined ? 0 : failedTemp;
 				var inProgress  = inProgressTemp === undefined ? 0 : inProgressTemp;
-				var finished = finishedTemp === undefined ? 0 : finishedTemp;			
+				var finished = finishedTemp === undefined ? 0 : finishedTemp;	
+
+				var total = failed+inProgress+finished;
+				var countTotal = total=== 0 ? "No Data":total;  		
 
 				var successRate = ['Success percentage',$filter('number')((finished/(failed+finished))*100,1)];
 				
@@ -323,21 +406,36 @@
 					inProgress:inProgress,
 					failed:failed,
 					successful:finished,
+					downloadTotal:countTotal,
 					selectOp:vm.downloadMethodTypes,
 					optionTitle:"Method",
+					rawData:responseData
 				}
+				if(!initialUpload){
+				    updateCSV();
+				}	
 
-				return responseData;
+
+				
 			});			
         }
 
-        vm.updateDownloadEntityAge = function(method){
-        	var selectedMethod = method === "All"?"":method;
+        vm.updateDownloadEntityAge = function(method,initialUpload){
+        	//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  	
 
-        	
 
 
-        	return downloadService.getDownloadEntityAge(getStartDate(),getEndDate(),vm.userName,selectedMethod).then(function(responseData){
+        	return downloadService.getDownloadEntityAge(getStartDate(),getEndDate(),vm.userName,method).then(function(responseData){
 
 				var age  = _.map(responseData, function(responseData){
 					return responseData.age;
@@ -366,18 +464,39 @@
 				    yLabel:"Number of files",
 				    selectOp:vm.downloadMethodTypes,
 				    optionTitle:"Method",
+				    rawData:responseData
 				} 
 
-				return responseData;		
+				if(!initialUpload){
+				    updateCSV();
+				}	
+
+						
 	
 				
 			});
         }
 
-         vm.updateLocalLocation = function(method){
-         	var selectedMethod = method === "All"?"":method;
+         vm.updateLocalLocation = function(method, initialUpload){
+         	//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  	
+   
 
-         	return downloadService.getLocalDownloadLocation(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){
+         	return downloadService.getLocalDownloadLocation(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){
+
+         		vm.localChartData = {
+				    	title:"Download Locations",
+				    	rawData: responseData
+				}
 				
 				googleChartApiPromise.then(function(){
 					var dataTable = new google.visualization.DataTable();
@@ -407,20 +526,38 @@
 				    				    	
 				    	localChart.options.region = vm.selectedRegion.geoCode;
 				    }
-				    vm.localChart = localChart;
-
-				    
+				    vm.localChart = localChart;				    
 					
 				});
-			return responseData;	
+
+				if(!initialUpload){
+				    updateCSV();
+				}	
+					
 			});	
          }
 
-         vm.updateGlobalLocation = function(method){
-         	var selectedMethod = method === "All"?"":method;
+         vm.updateGlobalLocation = function(method,initialUpload){
+         	//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  	
 
-         	return downloadService.getGlobalDownloadLocation(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){ 			   				  		
+
+         	return downloadService.getGlobalDownloadLocation(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){ 			   				  		
 				
+				vm.worldChartData = {
+				    	rawData:responseData,
+				    	title:"Number of downlods per country for the method "+method
+				}
+
 				googleChartApiPromise.then(function(){
 				    responseData = _.map(responseData, function(responseData){
 						return [responseData.countryCode, responseData.number];
@@ -436,17 +573,33 @@
 				    };				   	
 
 				    vm.worldChart = worldChart;
-				});
+				   
 
-				return responseData;
+				    if(!initialUpload){
+				    	updateCSV();
+					}	
+					
+
+				});				
 			    
 			});
          }
 
-         vm.updateDownloadFrequency = function(method){
-         	var selectedMethod = method === "All"?"":method;
+         vm.updateDownloadFrequency = function(method,initialUpload){
+         	//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  	
 
-         	return downloadService.getDownloadFrequency(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){
+
+         	return downloadService.getDownloadFrequency(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){
 
 		    	var data = responseData;		    	
 
@@ -460,15 +613,14 @@
 				
 				var data = [dates,numbers];
 
-			    //Calculate metrics: Total amount of downloads and the busiest Day.
-			 		    		
-	    		var total = 0;	 
+			    //Calculate metrics: Total amount of downloads and the busiest Day.		 		    		
+	    		
 	    		var busiestIndex = 0;
 	    		var largestDay = 0;	       		
 	    		
 	    		for(var i=0;i<numbers.length;i++){
-	    			var current = numbers[i];	    			
-	    			total +=current;
+	    			var current = numbers[i];			
+	    			
 
 	    			if(current>largestDay){
 	    				busiestIndex = i;
@@ -476,9 +628,7 @@
 	    			}
 	    		}   		
 	    		
-	    		var busiestDay = largestDay===0 ? "No Data":dates[busiestIndex] +" with "+largestDay;
-	    		var countTotal = total=== 0 ? "No Data":total;    				
-	    				
+	    		var busiestDay = largestDay===0 ? "No Data":dates[busiestIndex] +" with "+largestDay;	    		 				
 
 	    		dates.unshift("x");		
 							
@@ -492,28 +642,40 @@
 			       			Number:'line',
 			       		}
 			       	},	
-			    	description : "This line graph displays the number of downloads that have occured on the requested days.",
+			    	description : "This line graph displays the number of downloads that have occured on the requested days. Please note this is not unique downloads per day it is the number of downloads that occured during the requested days.",
 					title:"Download Count",
 					zoom:true,
 					type:"line",
 					xLabel:"Dates",
 					yLabel:"Number of Downloads",
-					total: countTotal,
 					busiestDay: busiestDay,
 					selectOp:vm.downloadMethodTypes,
 					optionTitle:"Method",
+					rawData:responseData
 			    } 
 
-			  return responseData;
+			   if(!initialUpload){
+				    updateCSV();
+				}	
 
 					
 		    });	
          }
 
-         vm.updateISPBandwidth = function(method){
-         	var selectedMethod = method === "All"?"":method;
+         vm.updateISPBandwidth = function(method,initialUpload){
+         	//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  
 
-         	 return downloadService.getDownloadISPBandwidth(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){		     		
+         	return downloadService.getDownloadISPBandwidth(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){		     		
 		     		
 		     		var average = _.map(responseData, function(data){
 		     			
@@ -572,18 +734,31 @@
 				    	yLabel: "Bandwidth MB/S",
 				    	selectOp:vm.downloadMethodTypes,
 				    	 optionTitle:"Method",
+				    	rawData:responseData
 					};	
-
-					return responseData;	
+					
+					if(!initialUpload){
+					    updateCSV();
+					}	
 						
 		    });
 
          }
 
-         vm.updateDownloadVolume = function(method){
-         	var selectedMethod = method === "All"?"":method;
+         vm.updateDownloadVolume = function(method,initialUpload){
+         	//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  	
 
-         	return downloadService.getDownloadVolume(getStartDate(),getEndDate(), vm.userName, selectedMethod).then(function(responseData){
+        	return downloadService.getDownloadVolume(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){
 
 	    		var data = responseData;
 
@@ -614,8 +789,7 @@
 	    		    	total +=temp;
 	    		    }    			
 	    			
-	    		}	    	
-	    			    			
+	    		}	   	    			    			
 
 	    		var busiestIndex = 0;
 	    		var largestDay = 0;	    		
@@ -644,14 +818,19 @@
 	    			busiestDay:largestDay ===0 ?"No Data":"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat,
 	    			zoom :false,
 				    description : "This bar graph displays the volume of data that was downloaded during the requested period.",
-				    title : "Download Volume",
+				    title : "Download Volume for method "+method,
 				    xLabel:"Dates",
 					yLabel:"Volume of Downloads "+byteFormat,
 					selectOp:vm.downloadMethodTypes,
 					 optionTitle:"Method",
+					rawData:responseData 
 
 	    		};
-	    		return responseData;
+
+	    		if(!initialUpload){
+					updateCSV();
+				}
+	    	
 	    		
 	    	});	
 
