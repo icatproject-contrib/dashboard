@@ -12,6 +12,7 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
         vm.userOption = true;
 
 
+
        //Setup the ui-grid for log tables.
 
         vm.gridOptions = {}
@@ -55,30 +56,38 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
         vm.updateOptions = function(startDate,endDate,userName){
           vm.startDate = startDate;
           vm.endDate = endDate;
-          vm.userName = userName;
+          vm.userName = userName;          
       
           vm.updatePage();
 
         }  
 
         vm.updatePage = function(){ 
-           var loggedFrequencyPromise = vm.updateLoggedFrequency();
+
+           var user = vm.userName;
+
+           var loggedFrequencyPromise = vm.updateLoggedFrequency(user);
 
            var groupPromise = $q.all([loggedFrequencyPromise]);
 
            groupPromise.then(function(responseData){
-              var user = vm.userName;
+              
 
               vm.dataCsv = [
-                  ["User login frequency. User "+user,responseData[0]]
+                  {
+                    type:"userLoginCount",
+                    title:"User login frequency. User "+user,
+                    data:responseData[0],
+                  }                  
               ]
            });
 
         }
 
 
-        vm.updateLoggedFrequency = function(){
-          return userService.getLoggedFrequency(getStartDate(),getEndDate(),vm.userName).then(function(responseData){
+        vm.updateLoggedFrequency = function(userName){
+
+          return userService.getLoggedFrequency(getStartDate(),getEndDate(),userName).then(function(responseData){
 
             var formattedData = formatData(responseData); 
 
