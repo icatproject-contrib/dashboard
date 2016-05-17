@@ -36,6 +36,10 @@
 								columns : [dataObject.data],							
 								type: 'gauge'
 							},
+							size: {
+        						height: 180,
+        						
+    						},
 							color: {
 						        pattern:["#3498DB","#4B77BE"], // the three color levels for the percentage values.
 						        threshold: {

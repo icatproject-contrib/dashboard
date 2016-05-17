@@ -1,35 +1,23 @@
 <div class="row" ng-init="download.initPage()">
-	<div class="col-lg-3 col-lg-offset-1 col-sm-4">
-		<div class="box">
-			<div class="text-format">					
-					<h2>Total Volume</h2>
-					<h3>{{download.volume.total }}</h3>					
-					<h2>Busiest Day</h2>
-					<h3>{{download.volume.busiestDay}}</h3>
-			</div>
-		</div>	
-	</div>
-	
-	<div class="col-lg-4 col-sm-4">									
-		<gauge class="chart" data='download.statusNumber' select-Options= "download.updateDownloadStatus(value)" ></gauge>
-	</div>						
-		
-		
-	<div class="col-lg-3 col-sm-4">
-		<div class="box">
-			<div class="text-format">					
-				<h2>Total Downloads</h2>
-				<h3>{{download.count.total}}</h3>					
-				<h2>Busiest Day</h2>
-				<h3>{{download.count.busiestDay}}</h3>
-			</div>
-		</div>	
-	</div>
+	<search-bar select-values= "download.updateOptions(startDate,endDate,userName)" csv-data="download.dataCsv" user-option="download.userOption"></search-bar>
 </div>
 
+<div class="row" >
+	
+	<div class="col-lg-10 col-lg-offset-1">									
+		<gauge class="chart" data='download.statusNumber' select-Options= "download.updateDownloadStatus(value)" ></gauge>
+	</div>		
+	
+</div>
 
-<search-bar select-values= "download.updateOptions(startDate,endDate,userName)" csv-data="download.dataCsv" user-option="download.userOption"></search-bar>
-
+<div class="row">
+	<div class="col-lg-5 col-lg-offset-1">		
+		<donut class="chart" data='download.users' select-Options= "download.updateUserDownload(value)"></donut>			
+	</div>
+	<div class="col-lg-5">		
+		<donut class="chart" data='download.method'></donut>			
+	</div>
+</div>	
 
 <div class="row">
 	<div class="col-lg-5 col-lg-offset-1 ">
@@ -77,10 +65,17 @@
 </div>
 
 <div class="row">
-	<div class="col-lg-4 col-lg-offset-1 ">					
-		<scatter class="chart" data='download.entityAge' select-Options= "download.updateDownloadEntityAge(value)"></scatter>			
-	</div>
-	<div class="col-lg-6 " select-Options= "entity.updateEntityCount(value)">		
+	<div class="col-lg-3 col-lg-offset-1 ">
+		<div class="box">
+			<div class="text-format">					
+				<h2>Total Downloads</h2>
+				<h3>{{download.statusNumber.downloadTotal}}</h3>					
+				<h2>Busiest Day</h2>
+				<h3>{{download.count.busiestDay}}</h3>
+			</div>
+		</div>	
+	</div>	
+	<div class="col-lg-7 " select-Options= "entity.updateEntityCount(value)">		
 		<time-line-graph class="chart" data='download.count' select-Options= "download.updateDownloadFrequency(value)"></time-line-graph>			
 	</div>
 </div> 
@@ -88,19 +83,29 @@
 
 
 <div class="row">
-	<div class="col-lg-6 col-lg-offset-1 ">		
+	<div class="col-lg-4 col-lg-offset-1 ">		
 		<stacked-bar class="chart" data='download.ispBandwidth' select-Options= "download.updateISPBandwidth(value)"></stacked-bar>	
-	</div>		
-	<div class="col-lg-4 ">		
-		<donut class="chart" data='download.method'></donut>			
 	</div>	
+	<div class="col-lg-6 ">					
+		<scatter class="chart" data='download.entityAge' select-Options= "download.updateDownloadEntityAge(value)"></scatter>			
+	</div>
+	
+	
 </div>	
 
 <div class="row">
-	<div class="col-lg-4 col-lg-offset-1">		
-		<donut class="chart" data='download.users' select-Options= "download.updateUserDownload(value)"></donut>			
+	<div class="col-lg-3 col-lg-offset-1 col-sm-4">
+		<div class="box">
+			<div class="text-format">					
+					<h2>Total Volume</h2>
+					<h3>{{download.volume.total }}</h3>					
+					<h2>Busiest Day</h2>
+					<h3>{{download.volume.busiestDay}}</h3>
+			</div>
+		</div>	
 	</div>
-	<div class="col-lg-6 ">		
+	
+	<div class="col-lg-7 ">		
 		<time-line-graph class="chart" data='download.volume' select-Options= "download.updateDownloadVolume(value)" ></time-line-graph>			
 	</div>	
 </div>

@@ -60,14 +60,13 @@
 
         //Watches for changes in csvData and modifies the link with the new data
         $scope.$watch('csvData', function(data){
-            console.log(data)
+           
             if(data){
                 var CSV ='';
                data.forEach(function(entry){
                     CSV += JSONToCSVConvertor(entry.data,entry.title);
 
-               });
-                    
+               });           
                     
                 
            
@@ -100,7 +99,7 @@
 
         vm.downloadCsv = function(){
                 link.click()
-                console.log("Download")
+             
         } 
 
 

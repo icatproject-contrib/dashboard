@@ -9,8 +9,11 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 		
     		var vm=this;   	
     			
+    		vm.dataCsv = [];
+    			
     		vm.userOption = false;	
-    		
+
+
     		//Initialise the page with the values it requires for the menus
 	        vm.initPage = function(){
 	        	//Set default dates
@@ -29,7 +32,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 	        		     	
 	        		vm.instrumentNames = responseData[0];
 	        		vm.entityNames = responseData[1];
-	        		console.log(vm.entityNames)
+	        	
 
 	        		if(vm.instrumentNames.length == 0){
 	        			vm.selectedInstrument = "No Data";
@@ -42,12 +45,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 	        		}
 	        		else{
 	        			vm.selectedEntity = vm.entityNames[0].name;
-	        		}
-
-	        		
-	        		
-	        		
-	        		
+	        		}		
 	        		
 
 	        		//Only want to update the page once the instrument has been returned
@@ -60,8 +58,14 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 	        vm.updateDates = function(startDate,endDate){
 	        	vm.startDate = startDate;
 	        	vm.endDate = endDate;
-	      
-	        	vm.updatePage();
+	      	
+	      		//Call the methods without providing a instrument or entity as to not overwrite a users selection.
+	      		vm.updateInsDfCount();
+    		 	vm.updateInsDfVolume();
+    		 	vm.updateEntityCount();
+    		 	vm.updateInvData();
+    		 	vm.updateDfVolume();
+	        	
 
 	        }  	
 
@@ -72,42 +76,68 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
     			var entity = vm.selectedEntity;
     		  
 
-    		 	var insCountPromise = vm.updateInsDfCount(instrument);
-    		 	var insVolumePromise = vm.updateInsDfVolume(instrument);
-    		 	var entityCountPromise = vm.updateEntityCount(entity);
-    		 	var invDataPromise = vm.updateInvData();
-    		 	var dfVolumePromise = vm.updateDfVolume();
+    		 	var insCountPromise = vm.updateInsDfCount(instrument,true);
+    		 	var insVolumePromise = vm.updateInsDfVolume(instrument,true);
+    		 	var entityCountPromise = vm.updateEntityCount(entity,true);
+    		 	var invDataPromise = vm.updateInvData(true);
+    		 	var dfVolumePromise = vm.updateDfVolume(true);
 
     		 	var groupPromise = $q.all([insCountPromise,insVolumePromise,entityCountPromise,invDataPromise,dfVolumePromise])
-
-    		 	groupPromise.then(function(responseData){
-    		 		vm.dataCsv = [
-
-    		 			{
-    		 				type:"insDfCount",
-    		 				title:"Datafile count for "+instrument,
-    		 				data:responseData[0]
-    		 			},
-    		 			//{"Datafile volume for "+instrument,responseData[1]},
-    		 			//["Entity count for "+entity,responseData[2]],
-    		 			//["Investigation Datafile count",responseData[3][0]],
-    		 			//["Investigation Datafile volume",responseData[3][1]],
-    		 			{
-    		 				type:"dfVolume",
-    		 				title:"Datafile Volume",
-    		 				data:responseData[4]
-    		 			}
-
-    		 		]
-
+    		 	
+    		 	groupPromise.then(function(){
     		 		
-    		 	});	
-
+    		 		updateCSV();
+    		 		
+    		 	});	  		 	
 
 	     
         	}
 
-        	vm.updateDfVolume = function(){
+        	
+
+        	//Updates the vm.dataCSV file with new values.
+    		function updateCSV(){
+
+    			vm.dataCsv = [
+
+    		 			{
+    		 				type:"insDfCount",
+    		 				title:vm.insDataFileCount.title,
+    		 				data:vm.insDataFileCount.rawData
+    		 			},
+    		 			{
+    		 				type:"insDfVolume",
+    		 				title:vm.insDataFileVolume.title,
+    		 				data:vm.insDataFileVolume.rawData
+
+    		 			},
+    		 			{
+    		 				type:"entityCount",
+    		 				title:vm.countEntity.title,
+    		 				data:vm.countEntity.rawData
+    		 			},
+    		 			{
+    		 				type:"invDfCount",
+    		 				title:vm.investigationDatafile.number.title,
+    		 				data:vm.investigationDatafile.number.rawData
+    		 			},
+    		 			{
+    		 				type:"invDfVolume",
+    		 				title:vm.investigationDatafile.volume.title,
+    		 				data:vm.investigationDatafile.volume.rawData
+    		 			},    		 			
+    		 			{
+    		 				type:"dfVolume",
+    		 				title:vm.dataFileVolume.title,
+    		 				data:vm.dataFileVolume.rawData
+    		 			}   		 			
+
+    		 		]    		
+    		}
+
+        	
+    		//Updates the datafile volume graph. Initialupload to prevent calling uploadCSV before the data has been uploaded.
+        	vm.updateDfVolume = function(initialUpload){
         		return entityService.getDatafileVolume(getStartDate(),getEndDate()).then(function(responseData){
 
 				
@@ -149,19 +179,22 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						zoom:true,
 						xLabel:"Insertion Date",
 						yLabel:"Volume of Datafiles "+byteFormat,
+						rawData:responseData
 						
 						
 				    } 
 
-
-
-				 return responseData;
-
+				    if(!initialUpload){
+				    	 updateCSV();
+				    }
+				
+				   	
 				});
 
         	}
 
-        	vm.updateInvData = function(){
+        	//Updates the investigation volume and file count graph. Initialupload to see if it should update the CSV or not.
+        	vm.updateInvData = function(initialUpload){
 
         		var investigationDatafileCountPromise = entityService.getInvestigationDatafileCount(getStartDate(),getEndDate());
 
@@ -202,24 +235,36 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						datasets:["number","volume"],
 						number : {
 							"data":frequency,
-							"title":"Number of datafiles per investigation."
+							"title":"Number of datafiles per investigation.",
+							"rawData":responseData[0]
 						},
 						volume : {
 							"data":volume,
-							"title":"Volume of datafiles ("+byteFormat+") per investigation."
+							"title":"Volume of datafiles ("+byteFormat+") per investigation.",
+							"rawData":responseData[1]
 						},					
 						description :  "This donut chart displays the number and volume of datafiles for the top 10 investigations.",
 					    title :"Investigation datafile information"
 					};
 
-					return responseData;
 			
+					if(!initialUpload){
+				    	 updateCSV();
+				    }	
 
 				});		    
 
         	}
-        	
-        	vm.updateInsDfVolume = function(instrument){       		
+        	//updates the instrument datafile volume graph. Instrument: To pull data up for, initialUpload: if to updateCsv or not.
+        	vm.updateInsDfVolume = function(instrument, initialUpload){    
+
+        		if(instrument){
+        			vm.insDfVolumeIns = instrument;
+        		}  
+        		else{
+        			instrument = vm.insDfVolumeIns;
+        		} 	
+        			
 				
 				return entityService.getInstrumentFileVolume(getStartDate(),getEndDate(),instrument).then(function(responseData){
 
@@ -264,27 +309,32 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						xLabel:"Insertion Date",
 						yLabel:"Volume of Datafiles "+byteFormat,
 						selectOp:vm.instrumentNames,
-						optionTitle:"Instrument"
+						optionTitle:"Instrument",
+						rawData:responseData,
 						
 				    } 
 
-				    
-
-    		 		updateCSV("insDfCount",vm.insDataFileVolume.title,responseData)		
-
-				 return responseData;
-
-				});
+				    if(!initialUpload){
+				    	 updateCSV();
+				    }	
 
 
-
-		
+				});		
 
         	}
-        	vm.updateInsDfCount = function(instrument){
+
+        	//Updates instrument datafile count. Instrument: Data to look up for, initialUpload: to update the csv or not.
+        	vm.updateInsDfCount = function(instrument,initialUpload){
+
+        		if(instrument){
+        			vm.insDfCountIns = instrument;
+        		}  
+        		else{
+        			instrument = vm.insDfCountIns;
+        		} 	
         		
 
-    		return	entityService.getInstrumentFileCount(getStartDate(),getEndDate(), instrument).then(function(responseData){
+    			return	entityService.getInstrumentFileCount(getStartDate(),getEndDate(), instrument).then(function(responseData){
 
     			
 				
@@ -305,17 +355,29 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						xLabel:"Insertion Date",
 						yLabel:"Number of Datafiles",
 						selectOp:vm.instrumentNames,
-						optionTitle:"Instrument"
+						optionTitle:"Instrument",
+						rawData:responseData
 						
 				    } 
 
-					return responseData
+					if(!initialUpload){
+				    	 updateCSV();
+				    }	
+	
 
 				});
 
     		}
 
-    		vm.updateEntityCount = function(entity){
+    		//Updates the entity count graph. entity: to get data for, initialUpload: to update the csv or not.
+    		vm.updateEntityCount = function(entity,initialUpload){
+
+    			if(entity){
+        			vm.entityCountEntity = entity;
+        		}  
+        		else{
+        			entity = vm.entityCountEntity;
+        		} 	
 
     			
     			return entityService.getEntityCount(getStartDate(),getEndDate(), entity).then(function(responseData){
@@ -339,36 +401,23 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						xLabel:"Insertion Date",
 						yLabel:"Number of "+entity,
 						selectOp:vm.entityNames,
-						optionTitle:"Entity"
+						optionTitle:"Entity",
+						rawData:responseData,
 						
 				    }
 
-				  return responseData
+				    if(!initialUpload){
+				    	 updateCSV();
+				    }	
+	
+
+				 
     			});
 
 
     		}
 
-    		//Updates the vm.dataCSV file with new values.
-    		function updateCSV(type,title,data){
-    			//Only want to check if it is been initially loaded.
-    			if(vm.dataCsv){
-	    			for(var i in vm.dataCsv){	    				
-
-	    				if(type===vm.dataCsv[i].type){
-	    		
-	    					vm.dataCsv[i].data = data;
-	    					vm.dataCsv[i].title = title;
-	    					
-	    				}  
-	    			}                  
-
-	               
-
-    			}
-    			console.log(vm.dataCsv)
-
-    		}
+    	
 
 
     		//Formats data where the values are date and number
