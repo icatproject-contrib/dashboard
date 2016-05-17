@@ -6,10 +6,8 @@
 package org.icatproject.dashboard.exposed;
 
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -41,7 +39,6 @@ import static org.icatproject.dashboard.utility.RestUtility.convertMapToJSON;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
-import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTime;
 import static org.icatproject.dashboard.utility.RestUtility.createPrePopulatedMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -110,7 +107,7 @@ public class UserRest {
      * Will either be for all users if none is specified or the login frequency
      * of a specified user.
      * @param sessionID for authentication.
-     * @param username of a specific user.
+     * @param name of a specific user.
      * @param startDate to search from.
      * @param endDate to search from.
      * @return a JSONArray of JSONObjects containing date and frequency.
@@ -122,7 +119,7 @@ public class UserRest {
     public String getLoginFrequency(@QueryParam("sessionID") String sessionID,                                   
                                     @QueryParam("startDate") String startDate,
                                     @QueryParam("endDate") String endDate,
-                                    @QueryParam("username") String username) throws DashboardException {
+                                    @QueryParam("name") String name) throws DashboardException {
 
         if (sessionID == null) {
             throw new BadRequestException("sessionID must be provided");
@@ -151,9 +148,9 @@ public class UserRest {
         
         Predicate finalPredicate;
         
-         if (null!=username) {
+         if (!("undefined".equals(name)) && !(("").equals(name))) {
              Join<ICATLog, ICATUser> icatUserJoin = icatLog.join("user");
-             Predicate usernamePredicate = cb.equal(icatUserJoin.get("name"),username);
+             Predicate usernamePredicate = cb.equal(icatUserJoin.get("name"),name);
              finalPredicate = cb.and(betweenStartEnd,operationPredicate,usernamePredicate);
          }else{
              finalPredicate = cb.and(betweenStartEnd,operationPredicate);
