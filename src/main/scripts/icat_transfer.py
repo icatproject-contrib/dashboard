@@ -154,7 +154,7 @@ def exportLogs(icatCon, dashboardCon,database):
 		if(userId!=None):		
 			result.append(row_data)
 
-		if(loopCounter == 500000):
+		if(loopCounter == 100000):
 			importMany(result,cursImport,importQuery)
 			loopCounter = 0
 			result = []						
