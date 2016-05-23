@@ -29,6 +29,7 @@ import org.icatproject.dashboard.consumers.GeoTool;
 import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.entity.ICATLog;
+import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.entity.InstrumentMetaData;
 import org.icatproject.dashboard.entity.InvestigationMetaData;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
@@ -104,7 +105,7 @@ public class IcatRest {
             throw new AuthenticationException("An invalid sessionID has been provided");
         }
 
-        String query = "SELECT log, user.fullName from ICATLog log JOIN log.user user ";
+        String query = "SELECT log, log.user from ICATLog log ";
 
         //Check status of passed paramaters and build query.		
         if (!("".equals(queryConstraint))) {
@@ -118,7 +119,8 @@ public class IcatRest {
         for (Object[] log : logs) {
             JSONObject obj = new JSONObject();
             ICATLog tempLog = (ICATLog) log[0];
-            obj.put("fullName", log[1]);
+            ICATUser user = (ICATUser) log[1];
+            obj.put("fullName", user.getFullName());
             obj.put("id", tempLog.getId());
             obj.put("entityId", tempLog.getEntityId());
             obj.put("entityType", tempLog.getEntityType());
