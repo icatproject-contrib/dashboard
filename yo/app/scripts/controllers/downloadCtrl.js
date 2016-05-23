@@ -14,6 +14,12 @@
 		
 		vm.userOption = true;
 
+		var statusOptions = [
+			{value:"finished", label:"Finished"},
+			{value:"inProgress", label:"In progress"},
+			{value:"failed",label:"Failed"}
+		];
+
 		
 		
         vm.europeOptions = [
@@ -44,6 +50,14 @@
 			{area:"Northern Asia", geoCode:"151"}
         ];
 
+
+		 var downloadEntityOptions = [
+			{ value: 'datafile', label: 'Datafile' }, 
+			{ value: 'dataset', label: 'Dataset' }, 
+			{ value: 'investigation', label: 'Investigation'}, 
+
+		]
+
         vm.gridOptions = {};
         vm.gridOptions.columnDefs = [
         	{field: 'id', displayName: 'Entities', width:80, type:'button', cellTemplate:'<div class="button-holder" align=center><button class="btn btn-default btn-large text-center" ng-click="grid.appScope.loadPopUp(row.entity.id)"><span class="fa fa-archive" aria-hidden="true"></span></button></div>' },
@@ -54,7 +68,7 @@
         	{field: 'method',  displayName: 'Method',width:80},
         	{field: 'downloadStart',  displayName: 'Start', type:'date'},
         	{field: 'downloadEnd', displayName:'End',type:'date'},
-    		{field: 'status', displayName:'Status',width:80, type:'string'},	
+    		{field: 'status', displayName:'Status',width:80, type:'dropdown', selectOptions:statusOptions},	
     		
     	];
 
@@ -96,7 +110,7 @@
 
     		vm.startDate = new Date(new Date().setDate(new Date().getDate()-10)); 
 
-        	 var downloadMethodTypes = downloadService.getDownloadMethodTypes();
+        	var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
         	downloadMethodTypes.then(function(responseData){
         		

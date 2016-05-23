@@ -49,6 +49,13 @@
 			            		column.cellTemplate = '<div class="ui-grid-cell-contents pop-up" tooltip-append-to-body="true" uib-tooltip={{row.entity.'+field+'}}>{{row.entity.'+field+'}}</div>';
 			            	}
 
+			            	if(type=='dropdown'){
+			            					            		
+			            		column.enableSorting = false;	      		
+			
+            
+			            	}
+
 			            	if(type ==='button'){
 			            		column.enableFiltering = false;
 			            		column.enableSorting = false;
@@ -92,6 +99,25 @@
 									          placeholder: 'To',
 									          "type": "input"
 									        }
+									]
+
+				                }
+				            }
+
+				            if(!column.filter){
+				                if(type == 'dropdown'){
+
+				                	column.filters= [
+									        
+									        { 
+									          
+									          type: uiGridConstants.filter.SELECT,
+									          placeholder: 'Select',
+									          selectOptions:column.selectOptions
+
+									          
+									        }
+									        
 									]
 
 				                }
@@ -239,6 +265,8 @@
 
   						var orderBy='';
 
+  						
+  						
 						gridColumns.forEach(function (columnDef){
 
 							if(!columnDef.field) {return};
@@ -264,6 +292,12 @@
 			                        
 			                    }
 
+							}
+							else if((columnDef.colDef.type=='dropdown') &&columnDef.filters[0].term){
+								
+								if(queryConstraint !== '') queryConstraint+=' AND ';
+
+								queryConstraint += entity+"."+columnDef.field+"='"+columnDef.filters[0].term+"'";
 							}
 							else if((columnDef.colDef.type == 'number' || columnDef.colDef.type == 'bytes') && columnDef.filters){
 								

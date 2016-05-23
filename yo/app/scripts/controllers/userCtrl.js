@@ -2,10 +2,10 @@
 	  'use strict';
 angular.module('dashboardApp').controller('UserCtrl', UserCtrl);
 
-UserCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridService','$uibModal',"$q"];	
+UserCtrl.$inject= ['$scope','googleChartApiPromise', 'userService','uiGridService','$uibModal',"$q","$rootScope"];	
 
 
-function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibModal,$q){		
+function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibModal,$q,$rootScope){		
 		
     		var vm=this;		
     	 
@@ -20,10 +20,10 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
         vm.gridOptions.columnDefs = [
         	{field: 'id',  displayName: 'Location', width:80, type:'button', cellTemplate:'<div class="button-holder" ng-if="row.entity.ipAddress" align=center><button class="btn btn-default btn-large text-center" ng-click="grid.appScope.loadGridLocationModal(row.entity.id)"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span></button></div>' },
         	{field: 'entityId', type:'number', displayName: 'Entity ID', width:80},
-        	{field: 'entityType',  type:"string", displayName: 'Entity Type', width:140},        	
+        	{field: 'entityType',  type:"dropdown", selectOptions:$rootScope.entityOptions, displayName: 'Entity Type', width:140},        	
         	{field: 'ipAddress', type:"string", displayName: 'ipAddress', width:120 },        	
         	{field: 'duration', type:'number', displayName:'Duration', width:110 },
-        	{field: 'operation',  type:"string", displayName:'Operation', width:100 },
+        	{field: 'operation',  type:"dropdown", selectOptions:$rootScope.logOperations, displayName:'Operation', width:100 },
     		  {field: 'query', type:"string", displayName:'Query' },
     		  {field: 'fullName',  type:"string", displayName:'User', width:110},
     		  {field: 'logTime',  type:"date",  displayName: 'Log Time',width:160},

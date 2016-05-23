@@ -28,7 +28,7 @@
 					},
 
 					getLoggedFrequency: function(startDate,endDate,userName){
-						console.log(userName)
+						
 						return $http.get(baseURL+"user/logged/frequency?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&name="+userName)
 							.then(function(response){
 
