@@ -181,7 +181,7 @@ public class IcatDataManager {
             ICATService service = new ICATService(icatUrl, qName);
             icat = service.getICATPort();            
                                         
-            LOG.info("Successfuly retrieved a sessionId from ICAT: "+properties.getICATUrl());
+           
                     
         } catch (MalformedURLException ex) {
             LOG.error("Error connecting to the ICAT ",ex);
@@ -191,7 +191,7 @@ public class IcatDataManager {
         
         try {
             session = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
-            LOG.info("Successfully created ICAT Rest Client.");
+            LOG.info("Successfuly retrieved a sessionId from ICAT: "+properties.getICATUrl());
         } catch (IcatException_Exception ex) {
             LOG.error("Error logging into the ICAT ",ex);
         }
