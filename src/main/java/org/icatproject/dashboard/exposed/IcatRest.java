@@ -105,7 +105,7 @@ public class IcatRest {
             throw new AuthenticationException("An invalid sessionID has been provided");
         }
 
-        String query = "SELECT log, log.user from ICATLog log ";
+        String query = "SELECT log, user from ICATLog log JOIN log.user user ";
 
         //Check status of passed paramaters and build query.		
         if (!("".equals(queryConstraint))) {
