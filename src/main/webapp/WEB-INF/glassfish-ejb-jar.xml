@@ -3,10 +3,7 @@
 <glassfish-ejb-jar>
   <enterprise-beans>
     <ejb>
-      <ejb-name>DownloadListener</ejb-name>
-      <mdb-connection-factory>
-        <jndi-name>jms/idsConnectionFactory</jndi-name>
-      </mdb-connection-factory>
+      <ejb-name>DownloadListener</ejb-name>      
       <bean-pool>
         <resize-quantity>1</resize-quantity>
         <max-pool-size>1</max-pool-size>
@@ -18,11 +15,11 @@
       <mdb-connection-factory>
         <jndi-name>jms/icatConnectionFactory</jndi-name>
       </mdb-connection-factory>
-      <bean-pool>
+       <bean-pool>
         <resize-quantity>1</resize-quantity>
         <max-pool-size>1</max-pool-size>
         <steady-pool-size>1</steady-pool-size>
-      </bean-pool>
+      </bean-pool>      
     </ejb>
    
   </enterprise-beans>
