@@ -15,7 +15,7 @@
 			return !(_.isEmpty($sessionStorage.sessionData));
 		}
 
-		$rootScope.baseURL = 'https://localhost:8181/dashboard/';
+		$rootScope.baseURL = '/dashboard/';
 
 		$rootScope.graphColours = ["#2980B9","#4B77BE","#3498DB"];
 

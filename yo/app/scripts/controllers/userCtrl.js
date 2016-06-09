@@ -25,7 +25,7 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
         	{field: 'duration', type:'number', displayName:'Duration', width:110 },
         	{field: 'operation',  type:"dropdown", selectOptions:$rootScope.logOperations, displayName:'Operation', width:100 },
     		  {field: 'query', type:"string", displayName:'Query' },
-    		  {field: 'fullName',  type:"string", displayName:'User', width:110},
+    		  {field: 'fullName',  type:"join", displayName:'User', width:110},
     		  {field: 'logTime',  type:"date",  displayName: 'Log Time',width:160},
 
 
