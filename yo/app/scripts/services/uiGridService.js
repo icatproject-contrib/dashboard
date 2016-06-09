@@ -46,6 +46,7 @@
 
 			            	if(field ==='query'){
 
+			            		column.enableSorting = false;	    
 			            		column.cellTemplate = '<div class="ui-grid-cell-contents pop-up" tooltip-append-to-body="true" uib-tooltip={{row.entity.'+field+'}}>{{row.entity.'+field+'}}</div>';
 			            	}
 
@@ -54,6 +55,15 @@
 			            		column.enableSorting = false;	      		
 			
             
+			            	}
+
+			            	if(type=='join'){
+			            		column.enableSorting = false;
+
+			            		column.filter = {
+				                        "condition": uiGridConstants.filter.CONTAINS,				                        
+				                        "type": "input",
+				                }
 			            	}
 
 			            	if(type ==='button'){
@@ -81,8 +91,7 @@
 									        }
 									]
 							 														 
-			            	}
-			            	
+			            	}			            	
 
 				            if(!column.filter){
 				                if(type == 'number'){
@@ -315,7 +324,7 @@
 
 								}
 							}	
-							else if(columnDef.colDef.type== 'string' && columnDef.filters[0].term){
+							else if((columnDef.colDef.type== 'string'|| columnDef.colDef.type== 'join' )&& columnDef.filters[0].term){
 								var term = columnDef.filters[0].term;					
 								var type = columnDef.field;
 								
