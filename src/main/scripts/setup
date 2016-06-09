@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 from setup_utils import *
+import tempfile
+import zipfile
+import shutil
 import os
+import glob
 import socket
 
 # dashboard
@@ -8,14 +12,43 @@ import socket
 def uninstall():    
     app = actions.getAppName("dashboard")
     if app: actions.undeploy(app)
-    actions.unregisterDB("dashboard")
-    actions.deleteJMSResource("jms/icatConnectionFactory")
-    actions.deleteJMSResource("jms/idsConnectionFactory")
+    actions.unregisterDB("dashboard")  
+
+'''
+#Will loop through the contents of the Dashboard war file and if the files name
+isn't equal to ejb-jar.xml then it will append it to a new zipe file.
+Finally it will then add the modified ejb-jar.xml to the war.
+'''
+def updateAddressList():
+
+    warname = "dashboard.war"
+    
+    for name in glob.glob('*.war'):        
+        warname=name
+
+    tempdir = tempfile.mkdtemp()
+    try:
+        tempname = os.path.join(tempdir, 'new.zip')
+        with zipfile.ZipFile(warname, 'r') as zipread:
+            with zipfile.ZipFile(tempname, 'w') as zipwrite:
+                for item in zipread.infolist():
+                                      
+                    if item.filename not in 'WEB-INF/ejb-jar.xml':
+                        data = zipread.read(item.filename)
+                        zipwrite.writestr(item, data)
+        shutil.move(tempname, warname)
+    finally:
+        shutil.rmtree(tempdir)
+        
+    with zipfile.ZipFile(warname, 'a') as z:
+        z.write('ejb-jar.xml','WEB-INF/ejb-jar.xml')    
+
+
     
 
 
     
-actions, arg, props = getActions("dashboard-setup.properties", ["db.vendor", "db.driver", "db.url", "db.username", "db.password","ids.address","icat.address"])
+actions, arg, props = getActions("dashboard-setup.properties", ["db.vendor", "db.driver", "db.url", "db.username", "db.password"])
 
 
 prop_name = "dashboard.properties"
@@ -25,22 +58,17 @@ if arg in ["CONFIGURE", "INSTALL"]: actions.configure(prop_name, prop_list)
 dashboardProperties = getProperties(prop_name, prop_list)
 
 
-if arg in ["CONFIGURE", "INSTALL"]:
-    
-    actions.checkNoErrors()
-	
+if arg in ["CONFIGURE", "INSTALL"]:    
+    actions.checkNoErrors()	
 
-if arg == "INSTALL": 
+if arg == "INSTALL":  
+   
+    actions.installFile("dashboard.properties")    
     
-    actions.installFile("dashboard.properties")
-    
-    
-    try: 
-                  
+    try:                   
         uninstall()
-        actions.registerDB("dashboard", props["db.vendor"], props["db.driver"], props["db.url"], props["db.username"], props["db.password"])
-        actions.createJMSResource("javax.jms.ConnectionFactory"," --property addressList="+props["icat.address"]+" jms/icatConnectionFactory")
-	actions.createJMSResource("javax.jms.ConnectionFactory"," --property addressList="+props["ids.address"]+" jms/idsConnectionFactory")
+        updateAddressList()
+        actions.registerDB("dashboard", props["db.vendor"], props["db.driver"], props["db.url"], props["db.username"], props["db.password"])        
 	actions._asadmin("restart-domain")
 	actions.deploy()   
         
@@ -48,8 +76,7 @@ if arg == "INSTALL":
         abort(str(e))
                 
 if arg == "UNINSTALL":        
-    actions.removeFile(prop_name)
-    
+    actions.removeFile(prop_name)   
     
     try:
         uninstall()

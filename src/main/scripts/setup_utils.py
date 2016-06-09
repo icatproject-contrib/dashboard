@@ -98,6 +98,9 @@ def getActions(file_name, required, binDir=False, appDir=False):
     elif props["secure"].lower() == "false": secure = False
     else : abort ("Secure must be true or false")
     
+    if "db.vendor" in props: 
+        abort("db.vendor should no longer be specified in " + file_name + " - consider setting db.target")
+
     container = props["container"].lower()
     if container == "glassfish": actions = GlassfishActions(props, options)
     elif container == "wildfly": actions = WildflyActions(props, options)
@@ -115,7 +118,7 @@ class Actions(object):
         except: pass
         self.clashes = 0
         
-    def _fix_persistence_xml(self, container):
+    def _fix_persistence_xml(self, container, target, logging):
         f = os.path.join("unzipped", "WEB-INF", "classes", "META-INF", "persistence.xml")
         if os.path.exists(f):
             with open(f) as fi:
@@ -123,6 +126,23 @@ class Actions(object):
                 for prop in doc.getElementsByTagName("property"):
                     if prop.getAttribute("name") == "eclipselink.target-server":
                         prop.setAttribute("value", container)
+                    if target and prop.getAttribute("name") == "eclipselink.target-database":
+                        prop.setAttribute("value", target)
+                    if prop.getAttribute("name") == "eclipselink.logging.level":
+                        if logging:
+                            prop.setAttribute("value", logging)
+                        else:
+                            prop.setAttribute("value", "OFF")
+                    if prop.getAttribute("name") == "eclipselink.logging.level.sql":
+                        if logging:
+                            prop.setAttribute("value", logging)
+                        else:
+                            prop.setAttribute("value", "OFF")
+                    if prop.getAttribute("name") == "eclipselink.logging.parameters":
+                        if logging:
+                            prop.setAttribute("value", "true")
+                        else:
+                            prop.setAttribute("value", "false")
             with open(f, "w") as fi:
                 fi.write(doc.toxml())
         
@@ -236,10 +256,20 @@ class Actions(object):
                 else:  print "\nValue for" , key, "in", file_name, "is", "'" + props[key] + "'", "is not in example"
             for key in example.keys():
                 if key not in props: print "\nValue for" , key, "not in", file_name, "but is in example:", "'" + example[key] + "'"
+    
+    def configureFileForWar(self, f):
+        if not os.path.exists(f):
+            shutil.copy(f + ".example", f)
+            print "\nCopied", f + ".example", "to", f
+            print "Please edit", f, "to meet your requirements"
+            self.clashes += 1
             
     def checkNoErrors(self):
         if self.clashes:
-            abort("Please edit configuration files and try again as " + str(self.clashes) + " errors were reported.")
+            if self.clashes == 1:
+                abort("Please edit configuration file and try again as an error was reported.")
+            else:
+                abort("Please edit configuration files and try again as " + str(self.clashes) + " errors were reported.")
   
     def installFile(self, file, dir=None):
         if not dir: dir = self.config_path
@@ -340,7 +370,7 @@ class WildflyActions(Actions):
             if not self.verbosity: print cmd, " ->"
             abort(err)
             
-    def deploy(self, deploymentorder=100, libraries=[], jmsTopicConnectionFactory=None):
+    def deploy(self, deploymentorder=100, libraries=[], jmsTopicConnectionFactory=None, target=None, logging=None):
         war = self._unzip()
         # Fix the web.xml
         f = os.path.join("unzipped", "WEB-INF", "web.xml")
@@ -374,7 +404,7 @@ class WildflyActions(Actions):
             with open(f, "w") as fi:
                 fi.write(doc.toprettyxml(indent="  "))
                 
-            self._fix_persistence_xml("JBoss")    
+            self._fix_persistence_xml("JBoss", target, logging)    
                 
         self._zip(war)
         
@@ -398,15 +428,19 @@ class WildflyActions(Actions):
     def unregisterDB(self, name):
         self._cli("/subsystem=datasources/data-source=" + name + ":remove", tolerant=True)
                 
-    def registerDB(self, name, vendor, driver, url, username, password):
+    def registerDB(self, name, driver, url, username, password):
         dProps = "driver-name=" + driver
         dProps += ",jndi-name=java:/jdbc/" + name
         dProps += ",connection-url=" + url
         dProps += ",user-name=" + username
         dProps += ",password=" + password
-        dProps += ",min-pool-size=5,max-pool-size=15,enabled=true,validate-on-match=true"
-        dProps += ",valid-connection-checker-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLValidConnectionChecker"
-        dProps += ",exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter"
+        dProps += ",min-pool-size=5,max-pool-size=15,enabled=true,background-validation=true, background-validation-minutes=1"
+        if driver.startswith("mysql"):
+            dProps += ",valid-connection-checker-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLValidConnectionChecker"
+            dProps += ",exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter"
+        elif driver.startswith("oracle"):
+            dProps += ",valid-connection-checker-class-name=org.jboss.jca.adapters.jdbc.extensions.oracle.OracleValidConnectionChecker"
+            dProps += ",exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.oracle.OracleExceptionSorter"
         print dProps
         self._cli("/subsystem=datasources/data-source=" + name + ":add(" + dProps + ")", printOutput=True)
       
@@ -495,7 +529,7 @@ class GlassfishActions(Actions):
         self._asadmin("delete-jdbc-resource jdbc/" + name, tolerant=True)
         self._asadmin("delete-jdbc-connection-pool " + name, tolerant=True)
                 
-    def registerDB(self, name, vendor, driver, url, username, password):
+    def registerDB(self, name, driver, url, username, password):
         dProps = "url=" + url.replace(":", "\\\\:")
         dProps += ":user=" + username
         dProps += ":password=" + password.replace(":", "\\\\:")
@@ -512,6 +546,13 @@ class GlassfishActions(Actions):
     
     def deleteJMSResource(self, name):
         self._asadmin("delete-jms-resource " + name, tolerant=True)
+        
+    def createMailResource(self, name, host, user, mfrom , property):
+        self._asadmin("create-javamail-resource --mailhost " + host + " --mailuser " + user + 
+                      " --fromaddress " + mfrom + " --property " + property + " " + name)
+
+    def deleteMailResource(self, name):
+        self._asadmin("delete-javamail-resource " + name, tolerant=True)
                      
     def addFileRealmUser(self, username, password, group):
         if self.getAsadminProperty("configs.config.server-config.security-service.activate-default-principal-to-role-mapping") == "false":
@@ -535,10 +576,21 @@ class GlassfishActions(Actions):
         self._asadmin("--passwordfile pw create-file-user --groups " + group + " " + username)
         os.remove("pw")
         
-    def deploy(self, deploymentorder=100, libraries=[], jmsTopicConnectionFactory=None):
+    def deploy(self, deploymentorder=100, libraries=[], files=[], jmsTopicConnectionFactory=None, target=None, logging=None):
         if not jmsTopicConnectionFactory: jmsTopicConnectionFactory = 'jms/__defaultConnectionFactory'
         
         war = self._unzip()
+        
+        # Add specific files
+        for src, dir in files:
+            dir = os.path.join("unzipped", dir)
+            try:
+                os.makedirs(dir)
+            except:
+                pass
+            shutil.copy(src , dir)
+            if self.verbosity:
+                print "\n", src, "copied to", dir
         
         # Fix the web.xml
         f = os.path.join("unzipped", "WEB-INF", "web.xml")
@@ -577,7 +629,7 @@ class GlassfishActions(Actions):
             with open(f, "w") as fi:
                 fi.write(doc.toxml())
                 
-        self._fix_persistence_xml("Glassfish")                        
+        self._fix_persistence_xml("Glassfish", target, logging)                        
             
         self._zip(war) 
         
