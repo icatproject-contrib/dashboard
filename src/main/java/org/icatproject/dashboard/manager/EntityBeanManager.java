@@ -55,9 +55,7 @@ public class EntityBeanManager {
         Session session = new Session(userName, lifetimeMinutes);
         try {
 
-            try {
-
-               
+            try {              
                 manager.persist(session);
                 manager.flush();
                 String result = session.getId();
@@ -101,14 +99,14 @@ public class EntityBeanManager {
      * @throws DashboardException If the entity exists.
      */
     public Long create(EntityBaseBean bean, EntityManager manager) throws DashboardException {
-        logger.info("Creating: " + bean.getClass().getSimpleName());
+        logger.debug("Creating: " + bean.getClass().getSimpleName());
         try {
             bean.preparePersist();
             manager.persist(bean);
             manager.flush();
 
             long beanId = bean.getId();
-            logger.info("Created :" + bean.getClass().getSimpleName() + " with id: " + beanId);
+            logger.debug("Created :" + bean.getClass().getSimpleName() + " with id: " + beanId);
 
             return beanId;
         } catch (Exception e) {
@@ -122,7 +120,7 @@ public class EntityBeanManager {
      * @param manager EntityManager to prevent threading issues.
      */
     public void update(EntityBaseBean bean, EntityManager manager) {
-        logger.info("Updating: "+bean.getClass().getSimpleName());
+        logger.debug("Updating: "+bean.getClass().getSimpleName());
         
         bean.setModTime(new Date());
         manager.merge(bean);
@@ -137,12 +135,12 @@ public class EntityBeanManager {
      * @throws DashboardException If it is unable to delete the entity.
      */
     public Boolean delete(EntityBaseBean bean, EntityManager manager) throws DashboardException {
-        logger.info("Deleting: " + bean.getClass().getSimpleName());
+        logger.debug("Deleting: " + bean.getClass().getSimpleName());
         try {
             EntityBaseBean beanManaged = find(bean, manager);
             manager.remove(beanManaged);
             manager.flush();
-            logger.info("Deleted: " + bean.getClass().getSimpleName());
+            logger.debug("Deleted: " + bean.getClass().getSimpleName());
             return true;
         } catch (IllegalStateException e) {
             throw new InternalException(e.getMessage());
@@ -183,7 +181,7 @@ public class EntityBeanManager {
      * @return A list of objects found.
      */
     public List<Object> search(String queryString, EntityManager manager) throws InternalException {
-        logger.info("Performing query: " + queryString);
+        logger.debug("Performing query: " + queryString);
         Query query = null;
         try {
 

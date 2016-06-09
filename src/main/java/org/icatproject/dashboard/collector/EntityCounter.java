@@ -131,7 +131,7 @@ public class EntityCounter  {
     public boolean countEntities(LocalDate countLocalDate){ 
         boolean passed = true;
         
-        LOG.info("Starting entity count for date ", countLocalDate.toString());
+        LOG.info("Starting entity count for date "+ countLocalDate.toString());
         
         Date countDate = convertToDate(countLocalDate);
         
@@ -170,7 +170,7 @@ public class EntityCounter  {
      * information.
      */
     private boolean collectInstrumentMeta(LocalDate collectionLocalDate){
-         LOG.info("Starting Instrument meta data collection for ", collectionLocalDate.toString());
+         LOG.info("Starting Instrument meta data collection for "+ collectionLocalDate.toString());
          
          boolean passed = true;
          
@@ -211,7 +211,7 @@ public class EntityCounter  {
         } 
          
          
-         LOG.info("Completed Instrument meta data collection for ", collectionLocalDate.toString());
+         LOG.info("Completed Instrument meta data collection for "+ collectionLocalDate.toString());
          
          return passed;
     }
@@ -222,7 +222,7 @@ public class EntityCounter  {
      * @return if it was successful in getting this data.
      */
     private boolean collectInvestigationMeta(LocalDate collectionLocalDate){
-        LOG.info("Starting Instrument meta data collection for ", collectionLocalDate.toString());
+        LOG.info("Starting Instrument meta data collection for "+ collectionLocalDate.toString());
         
         boolean passed = true;
         
