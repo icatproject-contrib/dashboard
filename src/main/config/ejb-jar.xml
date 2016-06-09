@@ -1,0 +1,81 @@
+<ejb-jar id="ejb-jar_ID" version="3.1"
+      xmlns="http://java.sun.com/xml/ns/javaee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                          http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd">
+  <enterprise-beans>
+
+    <message-driven>
+
+      <ejb-name>DownloadListener</ejb-name>
+      <ejb-class>org.icatproject.dashboard.consumers.DownloadListener</ejb-class>
+
+      <messaging-type>javax.jms.MessageListener</messaging-type>
+      <transaction-type>Container</transaction-type>
+      <activation-config>
+        <activation-config-property>
+          <activation-config-property-name>destinationType</activation-config-property-name>
+          <activation-config-property-value>javax.jms.Topic</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>destination</activation-config-property-name>
+          <activation-config-property-value>jms_IDS_log</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>subscriptionDurability</activation-config-property-name>
+          <activation-config-property-value>Durable</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>subscriptionName</activation-config-property-name>
+          <activation-config-property-value>dashboardSub2</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>clientId</activation-config-property-name>
+          <activation-config-property-value>id123</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>addressList</activation-config-property-name>
+          <activation-config-property-value>idsdev2.isis.cclrc.ac.uk</activation-config-property-value>
+        </activation-config-property>
+      </activation-config>     
+
+    </message-driven>
+    
+    <message-driven>
+
+      <ejb-name>ICATListener</ejb-name>
+      <ejb-class>org.icatproject.dashboard.consumers.ICATListener</ejb-class>
+
+      <messaging-type>javax.jms.MessageListener</messaging-type>
+      <transaction-type>Container</transaction-type>
+      <activation-config>
+        <activation-config-property>
+          <activation-config-property-name>destinationType</activation-config-property-name>
+          <activation-config-property-value>javax.jms.Topic</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>destination</activation-config-property-name>
+          <activation-config-property-value>jms_ICAT_log</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>subscriptionDurability</activation-config-property-name>
+          <activation-config-property-value>Durable</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>subscriptionName</activation-config-property-name>
+          <activation-config-property-value>dashboardSub</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>clientId</activation-config-property-name>
+          <activation-config-property-value>id1234</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>addressList</activation-config-property-name>
+          <activation-config-property-value>icat-dev.isis.stfc.ac.uk</activation-config-property-value>
+        </activation-config-property>
+      </activation-config>     
+
+    </message-driven>
+
+  </enterprise-beans>
+</ejb-jar>
