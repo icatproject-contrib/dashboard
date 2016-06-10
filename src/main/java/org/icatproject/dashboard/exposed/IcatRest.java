@@ -150,7 +150,7 @@ public class IcatRest {
     @Path("logs/location")
     @Produces(MediaType.APPLICATION_JSON)
     public String getIcatLogLocation(@QueryParam("sessionID") String sessionID,
-                                     @QueryParam("logId") int logId) throws DashboardException {
+                                     @QueryParam("logId") Long logId) throws DashboardException {
 
         if (sessionID == null) {
             throw new BadRequestException("sessionID must be provided");
@@ -423,7 +423,7 @@ public class IcatRest {
      * @param logId the id of the log.
      * @return A geoLocation object of where the Log took place.
      */
-    private GeoLocation getLogLocation(int logId) {
+    private GeoLocation getLogLocation(Long logId) {
 
         String locationQuery = "SELECT location from GeoLocation location JOIN location.logs log WHERE log.id='" + logId + "'";
         String ipQuery = "SELECT log.ipAddress FROM ICATLog log WHERE log.id='" + logId + "'";

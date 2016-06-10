@@ -78,21 +78,21 @@ public class UserRest {
         }
         List<String[]> users;
 
-        JSONArray ary = new JSONArray();
-
+        JSONArray ary = new JSONArray();       
+        
         users = manager.createNamedQuery("Users.LoggedIn").getResultList();
 
         if (users.size() > 0) {
 
             for (Object[] user : users) {
 
-                String name = (String) user[1];
-               
+                String name = (String) user[1];  
+                
                 String currentOperation = getLatestOperation(name);
-
+                
                 JSONObject obj = new JSONObject();
                 obj.put("fullName", user[0]);
-                obj.put("name", name);                
+                obj.put("name", name);               
                 obj.put("operation", currentOperation);
 
                 ary.add(obj);
@@ -205,13 +205,13 @@ public class UserRest {
             throw new AuthenticationException("An invalid sessionID has been provided");
         }
 
-        Query logQuery = manager.createQuery("SELECT log.id FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc");
+        Query logQuery = manager.createQuery("SELECT log.id FROM ICATLog log JOIN log.user user WHERE user.name=:name ORDER BY log.logTime desc");
         logQuery.setParameter("name", name);
         logQuery.setMaxResults(1);
 
         Long logId = (Long) logQuery.getSingleResult();
 
-        GeoLocation geoLocation = getLogLocation(logId.intValue());
+        GeoLocation geoLocation = getLogLocation(logId);
 
         JSONArray resultArray = new JSONArray();
 
@@ -227,7 +227,6 @@ public class UserRest {
         return resultArray.toJSONString();
 
     }
-
     
 
     /**
@@ -271,26 +270,13 @@ public class UserRest {
      * @param logId the id of the log.
      * @return A geoLocation object of where the Log took place.
      */
-    private GeoLocation getLogLocation(int logId) {
+    private GeoLocation getLogLocation(Long logId) {
 
-        String locationQuery = "SELECT location from GeoLocation location JOIN location.logs log WHERE log.id='" + logId + "'";
-        String ipQuery = "SELECT log.ipAddress FROM ICATLog log WHERE log.id='" + logId + "'";
+        String locationQuery = "SELECT location from GeoLocation location JOIN location.logs log WHERE log.id='" + logId + "'";       
 
-        List<Object> location = manager.createQuery(locationQuery).getResultList();
-        GeoLocation geoLocation;
+        List<Object> geoLocation = manager.createQuery(locationQuery).getResultList();        
 
-        /*Location has not been set due to it being a functional account log. We do not store that to prevent
-             * the geoLocation API blocking the dashboards ip.
-         */
-        if (location.isEmpty()) {
-            List<Object> ipList = manager.createQuery(ipQuery).getResultList();
-            geoLocation = GeoTool.getGeoLocation((String) ipList.get(0), manager, beanManager);
-
-        } else {
-            geoLocation = (GeoLocation) location.get(0);
-        }
-
-        return geoLocation;
+        return (GeoLocation)geoLocation.get(0);
 
     }
 
