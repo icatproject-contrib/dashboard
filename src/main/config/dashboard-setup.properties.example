@@ -1,6 +1,6 @@
 # Glassfish
 secure         = true
-container      = glassfish
+container      = Glassfish
 home           = /home/admin/glassfish4
 port           = 4848
 
@@ -10,23 +10,30 @@ port           = 4848
 !home           = /home/fisher/pf/wildfly
 !port           = 9990
 
-#ids without the protocol prefix
+#ids address without the protocol prefix
 ids.address    = 
 
-#icat without the protocol prefix
+#icat address without the protocol prefix
 icat.address   =
 
 #oracle
-db.vendor      = oracle
 db.driver      = oracle.jdbc.pool.OracleDataSource
 db.url         = 
 db.username    = 
 db.password    = 
 
+# Optional oracle
+!db.target = Oracle11
+!db.logging = FINE
+
 # MySQL
 !db.vendor      = mysql
 !db.driver      = com.mysql.jdbc.jdbc2.optional.MysqlDataSource
-!db.driver      = mysql-connector-java-5.1.30-bin.jar_com.mysql.jdbc.Driver_5_1
 !db.url         = jdbc:mysql://localhost:3306/icat
 !db.username    = icat
 !db.password    = secret
+
+
+# Optional MySQL
+!db.target      = MySQL
+!db.logging     = FINE
