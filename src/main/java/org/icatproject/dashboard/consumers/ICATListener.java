@@ -7,7 +7,6 @@ package org.icatproject.dashboard.consumers;
 
 import java.util.Date;
 import java.util.List;
-import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.jms.JMSException;
@@ -27,22 +26,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
-   
-@MessageDriven(activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),  
-    @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/ICAT/log"),
-    @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_ICAT_log"),   
-   @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),     
-    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub"), 
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "2222"),
-    
-    
-    
-  
-    
-})
 
 
+@MessageDriven
 public class ICATListener implements MessageListener {
     
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ICATListener.class);
@@ -51,10 +37,7 @@ public class ICATListener implements MessageListener {
     private EntityBeanManager beanManager;
     
     @EJB
-    private UserManager userCollector;    
-    
-
-    
+    private UserManager userCollector;     
     
     @PersistenceContext(unitName="dashboard")
     private EntityManager manager;   

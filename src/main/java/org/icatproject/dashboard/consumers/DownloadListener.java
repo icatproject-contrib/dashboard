@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.jms.JMSException;
@@ -63,19 +61,6 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
 
 
-@MessageDriven(activationConfig = {
-    @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
-    @ActivationConfigProperty(propertyName="maxSessions",propertyValue="1"),
-    @ActivationConfigProperty(propertyName = "destinationJndiName", propertyValue = "jms/IDS/log"),
-    @ActivationConfigProperty(propertyName= "destination", propertyValue="jms_IDS_log"),    
-    @ActivationConfigProperty(propertyName = "subscriptionDurability",propertyValue = "Durable"),  
-    @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "dashboardSub2"),
-    @ActivationConfigProperty(propertyName = "clientId", propertyValue = "id21121"),
-    
-    
-})
-
-
 
 /**
  * DownloadListener is a Message driven bean that processes JMS messages from an IDS.
@@ -84,7 +69,7 @@ import org.slf4j.LoggerFactory;
  * and properties. It will then collect extra information from the ICAT and then from TopCat. 
  * With all this information it then pushes the data to the database.
  */
-
+@MessageDriven
 public class DownloadListener implements MessageListener {
     
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(DashboardSessionManager.class);
@@ -923,7 +908,7 @@ public class DownloadListener implements MessageListener {
      * @param type the type of entity it is e.g. investigation.
      * @return the object if it's found. If not then null is returned.
      */
-    ;private Entity_ checkEntity(Long ID, String type) throws InternalException {
+    private Entity_ checkEntity(Long ID, String type) throws InternalException {
         List<Object> en = beanManager.search("SELECT en FROM Entity_ en WHERE en.type='" + type + "' AND en.icatId=" + ID, manager);
         if (en.size() > 0) {
             return (Entity_) en.get(0);
