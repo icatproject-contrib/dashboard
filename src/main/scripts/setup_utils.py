@@ -101,10 +101,10 @@ def getActions(file_name, required, binDir=False, appDir=False):
     if "db.vendor" in props: 
         abort("db.vendor should no longer be specified in " + file_name + " - consider setting db.target")
 
-    container = props["container"].lower()
-    if container == "glassfish": actions = GlassfishActions(props, options)
-    elif container == "wildfly": actions = WildflyActions(props, options)
-    else : abort ("container must be glassfish or wildfly")
+    container = props["container"]
+    if container == "Glassfish": actions = GlassfishActions(props, options)
+    elif container == "JBoss": actions = WildflyActions(props, options)
+    else : abort ("container must be Glassfish or JBoss")
     
     return actions, arg, props
 
@@ -435,7 +435,7 @@ class WildflyActions(Actions):
         dProps += ",user-name=" + username
         dProps += ",password=" + password
         dProps += ",min-pool-size=5,max-pool-size=15,enabled=true,background-validation=true, background-validation-minutes=1"
-        if driver.startswith("mysql"):
+        if "mysql" in driver:
             dProps += ",valid-connection-checker-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLValidConnectionChecker"
             dProps += ",exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter"
         elif driver.startswith("oracle"):
