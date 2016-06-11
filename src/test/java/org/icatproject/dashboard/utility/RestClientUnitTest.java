@@ -35,7 +35,7 @@ public class RestClientUnitTest {
         LocalDate end = LocalDate.of(2015, Month.JANUARY,11);        
         DownloadSizeProcessor testProcessor = new DownloadSizeProcessor(start,end);
         
-        TreeMap<LocalDate,Long> testMap = RestUtility.createPrePopulatedMap(start, end);
+        TreeMap<LocalDate,Long> testMap = RestUtility.createPrePopulatedLongMap(start, end);
         
         
         //Create some data
@@ -130,7 +130,7 @@ public class RestClientUnitTest {
         LocalDate end = LocalDate.now();
         
         
-        TreeMap<LocalDate,Long> testMap = RestUtility.createPrePopulatedMap(start, end);
+        TreeMap<LocalDate,Long> testMap = RestUtility.createPrePopulatedLongMap(start, end);
         
         return testMap;
         
