@@ -8,6 +8,9 @@ authenticator=
 userName=
 password=
 
+#Functional accounts. Set as nmeonic/name e.g. uows/10422 simple/test
+functional_accounts =
+
 #Accounts allowed to login. Set as uows/1054444 simple/test
 authorised_accounts = 
 
