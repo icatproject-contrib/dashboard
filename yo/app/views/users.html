@@ -1,13 +1,13 @@
 
 <search-bar select-values= "user.updateOptions(startDate,endDate,userName)" csv-data="user.dataCsv" user-option="user.userOption"></search-bar>
 <div class="row" ng-init="user.initPage()">
-    <div class="col-lg-10 col-lg-offset-1 ">     
+    <div class="col-lg-5 col-lg-offset-1 ">     
             <time-line-graph class="chart" data='user.loginFrequency' ></time-line-graph>            
     </div>
+    <div class="col-lg-5">     
+            <time-line-graph class="chart" data='user.loginUniqueFrequency' ></time-line-graph>            
+    </div>
 </div>
-
-
-
 
 <div class="row" >
     <div class="col-lg-10 col-lg-offset-1"> 
