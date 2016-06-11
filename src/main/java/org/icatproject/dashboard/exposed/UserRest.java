@@ -120,8 +120,7 @@ public class UserRest {
     @Produces(MediaType.APPLICATION_JSON)
     public String getUniqueLoginFrequency(@QueryParam("sessionID") String sessionID,                                   
                                     @QueryParam("startDate") String startDate,
-                                    @QueryParam("endDate") String endDate,
-                                    @QueryParam("name") String name) throws DashboardException {
+                                    @QueryParam("endDate") String endDate) throws DashboardException {
 
         if (sessionID == null) {
             throw new BadRequestException("sessionID must be provided");
@@ -139,7 +138,7 @@ public class UserRest {
         TreeMap<LocalDate, Long> loginDates = createPrePopulatedLongMap(startRange, endRange);
         TreeMap<LocalDate, HashSet> userNameDates = createPrePopulatedHashSetMap(startRange, endRange);       
                 
-        List<Object[]> result = getLoggedUserCount(start,end,name);
+        List<Object[]> result = getLoggedUserCount(start,end,"");
         
         for(Object[] day : result){
             LocalDate collectionDate = convertToLocalDate((Date) day[0]);
