@@ -67,8 +67,9 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
            var user = vm.userName;
 
            var loggedFrequencyPromise = vm.updateLoggedFrequency(user);
+           var loggedUniqueFrequencyPromised = vm.updateLoggedUniqueFrequency();
 
-           var groupPromise = $q.all([loggedFrequencyPromise]);
+           var groupPromise = $q.all([loggedFrequencyPromise, loggedUniqueFrequencyPromised]);
 
            groupPromise.then(function(responseData){
               
@@ -76,8 +77,13 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
               vm.dataCsv = [
                   {
                     type:"userLoginCount",
-                    title:"User login frequency. User "+user,
-                    data:responseData[0],
+                    title:"Number of user logins. User "+user,
+                    data:responseData[0]
+                  },
+                  {
+                    type:"userLoginUniqueCount",
+                    title:"Unique number of user logins.",
+                    data:responseData[1]
                   }                  
               ]
            });
@@ -100,8 +106,8 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
                       Number:'line',
                     }
                   },
-              description : "This line graph shows the frequency of user logins per day.",   
-              title: "Number of user logins per day.",           
+              description : "This line graph shows the total number of user logins per day.",   
+              title: "Number of logins per day.",           
               zoom:true,
               xLabel:"Login Date",
               yLabel:"Number of Logins",
@@ -114,6 +120,38 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
 
           });
         }
+
+        vm.updateLoggedUniqueFrequency = function(){
+
+          return userService.getLoggedUniqueFrequency(getStartDate(),getEndDate()).then(function(responseData){
+
+            var formattedData = formatData(responseData); 
+
+
+            vm.loginUniqueFrequency = {
+              data:{
+                x:"x",           
+                      columns : formattedData,
+                    types:{
+                      Number:'line',
+                    }
+                  },
+              description : "This line graph shows the unique number of user logins per day.",   
+              title: "Number of unique logins per day.",           
+              zoom:true,
+              xLabel:"Login Date",
+              yLabel:"Number of Unique Logins",
+            
+              
+              } 
+
+
+            return responseData;
+
+
+          });
+        }
+
 
   		//Use of scope is to allow the ui-grid to access the call.
       $scope.loadGridLocationModal = function(logId,entity){
