@@ -13,12 +13,14 @@
 		var globalIdentifiers = ['Country', 'number of Downloads'];
 		
 		vm.userOption = true;
+	
 
 		var statusOptions = [
 			{value:"finished", label:"Finished"},
 			{value:"inProgress", label:"In progress"},
 			{value:"failed",label:"Failed"}
 		];
+
 
 		
 		
@@ -159,7 +161,8 @@
 			var groupPromise = $q.all([updateUserDownloadPromise,updateMethodDownloadPromise,updateDownloadStatusPromise,updadeDownloadEntityAgePromise,updateLocalLocationPromise,updateGlobalLocationPromise,updateDownloadFrequencyPromise,updateISPBandwidthPromise,updateDownloadVolumePromise])
 
     		 	groupPromise.then(function(){
-					updateCSV(); 		 			
+					updateCSV(); 
+
 
 				});
 
@@ -173,23 +176,23 @@
 
 				{
 	 				type:"userDownloadNumber",
-	 				title:vm.users.number.title,
+	 				title:"User Download Number",
 	 				data:vm.users.number.rawData
 	 			},
 	 			{
 	 				type:"userDownloadVolume",
-	 				title:vm.users.volume.title,
+	 				title:"User Download Volume",
 	 				data:vm.users.volume.rawData
 
 	 			},
 	 			{
 	 				type:"methodDownloadNumber",
-	 				title:vm.method.number.title,
+	 				title:"Method Download Count",
 	 				data:vm.method.number.rawData
 	 			},
 	 			{
 	 				type:"methodDownloadVolume",
-	 				title:vm.method.volume.title,
+	 				title:"Method Download Volume",
 	 				data:vm.method.volume.rawData
 	 			},
 	 			{
@@ -216,12 +219,12 @@
 	 			},
 	 			{
 	 				type:"ispBandwidth",
-	 				title:vm.ispBandwidth.title,
+	 				title:"ISP Average, Min and Max",
 	 				data:vm.ispBandwidth.rawData
 	 			},  
 	 			{
 	 				type:"downloadVolume",
-	 				title:vm.volume.title,
+	 				title:"Download Volume",
 	 				data:vm.volume.rawData
 	 			}
 	 		]
