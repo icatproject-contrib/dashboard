@@ -187,6 +187,21 @@
 		
 	</p>
 
+        <h1>
+		<a id="post"></a> Post-installation work
+	</h1>
+	<h1>
+		<a id="performance"></a> Performance
+	</h1>
+
+	To improve performance:
+	<ul>
+		<li>Consider creating the indices defined in indices.sql. Indices
+			can make a huge difference to the database performance but there is
+			also a small cost for each index.</li>
+		
+	</ul>
+
 </body>
 </html>
 
