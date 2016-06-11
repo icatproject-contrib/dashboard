@@ -7,6 +7,7 @@ package org.icatproject.dashboard.exposed;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
@@ -87,7 +88,7 @@ public class DashboardResource {
             ICAT icat = new ICAT(icatURL);
             Map<String, String> credentials = new HashMap<>();
 
-            List<String> authorisedAccounts = properties.getAuthorisedAccounts();
+            HashSet authorisedAccounts = properties.getAuthorisedAccounts();
 
             String user;
             String sessionID;
@@ -103,13 +104,13 @@ public class DashboardResource {
             user = session.getUserName();
             session.logout();
 
-            for (String account : authorisedAccounts) {
-                if (account.trim().contains(user)) {
-                    sessionID = beanManager.login(user, 120, manager);
-                    obj.put("sessionID", sessionID);
-                    return obj.toString();
-                }
+            
+            if (authorisedAccounts.contains(user)) {
+                sessionID = beanManager.login(user, 120, manager);
+                obj.put("sessionID", sessionID);
+                return obj.toString();
             }
+            
 
             throw new ForbiddenException("Access Denied");
         } catch (IcatException ex) {

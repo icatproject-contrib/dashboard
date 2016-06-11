@@ -83,21 +83,26 @@ public class UserRest {
         JSONArray ary = new JSONArray();       
         
         users = manager.createNamedQuery("Users.LoggedIn").getResultList();
-
+        
+        HashSet functionalAccounts = properties.getFunctionalAccounts();
+                
         if (users.size() > 0) {
 
             for (Object[] user : users) {
 
                 String name = (String) user[1];  
                 
-                String currentOperation = getLatestOperation(name);
+                if(!functionalAccounts.contains(name)){
                 
-                JSONObject obj = new JSONObject();
-                obj.put("fullName", user[0]);
-                obj.put("name", name);               
-                obj.put("operation", currentOperation);
+                    String currentOperation = getLatestOperation(name);
 
-                ary.add(obj);
+                    JSONObject obj = new JSONObject();
+                    obj.put("fullName", user[0]);
+                    obj.put("name", name);               
+                    obj.put("operation", currentOperation);
+
+                    ary.add(obj);
+                }
             }
         }
 
@@ -109,7 +114,6 @@ public class UserRest {
      * Will either be for all users if none is specified or the login frequency
      * of a specified user.
      * @param sessionID for authentication.
-     * @param name of a specific user.
      * @param startDate to search from.
      * @param endDate to search from.
      * @return a JSONArray of JSONObjects containing date and frequency.
@@ -136,7 +140,9 @@ public class UserRest {
         LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();
 
         TreeMap<LocalDate, Long> loginDates = createPrePopulatedLongMap(startRange, endRange);
-        TreeMap<LocalDate, HashSet> userNameDates = createPrePopulatedHashSetMap(startRange, endRange);       
+        TreeMap<LocalDate, HashSet> userNameDates = createPrePopulatedHashSetMap(startRange, endRange);  
+        
+        HashSet functionalAccounts = properties.getFunctionalAccounts();
                 
         List<Object[]> result = getLoggedUserCount(start,end,"");
         
@@ -144,13 +150,16 @@ public class UserRest {
             LocalDate collectionDate = convertToLocalDate((Date) day[0]);
             String userName = (String) day[1];
             
-            HashSet userSet = userNameDates.get(collectionDate);
+            if(!functionalAccounts.contains(userName)){
             
-            if(!userSet.contains(userName)){
-                Long value  = loginDates.get(collectionDate);
-                loginDates.put(collectionDate, value+=1);
-                userSet.add(userName);
-                userNameDates.put(collectionDate,userSet);
+                HashSet userSet = userNameDates.get(collectionDate);
+
+                if(!userSet.contains(userName)){
+                    Long value  = loginDates.get(collectionDate);
+                    loginDates.put(collectionDate, value+=1);
+                    userSet.add(userName);
+                    userNameDates.put(collectionDate,userSet);
+                }
             }
         }
         

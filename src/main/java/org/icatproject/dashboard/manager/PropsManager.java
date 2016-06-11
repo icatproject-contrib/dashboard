@@ -8,6 +8,7 @@ package org.icatproject.dashboard.manager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
@@ -34,7 +35,8 @@ public class PropsManager {
     private String password;
     private int collectionTime;
     
-    private List<String> authorisedAccounts;
+    private HashSet authorisedAccounts;
+    private HashSet functionalAccounts;
     
     private String topCatURL;    
     
@@ -71,15 +73,17 @@ public class PropsManager {
            }
            
            ICATUrl = props.getProperty("icat.url").trim();
-           loginAuth = props.getProperty("authenticator").trim();
-           authorisedAccounts = Arrays.asList(props.getProperty("authorised_accounts").split("\\s+"));
+           loginAuth = props.getProperty("authenticator").trim();           
            userName = props.getProperty("userName").trim();
            password = props.getProperty("password").trim();                      
            topCatURL = props.getProperty("topCatURL").trim(); 
-           collectionTime = Integer.parseInt(props.getProperty("collectionTime").trim());
-            
+           collectionTime = Integer.parseInt(props.getProperty("collectionTime").trim());          
+           authorisedAccounts = getHashSetProperties("authorised_accounts",props);
+           functionalAccounts = getHashSetProperties("functional_accounts",props);
+                     
            
            LOG.info("Authorised accounts set as: "+authorisedAccounts);
+           LOG.info("Functional accounts set as: "+functionalAccounts);
            LOG.info("ICAT set as: "+ICATUrl);
            LOG.info("TopCat set as: "+topCatURL);
            LOG.info("Reader account set as "+userName);
@@ -104,9 +108,14 @@ public class PropsManager {
         return topCatURL;
     }
 
-    public List<String> getAuthorisedAccounts() {
+    public HashSet getAuthorisedAccounts() {
         return authorisedAccounts;
     }    
+
+    public HashSet getFunctionalAccounts() {
+        return functionalAccounts;
+    }
+    
     
       
     public String getICATUrl(){
@@ -120,6 +129,27 @@ public class PropsManager {
     }
     public String getReaderPassword(){
         return password; 
+    }
+    
+    /**
+     * Gets the value from the properties. Converts to list then trims and pushes into 
+     * a hashset.
+     * @param propertyName Name of the property to extract.
+     * @param props Properties object pointing to file dashboard.properties
+     * @return A String HashSet containing the property values.
+     */
+    private HashSet getHashSetProperties(String propertyName, Properties props){
+        
+        List<String> list = Arrays.asList(props.getProperty(propertyName).split("\\s+"));
+        
+        HashSet convertedSet = new HashSet();
+        
+        for (String item : list) {
+                String itemTrimmed = item.trim();
+                convertedSet.add(itemTrimmed);
+        }
+        
+        return convertedSet;
     }
     
     
