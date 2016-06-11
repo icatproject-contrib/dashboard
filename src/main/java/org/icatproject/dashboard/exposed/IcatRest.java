@@ -45,7 +45,7 @@ import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.manager.PropsManager;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTime;
-import static org.icatproject.dashboard.utility.RestUtility.createPrePopulatedMap;
+import static org.icatproject.dashboard.utility.RestUtility.createPrePopulatedLongMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -226,7 +226,7 @@ public class IcatRest {
         Date start = new Date(Long.valueOf(startDate));
         Date end = new Date(Long.valueOf(endDate));   
         
-        TreeMap<LocalDate,Long> dateMap = createPrePopulatedMap(convertToLocalDate(start), convertToLocalDate(end));
+        TreeMap<LocalDate,Long> dateMap = createPrePopulatedLongMap(convertToLocalDate(start), convertToLocalDate(end));
       
         
         //Criteria objects.
@@ -340,7 +340,7 @@ public class IcatRest {
         Date start = new Date(Long.valueOf(startDate));
         Date end = new Date(Long.valueOf(endDate));   
         
-        TreeMap<LocalDate,Long> dateMap = createPrePopulatedMap(convertToLocalDate(start), convertToLocalDate(end));     
+        TreeMap<LocalDate,Long> dateMap = createPrePopulatedLongMap(convertToLocalDate(start), convertToLocalDate(end));     
         
         //Criteria objects.
         CriteriaBuilder cb = manager.getCriteriaBuilder();
@@ -505,7 +505,7 @@ public class IcatRest {
         Date start = new Date(Long.valueOf(startDate));
         Date end = new Date(Long.valueOf(endDate));
         
-        TreeMap<LocalDate,Long> dateMap = createPrePopulatedMap(convertToLocalDate(start), convertToLocalDate(end));     
+        TreeMap<LocalDate,Long> dateMap = createPrePopulatedLongMap(convertToLocalDate(start), convertToLocalDate(end));     
         
         String instrumentId = String.valueOf(icatData.getInstrumentIdMapping().get(instrument));
         

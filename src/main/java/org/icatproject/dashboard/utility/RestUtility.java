@@ -7,6 +7,8 @@ package org.icatproject.dashboard.utility;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,7 +41,7 @@ public class RestUtility {
      * @param endPoint End date to populate up to.
      * @return a TreeMap<LocalDate, Long> object.
      */
-    public static TreeMap<LocalDate,Long> createPrePopulatedMap(LocalDate startPoint, LocalDate endPoint){
+    public static TreeMap<LocalDate,Long> createPrePopulatedLongMap(LocalDate startPoint, LocalDate endPoint){
         
         TreeMap<LocalDate,Long> treeMap = new TreeMap<LocalDate,Long>();
         
@@ -50,6 +52,25 @@ public class RestUtility {
         
         return treeMap;
     } 
+    
+    /***
+     * Creates a TreeMap that contains the values of each date between the two dates provided. It also containts
+     * a HashMap to store for example names to dates.
+     * @param startPoint Start date to populate up to.
+     * @param endPoint End date to populate up to.
+     * @return a TreeMap<LocalDate, Long> object.
+     */
+    public static TreeMap<LocalDate,HashSet> createPrePopulatedHashSetMap(LocalDate startPoint, LocalDate endPoint){
+        
+        TreeMap<LocalDate,HashSet> treeMap = new TreeMap<LocalDate,HashSet>();
+        
+        while(!startPoint.isAfter(endPoint)){
+            treeMap.put(startPoint,new HashSet());
+            startPoint = startPoint.plusDays(1);
+        }
+        
+        return treeMap;
+    }
     
     /***
      * Pushes the TreeMap values into a JSONArray.

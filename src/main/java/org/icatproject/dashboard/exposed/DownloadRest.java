@@ -286,7 +286,7 @@ public class DownloadRest {
         LocalDate startRange = Instant.ofEpochMilli(Long.valueOf(startDate)).atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate endRange = Instant.ofEpochMilli(Long.valueOf(endDate)).atZone(ZoneId.systemDefault()).toLocalDate();
 
-        TreeMap<LocalDate, Long> downloadDates = RestUtility.createPrePopulatedMap(startRange, endRange);
+        TreeMap<LocalDate, Long> downloadDates = RestUtility.createPrePopulatedLongMap(startRange, endRange);
 
         //Criteria objects.
         CriteriaBuilder cb = manager.getCriteriaBuilder();

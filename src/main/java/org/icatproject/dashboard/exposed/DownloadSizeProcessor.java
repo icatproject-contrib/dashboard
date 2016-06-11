@@ -32,7 +32,7 @@ public class DownloadSizeProcessor {
         startPoint = start;
         endPoint = end;
         
-        downloadDates = RestUtility.createPrePopulatedMap(startPoint, endPoint);   
+        downloadDates = RestUtility.createPrePopulatedLongMap(startPoint, endPoint);   
         
         
     }

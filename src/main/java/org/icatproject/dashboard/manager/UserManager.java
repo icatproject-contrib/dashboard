@@ -97,7 +97,7 @@ public class UserManager  {
         
         try {
             icatUser = icat.search(sessionID,query);     
-            //Haven't found the user in the ICAT. Try our best with what we have.
+            //Haven't found the user in the ICAT. Set to what their name is.
             if(icatUser.isEmpty()){
                 dashBoardUser.setName(name);
                 dashBoardUser.setFullName(name);
