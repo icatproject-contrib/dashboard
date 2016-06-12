@@ -12,7 +12,7 @@
 
 			},
 
-			templateUrl : 'views/headLineTemplate.html',
+			templateUrl : 'views/graphTemplate.html',
 
 			link:function($scope,$element,$rootScope){				
 	
@@ -37,15 +37,15 @@
 								type: 'gauge'
 							},
 							size: {
-        						height: 180,
+        						height: 250,
         						
     						},
 							color: {
-						        pattern:["#3498DB","#4B77BE"], // the three color levels for the percentage values.
+						        pattern:["#FF5468","#FABE4D","#4DFA90"], // the three color levels for the percentage values.
 						        threshold: {
 						//            unit: 'value', // percentage is default
 						//            max: 200, // 100 is default
-						            values: [30, 90]
+						            values: [30,50,90]
 						        }
 						    },
 														

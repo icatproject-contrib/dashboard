@@ -411,9 +411,8 @@
 				var inProgress  = inProgressTemp === undefined ? 0 : inProgressTemp;
 				var finished = finishedTemp === undefined ? 0 : finishedTemp;	
 
-				var total = failed+inProgress+finished;
-				var countTotal = total=== 0 ? "No Data":total;  		
-
+				
+				
 				var successRate = ['Success percentage',$filter('number')((finished/(failed+finished))*100,1)];
 				
 				vm.statusNumber = {
@@ -422,8 +421,7 @@
 					title:"Download Success Rate",
 					inProgress:inProgress,
 					failed:failed,
-					successful:finished,
-					downloadTotal:countTotal,
+					successful:finished,					
 					selectOp:vm.downloadMethodTypes,
 					optionTitle:"Method",
 					rawData:responseData
@@ -633,19 +631,17 @@
 			    //Calculate metrics: Total amount of downloads and the busiest Day.		 		    		
 	    		
 	    		var busiestIndex = 0;
-	    		var largestDay = 0;	       		
+	    		var largestDay = 0;	   
+	    		var total = 0;    		
 	    		
 	    		for(var i=0;i<numbers.length;i++){
 	    			var current = numbers[i];			
-	    			
-
-	    			if(current>largestDay){
-	    				busiestIndex = i;
-	    				largestDay = current;
-	    			}
-	    		}   		
+	    			total+=current;	    			
+	    		}  		
 	    		
-	    		var busiestDay = largestDay===0 ? "No Data":dates[busiestIndex] +" with "+largestDay;	    		 				
+	    		
+	    		var countTotal = total=== 0 ? "No Data":total;  		
+    		 				
 
 	    		dates.unshift("x");		
 							
@@ -664,11 +660,20 @@
 					zoom:true,
 					type:"line",
 					xLabel:"Dates",
-					yLabel:"Number of Downloads",
-					busiestDay: busiestDay,
+					yLabel:"Number of Downloads",					
 					selectOp:vm.downloadMethodTypes,
 					optionTitle:"Method",
-					rawData:responseData
+					rawData:responseData,
+					headLine:[	
+						{	
+							title:"Total Downloads",
+							data:countTotal
+						},						
+
+					]
+
+					
+
 			    } 
 
 			   if(!initialUpload){
@@ -821,6 +826,8 @@
 	    		} 
 				 
 				var byteFormat = formattedData[1];
+
+				var volumeTotal = total === 0 ? "No Data":$filter('bytes')(total);	    		
 				
 	    		vm.volume = { 	
 	    			data:{
@@ -831,16 +838,24 @@
 			       		}
 			       	},	    			
 	    			byteFormat:byteFormat,
-	    			total:total === 0 ? "No Data":$filter('bytes')(total),
-	    			busiestDay:largestDay ===0 ?"No Data":"Busiest Day "+ dates[busiestIndex]+" with "+largestDay+" "+byteFormat,
+	    			
 	    			zoom :false,
 				    description : "This bar graph displays the volume of data that was downloaded during the requested period.",
 				    title : "Download Volume for method "+method,
 				    xLabel:"Dates",
 					yLabel:"Volume of Downloads "+byteFormat,
 					selectOp:vm.downloadMethodTypes,
-					 optionTitle:"Method",
-					rawData:responseData 
+					optionTitle:"Method",
+					rawData:responseData, 
+					headLine:[	
+						{	
+							title:"Total Volume",
+							data:volumeTotal,
+							unit:byteFormat
+						},						
+
+					]
+
 
 	    		};
 

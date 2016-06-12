@@ -15,7 +15,7 @@
 			return !(_.isEmpty($sessionStorage.sessionData));
 		}
 
-		$rootScope.baseURL = '/dashboard/';
+		$rootScope.baseURL = 'https://dashboard.isis.stfc.ac.uk/dashboard/';
 
 		$rootScope.graphColours = ["#2980B9","#4B77BE","#3498DB"];
 
