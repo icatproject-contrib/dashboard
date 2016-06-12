@@ -154,7 +154,8 @@ html,body, .cotainer-fluid,.row  {
 }
 
 .internal-row {
-  background-color: #fff !important;  
+  background-color: #fff !important;
+  margin: 0 auto;  
 }
 
 
@@ -237,6 +238,32 @@ html,body, .cotainer-fluid,.row  {
 .text-format h2{
     padding-top: 20px;
 }
+
+.pretty-headline-single{
+  font-size:5.2em;
+ 
+}
+
+.pretty-headline-double{
+  font-size:4.6em;
+}
+/* Traffic light coloring*/
+.pretty-number{
+  font-size: 3.9em;
+  
+}
+
+.success{
+  background-color: #4DFA90;
+
+}
+.inProgress{
+  background-color:#FABE4D;
+}
+.failure{
+  background-color:#FF5468;
+}
+
 
 
 /*
