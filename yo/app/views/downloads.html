@@ -91,15 +91,19 @@
 	</div>
 </div> 
 
-
-
 <div class="row">
-	<div class="col-lg-4 col-lg-offset-1 ">		
+	<div class="col-lg-10 col-lg-offset-1 ">		
 		<stacked-bar class="chart" data='download.ispBandwidth' select-Options= "download.updateISPBandwidth(value)"></stacked-bar>	
-	</div>	
-	<div class="col-lg-6 ">					
+	</div>
+</div>
+<div class="row">	
+	<div class="col-lg-3 col-lg-offset-1 ">
+		<head-line data="download.entityAge.headLine"></head-line>
+	</div>		
+	<div class="col-lg-7 ">					
 		<scatter class="chart" data='download.entityAge' select-Options= "download.updateDownloadEntityAge(value)"></scatter>			
 	</div>
+</div>
 	
 	
 </div>	

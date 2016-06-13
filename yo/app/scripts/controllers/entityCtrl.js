@@ -165,6 +165,11 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
 					var formattedData = [dates,dataForGraph];
 
+					var total = getArrayTotal(dataForGraph.slice(1,dataForGraph.length));
+
+					var volumeTotal = total === 0 ? "No Data":total;
+					var volumeAverage = total === 0 ? "No Data":Math.round(total/(dates.length-1));
+
 
 					vm.dataFileVolume = {
 						data:{
@@ -179,8 +184,18 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						zoom:true,
 						xLabel:"Insertion Date",
 						yLabel:"Volume of Datafiles "+byteFormat,
-						rawData:responseData
-						
+						rawData:responseData,
+						headLine:[	
+						{	
+							title:"Total Datafile Volume ("+byteFormat+")",
+							data:volumeTotal							
+						},	
+						{
+							title:"Avergae Daily Datafile Volume ("+byteFormat+")",
+							data:volumeAverage 
+						}					
+
+						]						
 						
 				    } 
 
@@ -293,6 +308,13 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
 					var formattedData = [dates,dataForGraph];
 
+					var total = getArrayTotal(dataForGraph.slice(1,dataForGraph.length));
+
+					var volumeTotal = total;
+					var volumeAverage = total === 0 ? 0:Math.round(total/(dates.length-1));
+
+					byteFormat = byteFormat === undefined? "":byteFormat
+
 
 					vm.insDataFileVolume = {
 						data:{
@@ -311,6 +333,17 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						selectOp:vm.instrumentNames,
 						optionTitle:"Instrument",
 						rawData:responseData,
+						headLine:[	
+						{	
+							title:"Datafile Total Volume for "+instrument +"  ("+byteFormat+")" ,
+							data:volumeTotal,							
+						},	
+						{
+							title:"Daily Average Datafile volume for "+instrument +"  ("+byteFormat+")",
+							data:volumeAverage
+						}					
+
+						]	
 						
 				    } 
 
@@ -338,7 +371,11 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
     			
 				
-					var formattedData = formatData(responseData);	
+					var formattedData = formatData(responseData);
+					
+
+				    var totalAndAverage = getTotalAndAverage(formattedData);	 
+				    console.log(totalAndAverage)
 
 
 					vm.insDataFileCount = {
@@ -356,7 +393,18 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						yLabel:"Number of Datafiles",
 						selectOp:vm.instrumentNames,
 						optionTitle:"Instrument",
-						rawData:responseData
+						rawData:responseData,
+						headLine:[	
+						{	
+							title:"Datafile Total for "+instrument,
+							data:totalAndAverage[0],							
+						},	
+						{
+							title:"Daily Average Datafile creation for "+instrument,
+							data:totalAndAverage[1]
+						}					
+
+						]
 						
 				    } 
 
@@ -386,6 +434,8 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
     				var formattedData = formatData(responseData);	
 
+    				var totalAndAverage = getTotalAndAverage(formattedData);
+
 
 					vm.countEntity = {
 						data:{
@@ -403,6 +453,17 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 						selectOp:vm.entityNames,
 						optionTitle:"Entity",
 						rawData:responseData,
+						headLine:[	
+						{	
+							title:"Total Number of "+entity,
+							data:totalAndAverage[0],							
+						},	
+						{
+							title:"Average Daily Creation of "+entity,
+							data:totalAndAverage[1]
+						}					
+
+						]	
 						
 				    }
 
@@ -460,6 +521,32 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
     			return Date.parse(vm.endDate);
     			
     	    }	
+
+    	    //Adds up all the items in an array
+    	    function getArrayTotal(array){
+    	    	var total = 0;
+
+    	    	for(var i=0;i<array.length;i++){	
+	    		    var temp = array[i];
+	    		    if(temp!=="null"){
+	    		    	total +=temp;
+	    		    }	    			
+	    		}
+
+	    		return Math.round(total);
+    	    }
+
+    	    function getTotalAndAverage(array){
+
+    	    	var numbers = array[1];
+
+				var total = getArrayTotal(numbers.slice(1,numbers.length));
+				
+				var average = total === 0 ? 0:Math.round(total/(numbers.length-1));
+
+				return [total,average]
+
+    	    }
 
     		
     		

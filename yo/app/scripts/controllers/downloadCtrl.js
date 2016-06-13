@@ -235,19 +235,7 @@
        
 
         vm.updateUserDownload = function(method,initialUpload){
-			//Update the selected method for this graph.        	
-        	if(method){
-        		vm.userDownMethod = method;
-        	}
-        	else{
-        		method = vm.userDownMethod;
-        	}     
-        	//If all was sent through then send a blank entry th
-        	if(method==="All"){
-        		method="";
-        	}  	
-
-
+			method = parseMethod(method)
         	//Create the promises for the user download data.
 			var userFrequencyPromise = downloadService.getUsersDownloadFrequency(getStartDate(),getEndDate(), method);
 			var userVolumePromise = downloadService.getUsersDownloadVolume(getStartDate(),getEndDate(), method);
@@ -371,17 +359,7 @@
         }
 
         vm.updateDownloadStatus = function(method, initialUpload){
-        	//Update the selected method for this graph.        	
-        	if(method){
-        		vm.userDownMethod = method;
-        	}
-        	else{
-        		method = vm.userDownMethod;
-        	}     
-        	//If all was sent through then send a blank entry th
-        	if(method==="All"){
-        		method="";
-        	}  	
+        	method = parseMethod(method)
  
 
         	return downloadService.getDownloadStatusNumber(getStartDate(),getEndDate(), vm.userName,method).then(function(responseData){
@@ -436,19 +414,7 @@
         }
 
         vm.updateDownloadEntityAge = function(method,initialUpload){
-        	//Update the selected method for this graph.        	
-        	if(method){
-        		vm.userDownMethod = method;
-        	}
-        	else{
-        		method = vm.userDownMethod;
-        	}     
-        	//If all was sent through then send a blank entry th
-        	if(method==="All"){
-        		method="";
-        	}  	
-
-
+        	method = parseMethod(method)
 
         	return downloadService.getDownloadEntityAge(getStartDate(),getEndDate(),vm.userName,method).then(function(responseData){
 
@@ -458,8 +424,16 @@
 
 				var numbers = _.map(responseData, function(responseData){
 					return responseData.number;
-				});
+				});			
 
+				var total= 0;
+
+				for(var i= 0;i<age.length;i++) total+=age[i];
+
+				var averageAge = total=== 0 ? 0:Math.round(total/numbers.length); 
+
+				var oldestFile = Math.max(...age);
+				
 				age.unshift("x");		
 							
 				numbers.unshift('Number');				
@@ -479,7 +453,20 @@
 				    yLabel:"Number of files",
 				    selectOp:vm.downloadMethodTypes,
 				    optionTitle:"Method",
-				    rawData:responseData
+				    rawData:responseData,
+				    headLine:[	
+						{	
+							title:"Average file age (Days)",
+							data:averageAge
+						},	
+						{
+							title:"Oldest Downloaded File (Days)",
+							data:oldestFile
+						}					
+
+					]
+
+
 				} 
 
 				if(!initialUpload){
@@ -493,17 +480,7 @@
         }
 
          vm.updateLocalLocation = function(method, initialUpload){
-         	//Update the selected method for this graph.        	
-        	if(method){
-        		vm.userDownMethod = method;
-        	}
-        	else{
-        		method = vm.userDownMethod;
-        	}     
-        	//If all was sent through then send a blank entry th
-        	if(method==="All"){
-        		method="";
-        	}  	
+         	method = parseMethod(method)
    
 
          	return downloadService.getLocalDownloadLocation(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){
@@ -553,17 +530,7 @@
          }
 
          vm.updateGlobalLocation = function(method,initialUpload){
-         	//Update the selected method for this graph.        	
-        	if(method){
-        		vm.userDownMethod = method;
-        	}
-        	else{
-        		method = vm.userDownMethod;
-        	}     
-        	//If all was sent through then send a blank entry th
-        	if(method==="All"){
-        		method="";
-        	}  	
+         	method = parseMethod(method)
 
 
          	return downloadService.getGlobalDownloadLocation(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){ 			   				  		
@@ -601,17 +568,7 @@
          }
 
          vm.updateDownloadFrequency = function(method,initialUpload){
-         	//Update the selected method for this graph.        	
-        	if(method){
-        		vm.userDownMethod = method;
-        	}
-        	else{
-        		method = vm.userDownMethod;
-        	}     
-        	//If all was sent through then send a blank entry th
-        	if(method==="All"){
-        		method="";
-        	}  	
+         	method = parseMethod(method)
 
 
          	return downloadService.getDownloadFrequency(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){
@@ -641,7 +598,7 @@
 	    		
 	    		
 	    		var countTotal = total=== 0 ? "No Data":total;  		
-    		 				
+    		 	var countAverage = total===0 ?"No Data":Math.round(total/numbers.length);			
 
 	    		dates.unshift("x");		
 							
@@ -668,7 +625,11 @@
 						{	
 							title:"Total Downloads",
 							data:countTotal
-						},						
+						},	
+						{
+							title:"Average Daily Downloads",
+							data:countAverage
+						}					
 
 					]
 
@@ -685,17 +646,7 @@
          }
 
          vm.updateISPBandwidth = function(method,initialUpload){
-         	//Update the selected method for this graph.        	
-        	if(method){
-        		vm.userDownMethod = method;
-        	}
-        	else{
-        		method = vm.userDownMethod;
-        	}     
-        	//If all was sent through then send a blank entry th
-        	if(method==="All"){
-        		method="";
-        	}  
+         	method = parseMethod(method)
 
          	return downloadService.getDownloadISPBandwidth(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){		     		
 		     		
@@ -768,17 +719,9 @@
          }
 
          vm.updateDownloadVolume = function(method,initialUpload){
-         	//Update the selected method for this graph.        	
-        	if(method){
-        		vm.userDownMethod = method;
-        	}
-        	else{
-        		method = vm.userDownMethod;
-        	}     
-        	//If all was sent through then send a blank entry th
-        	if(method==="All"){
-        		method="";
-        	}  	
+
+         	method = parseMethod(method)
+         		
 
         	return downloadService.getDownloadVolume(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){
 
@@ -827,7 +770,12 @@
 				 
 				var byteFormat = formattedData[1];
 
-				var volumeTotal = total === 0 ? "No Data":$filter('bytes')(total);	    		
+				
+
+
+
+				var volumeTotal = total === 0 ? "No Data":$filter('bytes')(total).split(' ')[0];				
+				var volumeAverage = total===0 ?"No Data":Math.round(volumeTotal.split(' ')[0]/dates.length);				    		
 				
 	    		vm.volume = { 	
 	    			data:{
@@ -849,10 +797,13 @@
 					rawData:responseData, 
 					headLine:[	
 						{	
-							title:"Total Volume",
-							data:volumeTotal,
-							unit:byteFormat
-						},						
+							title:"Total Volume ("+byteFormat+")" ,
+							data:volumeTotal,							
+						},	
+						{
+							title:"Average Daily Volume Download ("+byteFormat+")",
+							data:volumeAverage
+						}					
 
 					]
 
@@ -887,7 +838,25 @@
 			       
 			return Date.parse(vm.endDate);
 			
-	    }		    	
+	    }	
+
+	    //Parses the method to make sure it is the correct value.
+	    function parseMethod(method){
+	    	//Update the selected method for this graph.        	
+        	if(method){
+        		vm.userDownMethod = method;
+        	}
+        	else{
+        		method = vm.userDownMethod;
+        	}     
+        	//If all was sent through then send a blank entry th
+        	if(method==="All"){
+        		method="";
+        	}  
+
+        	return method;
+
+	    }	    	
 
 		
 
