@@ -1,5 +1,5 @@
 # Dashboard
-To provide an overview of how TopCAT, IDS and ICAT are being used.
+To provide an overview of how the TopCAT, IDS and ICAT are being used.
 
 General installation instructions are at https://www.icatproject.org/installation/component
 
