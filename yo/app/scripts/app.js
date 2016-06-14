@@ -40,7 +40,7 @@ angular
   }])
   .config(function ($stateProvider, $urlRouterProvider) {
 
-    $urlRouterProvider.otherwise('/login');
+    
     $stateProvider
       .state('login', {
         url: '/login',
@@ -62,6 +62,7 @@ angular
         url:'/users',
         resolve :{
           authenticate :['Authenticate', function(Authenticate){
+            
             return Authenticate.authenticate();
           }]
         },
@@ -88,6 +89,12 @@ angular
           templateUrl: 'views/downloads.html',
           controller: 'DownloadCtrl as download'
       })
+
+      $urlRouterProvider.when('', '/login');
+
+      $urlRouterProvider.otherwise('/login');
+
+
       
   });
 

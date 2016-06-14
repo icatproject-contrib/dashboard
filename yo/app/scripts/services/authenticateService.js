@@ -20,6 +20,7 @@
                 //If authenticated, return anything you want, probably a user object
                 return true;
             } else {
+
                 //Else send a rejection
                 return $q.reject({isAuthenticated : false});
             }
