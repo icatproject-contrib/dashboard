@@ -3,19 +3,25 @@
 	angular.module('dashboardApp')
 		   .controller('IndexController', IndexController);
 
-	IndexController.$inject = ['$sessionStorage','$rootScope'];
+	IndexController.$inject = ['$sessionStorage','$rootScope','$location',];
 
-	function IndexController($sessionStorage,$rootScope){
+	function IndexController($sessionStorage,$rootScope,$location){
 
+		
+	
+		if(!getLoginStatus()){				
+			$location.path('/login')
+		}
 		
 		
 		var ic = this;
 
 		ic.isLoggedIn = function(){
-			return !(_.isEmpty($sessionStorage.sessionData));
+			
+			return getLoginStatus();
 		}
 
-		$rootScope.baseURL = '/dashboard/';
+		$rootScope.baseURL = 'https://dashboard.isis.stfc.ac.uk/dashboard/';
 
 		$rootScope.graphColours = ["#4DFA90","#FABE4D","#FF5468"];
 
@@ -76,6 +82,11 @@
 			{value:"USERGROUP",label:"UserGroup"}
 
 		]
+
+		function getLoginStatus(){
+
+			return !(_.isEmpty($sessionStorage.sessionData));
+		}
 
 		
 	}		   
