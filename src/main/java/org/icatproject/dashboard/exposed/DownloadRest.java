@@ -25,6 +25,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -79,6 +80,7 @@ public class DownloadRest {
      * @throws BadRequestException Incorrect date formats or a invalid
      * sessionID.
      */
+           
     @GET
     @Path("")
     @Produces(MediaType.APPLICATION_JSON)
@@ -114,6 +116,7 @@ public class DownloadRest {
             obj.put("status", d.getStatus());
             obj.put("fullName", singleDownload[2]);
             obj.put("name", singleDownload[1]);
+            obj.put("geoId",d.getLocation().getId());
 
             //Handle preparing downloads as they wont have a start date
             if (!("preparing".equals(d.getStatus()))) {
@@ -136,7 +139,55 @@ public class DownloadRest {
         return ary.toJSONString();
 
     }
+    
+    /**
+     * Retrieves the geoLocation of an Download
+     *
+     * @param sessionID for authentication
+     * @param downloadId the unique identifier of an download.
+     * @return a JSON containing the city, longitude and latitude.
+     * @throws DashboardException
+     */
+    @GET
+    @Path("location/{downloadId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getIcatLogLocation(@QueryParam("sessionID") String sessionID,
+                                     @PathParam("downloadId") Long downloadId) throws DashboardException {
 
+        if (sessionID == null) {
+            throw new BadRequestException("sessionID must be provided");
+        }
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }
+
+        GeoLocation geoLocation = getDownloadLocation(downloadId);
+
+        JSONArray resultArray = new JSONArray();
+
+        JSONObject obj = new JSONObject();
+        obj.put("number", 1);
+        obj.put("city", geoLocation.getCity());
+        obj.put("longitude", geoLocation.getLongitude());
+        obj.put("latitude", geoLocation.getLatitude());
+        obj.put("countryCode", geoLocation.getCountryCode());
+        obj.put("isp", geoLocation.getIsp());
+        resultArray.add(obj);
+
+        return resultArray.toJSONString();
+    }
+    
+     /**
+     * Returns all the information on download entities.
+     *
+     * @param sessionID SessionID for authentication.
+     * @param queryConstraint the where query part of download entities.
+     * @param initialLimit the initial limit value.
+     * @param maxLimit the end limit value.
+     * @return All the information on download entities.
+     * @throws BadRequestException Incorrect date formats or a invalid
+     * sessionID.
+     */
     @GET
     @Path("entity")
     @Produces(MediaType.APPLICATION_JSON)
@@ -953,7 +1004,21 @@ public class DownloadRest {
         return resultArray.toJSONString();
     }
 
-    
+    /**
+     * Gets the geolocation of an Download.
+     *
+     * @param downloadId the id of the log.
+     * @return A geoLocation object of where the download took place.
+     */
+    private GeoLocation getDownloadLocation(Long downloadId) {
+
+        String locationQuery = "SELECT location from GeoLocation location JOIN location.downloads download WHERE download.id='" + downloadId + "'";       
+
+        List<Object> geoLocation = manager.createQuery(locationQuery).getResultList();        
+
+        return (GeoLocation)geoLocation.get(0);
+
+    }
 
     
 }
