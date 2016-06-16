@@ -21,7 +21,7 @@
 			return getLoginStatus();
 		}
 
-		$rootScope.baseURL = 'https://dashboard.isis.stfc.ac.uk/dashboard/';
+		$rootScope.baseURL = '/dashboard/';
 
 		$rootScope.graphColours = ["#4DFA90","#FABE4D","#FF5468"];
 
