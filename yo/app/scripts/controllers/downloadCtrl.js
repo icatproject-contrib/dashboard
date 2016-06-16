@@ -21,7 +21,7 @@
 			{value:"failed",label:"Failed"}
 		];
 
-
+		vm.ready = false;
 		
 		
         vm.europeOptions = [
@@ -63,6 +63,7 @@
         vm.gridOptions = {};
         vm.gridOptions.columnDefs = [
         	{field: 'id', displayName: 'Entities', width:80, type:'button', cellTemplate:'<div class="button-holder" align=center><button class="btn btn-default btn-large text-center" ng-click="grid.appScope.loadPopUp(row.entity.id)"><span class="fa fa-archive" aria-hidden="true"></span></button></div>' },
+        	{field: 'id',  displayName: 'Location', width:80, type:'button', cellTemplate:'<div class="button-holder" align=center><button class="btn btn-default btn-large text-center" ng-click="grid.appScope.loadGridLocationModal(row.entity.id)"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span></button></div>' },
         	{field: 'fullName', displayName: 'Full Name', type:'string'},
         	{field: 'name', displayName: 'Name', type:'string'},
         	{field: 'bandwidth', type:"bytes",displayName: 'Bandwidth',width:160,},
@@ -80,7 +81,34 @@
 
   		}
 
-    	vm.gridOptions = uiGridService.setupGrid(vm.gridOptions,$scope,"download", gridDataCall);  
+    	vm.gridOptions = uiGridService.setupGrid(vm.gridOptions,$scope,"download", gridDataCall); 
+
+    	//Use of scope is to allow the ui-grid to access the call.
+      $scope.loadGridLocationModal = function(downloadId,entity){
+          
+
+          var modalInstance = $uibModal.open({
+            templateUrl :'views/locationModal.html',
+            controller:'LocationModalCtrl',
+            controllerAs:'modalCtrl',
+            size:'lg',
+            resolve :{
+              
+              data :function(){
+                 return downloadService.getDownloadLocation(downloadId);                   
+                
+              },
+              id:function(){
+                return downloadId;
+              },
+              entity:function(){
+                return "download";
+              }
+
+            }
+
+          });
+        } 
 
 
 
@@ -162,6 +190,7 @@
 
     		 	groupPromise.then(function(){
 					updateCSV(); 
+					vm.ready = true;
 
 
 				});
@@ -432,7 +461,13 @@
 
 				var averageAge = total=== 0 ? 0:Math.round(total/numbers.length); 
 
-				var oldestFile = Math.max(...age);
+				var oldestFile = 0
+
+				for(var i =0;i<age.length;i++){
+					if(age[i]>oldestFile){
+						oldestFile = age[i];
+					}
+				}
 				
 				age.unshift("x");		
 							
