@@ -36,6 +36,14 @@
 
 					},	
 
+					getDownloadLocation: function(downloadId){
+						return $http.get(baseURL+"/location/"+downloadId+"?sessionID="+ $sessionStorage.sessionData.sessionID)
+							.then(function(response){
+
+								return response.data; 
+							});
+					},
+
 
 					getDownloadStatusNumber :function(startDate,endDate, userName, method){
 						return $http.get(baseURL+"/status/number?sessionID="+ $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName+"&method="+method)
