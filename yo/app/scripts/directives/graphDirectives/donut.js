@@ -44,6 +44,10 @@
 								columns : graphObject.number.data,							
 								type: 'donut'
 								},
+							color:{
+								//pattern: $rootScope.graphColours,
+								patter:["#4DFA90","#FABE4D","#FF5468"],
+							},	
 							donut:{
 								label : {
 									format: function(value,ratio,id){
@@ -53,9 +57,7 @@
 								}
 							},
 							
-							color:{
-								pattern: $rootScope.graphColours,
-							},							
+
 						});
 				}
 			});

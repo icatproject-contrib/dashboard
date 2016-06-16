@@ -40,14 +40,7 @@
         						height: 250,
         						
     						},
-							color: {
-						        pattern:["#FF5468","#FABE4D","#4DFA90"], // the three color levels for the percentage values.
-						        threshold: {
-						//            unit: 'value', // percentage is default
-						//            max: 200, // 100 is default
-						            values: [30,50,90]
-						        }
-						    },
+							
 														
 						});
 					}
