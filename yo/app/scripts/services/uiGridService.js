@@ -273,7 +273,7 @@
 						var queryConstraint='';
 
   						var orderBy='';
-
+  						
   						
   						
 						gridColumns.forEach(function (columnDef){
@@ -330,6 +330,8 @@
 								
 								if(queryConstraint !== '') queryConstraint+=' AND ';
 
+						
+
 								//Deal with possible user entity.
 								if(type==="fullName"||type==="name") {
 									queryConstraint += "user."+type+" like '%"+term+"%'";
@@ -350,7 +352,7 @@
 
 		  					if(orderBy!=='') orderBy+=',';
 		  					//Deal with the user join.
-		  					if(column.colDef.field==="fullName"){
+		  					if(column.colDef.field==="fullName" || column.colDef.field==="name"){
 		  						orderBy += 'user.'+column.colDef.field +' '+column.sort.direction;
 		  					}
 		  					else{  					
