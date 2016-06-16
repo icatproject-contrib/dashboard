@@ -19,9 +19,9 @@ function UserCtrl($scope,googleChartApiPromise, userService, uiGridService,$uibM
         
         vm.gridOptions.columnDefs = [
         	{field: 'id',  displayName: 'Location', width:80, type:'button', cellTemplate:'<div class="button-holder" ng-if="row.entity.ipAddress" align=center><button class="btn btn-default btn-large text-center" ng-click="grid.appScope.loadGridLocationModal(row.entity.id)"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span></button></div>' },
-        	{field: 'entityId',  displayName: 'Entity ID', width:80},
+        	{field: 'entityId', type:"join", displayName: 'Entity ID', width:80},
         	{field: 'entityType',  type:"dropdown", selectOptions:$rootScope.entityOptions, displayName: 'Entity Type', width:140},        	
-        	{field: 'ipAddress', type:"string", displayName: 'ipAddress', width:120 },        	
+        	{field: 'ipAddress', type:"join", displayName: 'ipAddress', width:120 },        	
         	{field: 'duration', type:'number', displayName:'Duration', width:110 },
         	{field: 'operation',  type:"dropdown", selectOptions:$rootScope.logOperations, displayName:'Operation', width:100 },
     		  {field: 'query', type:"string", displayName:'Query' },
