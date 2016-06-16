@@ -709,14 +709,19 @@
 					
 
 					var formattedData = [average,min,max];
+					var byteFormat="";
 					
 
 					if (typeof formattedData !== "undefined") {
 						//Get the largest value in the result to set the correct bytes format.
 						var largestValue = Math.max.apply(Math,formattedData[2]);
 
+						byteFormat = $filter('bytes')(formattedData[0],largestValue)[1]
+
 						for(var i =0;i<formattedData.length;i++){
 							formattedData[i] = $filter('bytes')(formattedData[i],largestValue)[0];
+							
+
 						}
 
 						formattedData[0].unshift('average');
@@ -725,7 +730,11 @@
 
 					}else{
 						formattedData=[['average',0],['min',0],['max',0]];
-					}			
+					}		
+
+					console.log(byteFormat)
+
+					console.log(responseData)
 					
 					vm.ispBandwidth = {
 						data: {							 	 				 	 
@@ -737,9 +746,9 @@
 						categories:ispArray,
 						zoom :false,
 				    	description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
-				    	title : "ISP Download Bandwidth MB/S",
+				    	title : "ISP Download Bandwidth " +byteFormat+"/S",
 				    	xLabel:"ISP",
-				    	yLabel: "Bandwidth MB/S",
+				    	yLabel: "Bandwidth "+byteFormat+ "/S",
 				    	selectOp:vm.downloadMethodTypes,
 				    	 optionTitle:"Method",
 				    	rawData:responseData
