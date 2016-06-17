@@ -109,7 +109,7 @@
 
 					getUsersDownloadVolume : function(startDate,endDate, method){
 
-						return $http.get(baseURL+"/method/volume/user?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
+						return $http.get(baseURL+"/volume/user?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
 							.then(function(response){
 
 								return response.data;
