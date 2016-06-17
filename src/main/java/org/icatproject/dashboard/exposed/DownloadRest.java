@@ -37,6 +37,9 @@ import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
+import org.icatproject.dashboard.exceptions.InternalException;
+import org.icatproject.dashboard.exceptions.NotFoundException;
+import org.icatproject.dashboard.exceptions.NotImplementedException;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadLocationPredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadPredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createJoinDatePredicate;
@@ -70,15 +73,22 @@ public class DownloadRest {
     private final String failed = "failed";
 
     /**
-     * Returns all the information on downloads.
+     * Retrieves download data.
      *
-     * @param sessionID SessionID for authentication.
-     * @param queryConstraint the where query
-     * @param initialLimit the initial limit value.
-     * @param maxLimit the end limit value.
-     * @return All the information on downloads.
-     * @throws BadRequestException Incorrect date formats or a invalid
-     * sessionID.
+     * @param sessionID for authentication.
+     * @param queryConstraint any JPQL expression that can be appended to "SELECT download from Download download", e.g. "where download.id = 10". 
+     * @param initialLimit the initial limit value. Similar to LIMIT in SQL with initial Limit being the first value.
+     * @param maxLimit the end limit value.  Similar to LIMIT in SQL with max Limit being the scond value.
+     * @return an array of downloads with each entry in the form of [{"downloadSize":6871,"method":"https","bandwidth":62463.6364,"geoId":2304836159,"downloadStart":"2016-06-13T09:55:54.860","name":"uows\/1424","fullName":"Mr ICAT","id":4912368247,"downloadEnd":"2016-06-13T09:55:54.970","status":"finished"}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
            
     @GET
@@ -145,8 +155,16 @@ public class DownloadRest {
      *
      * @param sessionID for authentication
      * @param downloadId the unique identifier of an download.
-     * @return a JSON containing the city, longitude and latitude.
-     * @throws DashboardException
+     * @return a JSON array in the format [{"number":1,"city":"Abingdon","countryCode":"United Kingdom","latitude":51.6711,"isp":"Science and Technology Facilites Council","longitude":-1.2828}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("location/{downloadId}")
@@ -180,13 +198,20 @@ public class DownloadRest {
      /**
      * Returns all the information on download entities.
      *
-     * @param sessionID SessionID for authentication.
-     * @param queryConstraint the where query part of download entities.
-     * @param initialLimit the initial limit value.
-     * @param maxLimit the end limit value.
-     * @return All the information on download entities.
-     * @throws BadRequestException Incorrect date formats or a invalid
-     * sessionID.
+     * @param sessionID for authentication.
+     * @param queryConstraint any JPQL expression that can be appended to "SELECT entity from DownloadEntity entity", e.g. "where entity.type = 'Datafile'". 
+     * @param initialLimit the initial limit value. Similar to LIMIT in SQL with initial Limit being the first value.
+     * @param maxLimit the end limit value.  Similar to LIMIT in SQL with max Limit being the scond value.
+     * @return a JSON array of the format [{"creationTime":"2016-05-11T00:21:16.256","icatId":80768335,"entityName":"WISH00034921.log","type":"datafile","entitySize":93903}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("entity")
@@ -230,16 +255,24 @@ public class DownloadRest {
     
     /**
      * *
-     * Gets the age of files in days of every download within the set
+     * Retrieves the age of files in days of every download within the set
      * parameters.
      *
-     * @param sessionID SessionID for authentication.
+     * @param sessionID for authentication.
      * @param startDate Start point for downloads.
      * @param endDate end points for downloads.
-     * @param userName name of the user to check against.
-     * @param method type of download method.
-     * @return a JSONArray of JSONObjects in the format {number:10,age:200}
-     * @throws DashboardException Issues with accessing the dashboard database.
+     * @param userName Unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @param method type of download method. e.g. https, 
+     * @return a JSONArray of JSONObjects in the format [{"number":1,"age":1},{"number":4,"age":34},{"number":1,"age":54},{"number":3,"age":91},{"number":32,"age":344},{"number":9,"age":33},{"number":28,"age":345}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("entity/age")
@@ -303,18 +336,24 @@ public class DownloadRest {
     }
 
     /**
-     * Calculates the number of downloads that occurred over the provided
+     * Retrieves the number of downloads that occurred over the provided
      * period.
      *
-     * @param sessionID For authentication
-     * @param startDate Start time in a Unix timestamp.
-     * @param endDate End time in a Unix timestamp.
-     * @param userName Unique name of the user. Corresponds to name in the ICAT
-     * user table.
+     * @param sessionID for authentication
+     * @param startDate Start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate End time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param userName Unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
      * @param method the method of download
-     * @return A JSON array of JSON objects with each day between the provided
-     * times
-     * @throws DashboardException
+     * @return A JSON array of JSON objects in the format of [{"date":"2016-06-07","number":0},{"date":"2016-06-08","number":0},{"date":"2016-06-09","number":31},{"date":"2016-06-10","number":1},{"date":"2016-06-11","number":0},{"date":"2016-06-12","number":0},{"date":"2016-06-13","number":8},{"date":"2016-06-14","number":0},{"date":"2016-06-15","number":0},{"date":"2016-06-16","number":0}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("frequency")
@@ -383,15 +422,22 @@ public class DownloadRest {
     }
 
     /**
-     * Calculates the amount of downloads per person.
+     * Retrieves the amount of downloads per person over the requested period.
      *
-     * @param sessionID For authentication
-     * @param startDate Start time in a Unix timestamp.
-     * @param endDate End time in a Unix timestamp.
-     * @param method the method of download
-     * @return A JSON array of JSON Objects containing the name of the user and
-     * the number of downloads.
-     * @throws DashboardException
+     * @param sessionID for authentication
+     * @param startDate Start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate End time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param method the method of download e.g. https, globus, scarf
+     * @return A JSON array of JSON Objects in the format of [{"name":"uows\/1024006","count":6,"fullName":"Mr ICAT"},{"name":"uows\/105225","count":3,"fullName":"Mr Bob"}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("frequency/users")
@@ -448,17 +494,23 @@ public class DownloadRest {
     }
 
     /**
-     * Calculates the number of failed and successful downloads.
+     * Retrieves the number of failed and successful downloads.
      *
      * @param sessionID For authentication
-     * @param startDate Start time in a Unix timestamp.
-     * @param endDate End time in a Unix timestamp.
-     * @param userName Unique name of the user. Corresponds to name in the ICAT
-     * user table.
-     * @param method the method of download
-     * @return A JSON object of how many have failed and how many have been
-     * successful.
-     * @throws DashboardException
+     * @param startDate Start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate End time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param userName Unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @param method the method of download e.g. https, globus, scarf
+     * @return A JSON object of the format [{"number":40,"status":"finished"}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("status/number")
@@ -467,7 +519,7 @@ public class DownloadRest {
             @QueryParam("startDate") String startDate,
             @QueryParam("endDate") String endDate,
             @QueryParam("userName") String userName,
-            @QueryParam("method") String method) throws DashboardException {
+            @QueryParam("method") String method) throws BadRequestException, NotImplementedException, AuthenticationException, InternalException, NotFoundException  {
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
         }
@@ -509,17 +561,23 @@ public class DownloadRest {
     }
 
     /**
-     * Gets the routes used by downloads e.g. Globus https etc with the amount
+     * Retrieves the number of downloads per download method e.g. Globus https etc with the amount
      * of downloads that used those methods.
      *
      * @param sessionID SessionID for authentication.
-     * @param startDate Start point for downloads.
-     * @param endDate end points for downloads.
-     * @param userName name of the user to check against.
-     * @return The type of route and the number of times used over the set
-     * period.
-     * @throws BadRequestException Incorrect date formats or a invalid
-     * sessionID.
+     * @param startDate Start point for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate end points for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param userName Unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @return a JSON Array in the format of [{"number":1,"method":"globus"},{"number":39,"method":"https"}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("method/number")
@@ -572,16 +630,22 @@ public class DownloadRest {
     }
 
     /**
-     * Gets the routes used by downloads e.g. Globus.
+     * Retrieves the volume of downloads per download method.
      *
-     * @param sessionID SessionID for authentication.
-     * @param startDate Start point for downloads.
-     * @param endDate end points for downloads.
-     * @param userName name of the user to check against.
-     * @return The type of route and the number of times used over the set
-     * period.
-     * @throws BadRequestException Incorrect date formats or a invalid
-     * sessionID.
+     * @param sessionID for authentication.
+     * @param startDate start point for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate end points for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param userName unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @return a JSON Array in the format of [{"volume":16232,"method":"globus"},{"volume":385674761,"method":"https"}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("method/volume")
@@ -638,18 +702,25 @@ public class DownloadRest {
     }
 
     /**
-     * Calculates the amount of downloads per person.
+     * Retrieves the volume of downloads per user.
      *
-     * @param sessionID For authentication
-     * @param startDate Start time in a Unix timestamp.
-     * @param endDate End time in a Unix timestamp.
-     * @param method the method of download
-     * @return A JSON array of JSON Objects containing the name of the user and
-     * the number of downloads.
-     * @throws DashboardException
+     * @param sessionID for authentication
+     * @param startDate start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate end time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param method the method of download e.g. https, globus, scarf
+     * @return A JSON array of JSON Objects in the form of [{"volume":344349230,"name":"uows\/10506","fullName":"Mr Bob Doe"}].
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
-    @Path("method/volume/user")
+    @Path("volume/user")
     @Produces(MediaType.APPLICATION_JSON)
     public String getUserDownloadVolume(@QueryParam("sessionID") String sessionID,
             @QueryParam("startDate") String startDate,
@@ -704,17 +775,26 @@ public class DownloadRest {
 
     /**
      * *
-     * Gets all the types of download methods used in the ICAT family.
+     * Retrieves all the types of download methods used by the TopCat
      *
-     * @param sessionID To authenticate the user.
-     * @return a JSON containing all the different methods of downloads.
-     * @throws AuthenticationException Invalid sessionID.
-     * @throws BadRequestException No session ID provided.
+     * @param sessionID for authentication
+     * 
+     * @return JSONArray of JSONObjects of the format [{"name":"globus"},{"name":"https"}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException    
+     * 
+     * 
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("method/types")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getMethods(@QueryParam("sessionID") String sessionID) throws AuthenticationException, BadRequestException {
+    public String getMethods(@QueryParam("sessionID") String sessionID) throws DashboardException {
 
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
@@ -741,17 +821,25 @@ public class DownloadRest {
 
     /**
      * *
-     * Returns the bandwidth of downloads within the provided dates grouped by
+     * Retrieves the min, max average bandwidth of downloads within the provided dates grouped by
      * the ISP.
      *
-     * @param sessionID SessionID for authentication.
-     * @param startDate Start point for downloads.
-     * @param endDate end points for downloads.
-     * @param userName name of the user to check against.
-     * @param method type of download method.
-     * @return JSON object includes the min, max and average of the ISP
-     * bandwidth during that period.
-     * @throws DashboardException
+     * @param sessionID for authentication.
+     * @param startDate start point for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate end points for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param userName unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @param method the method of download e.g. https, globus, scarf.
+     * 
+     * @return JSON object in a JSONArray of the format [{"average":"10936668.55","min":"554.05","max":"45172744.47","isp":"Science and Technology Facilites Council"}] 
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("bandwidth/isp")
@@ -811,18 +899,23 @@ public class DownloadRest {
     }
 
     /**
-     * Calculates the number of data that was downloaded over a set period of
-     * time.
+     * Retrieves the volume of data per day downloaded.
      *
-     * @param sessionID SessionID for authentication.
-     * @param startDate Start point for downloads.
-     * @param endDate end points for downloads.
-     * @param userName name of the user to check against.
-     * @param method type of download method.
-     * @return A JSONArray of each date between the start and end and how much
-     * data was downloaded.
-     * @throws DashboardException Issues with accessing the data from the
-     * database.
+     * @param sessionID for authentication.
+     * @param startDate start point for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate end points for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param userName unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @param method the method of download e.g. https, globus, scarf.
+     * @return A JSONArray of JSONObjects in the format of [{"date":"2016-06-07","number":0},{"date":"2016-06-08","number":0},{"date":"2016-06-09","number":41293067},{"date":"2016-06-10","number":287},{"date":"2016-06-11","number":0},{"date":"2016-06-12","number":0},{"date":"2016-06-13","number":344397639},{"date":"2016-06-14","number":0}]
+     *
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("volume")
@@ -875,15 +968,23 @@ public class DownloadRest {
 
     /**
      * *
-     * Gets the number of downloads in each country.
+     * Retrieves the number of downloads in each country.
      *
-     * @param sessionID SessionID for authentication.
-     * @param startDate Start point for downloads.
-     * @param endDate end points for downloads.
-     * @param userName name of the user to check against.
-     * @param method type of download method.
+     * @param sessionID for authentication.
+     * @param startDate Start point for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate end points for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param userName unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @param method the method of download e.g. https, globus, scarf.
      * @return a JSON String in the format {countryCode:GB, Number:10}
-     * @throws DashboardException issue with accessing the database
+     *
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("location/global")
@@ -940,16 +1041,23 @@ public class DownloadRest {
 
     /**
      * *
-     * Gets the number of downloads in each set of longitude and latitude pairs.
+     * Retrieves the number of downloads in each set of longitude and latitude pairs.
      *
-     * @param sessionID SessionID for authentication.
-     * @param startDate Start point for downloads.
-     * @param endDate end points for downloads.
-     * @param userName name of the user to check against.
-     * @param method type of download method.
-     * @return a JSON String in the format {city:Appelton, Number:10,
-     * Longitude:20.20, Latitude:-1.34}
-     * @throws DashboardException issue with accessing the database
+     * @param sessionID for authentication.
+     * @param startDate Start point for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate end points for downloads in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param userName unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @param method the method of download e.g. https, globus, scarf.
+     * @return a JSON String in the format {city:Appelton, Number:10, Longitude:20.20, Latitude:-1.34}
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("location")
@@ -1005,7 +1113,7 @@ public class DownloadRest {
     }
 
     /**
-     * Gets the geolocation of an Download.
+     * Retrieves the geolocation of an Download.
      *
      * @param downloadId the id of the log.
      * @return A geoLocation object of where the download took place.

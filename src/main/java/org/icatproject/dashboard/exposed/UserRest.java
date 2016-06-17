@@ -59,12 +59,19 @@ public class UserRest {
     private EntityManager manager;
 
     /**
-     * Gets details on users which are currently logged into the ICAT
+     * Gets the name and what they are currently doing of users that are logged in.
      *
-     * @param sessionID Session ID
-     * @return a JSONString containing the users name, fullName, login duration
-     * and current activity.
-     * @throws DashboardException
+     * @param sessionID for authentication
+     * @return a JSONArray in the format of [{"name":"uows\/1049128","fullName":"Dr Mantid Test-Account","operation":"login"}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("logged")
@@ -113,10 +120,18 @@ public class UserRest {
      * Will either be for all users if none is specified or the login frequency
      * of a specified user.
      * @param sessionID for authentication.
-     * @param startDate to search from.
-     * @param endDate to search from.
-     * @return a JSONArray of JSONObjects containing date and frequency.
-     * @throws DashboardException issue verifying the user.
+     * @param startDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @return a JSONArray of JSONObjects in the form of [{"date":"2016-06-07","number":5},{"date":"2016-06-08","number":5},{"date":"2016-06-09","number":0},{"date":"2016-06-10","number":6},{"date":"2016-06-11","number":6},{"date":"2016-06-12","number":5},{"date":"2016-06-13","number":8}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("logged/frequency/unique")
@@ -170,11 +185,19 @@ public class UserRest {
      * Will either be for all users if none is specified or the login frequency
      * of a specified user.
      * @param sessionID for authentication.
-     * @param name of a specific user.
-     * @param startDate to search from.
-     * @param endDate to search from.
-     * @return a JSONArray of JSONObjects containing date and frequency.
-     * @throws DashboardException issue verifying the user.
+     * @param name unique name of the user. Corresponds to name in the ICAT user table. In the form of authenticator/name.
+     * @param startDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @return a JSONArray of JSONObjects in the form of [{"date":"2016-06-07","number":2966},{"date":"2016-06-08","number":813}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("logged/frequency")
@@ -215,13 +238,21 @@ public class UserRest {
     
     
     /**
-     * Returns the geo location of currently logged in users.
+     * Returns the geolocation of currently logged in users.
      *
-     * @param sessionID SessionID for authentication.
-     * @param name name of the user to check against.
-     * @return All the information on downloads.
-     * @throws BadRequestException Incorrect date formats or a invalid
-     * sessionID.
+     * @param sessionID for authentication.
+     * @param name in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * 
+     * @return The current location of the user in the format of [{"number":1,"city":"Swindon (Polaris House)","countryCode":"United Kingdom","latitude":51.567,"isp":"Science and Technology Facilites Council","longitude":-1.78472}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("location")

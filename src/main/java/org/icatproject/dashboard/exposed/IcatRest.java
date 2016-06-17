@@ -68,27 +68,41 @@ public class IcatRest {
 
     
     /**
-     * Access the IcatDataManager to get the authenticators mnemonic;
-     * @return a JSONArray containing the ICATs mnemonics
-     * @throws InternalException issue accessing the IcatDataManager;
+     * Retrieves the authenticators that are used within the current ICAT group.
+     * 
+     * @return a JSONArray in the format of [{"mnemonic":"uows"},{"mnemonic":"ldap"},{"mnemonic":"simple"}]
+     * 
+     * @throws BadRequestException 
+     * @throws AuthenticationException
+     * @throws InternalException  
+    
+     * 
+     * @statuscode 200 To indicate success
+     
      */
     @GET
     @Path("authenticators")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getICATAuthenticators() throws InternalException {       
+    public String getICATAuthenticators() throws DashboardException {       
 
         return icatData.getAuthenticators();
     }
 
     /**
-     * Retrieves the ICAT logs from that are stored in the ICATLog table.
+     * Retrieves the ICAT logs.
      *
      * @param sessionID for authentication
-     * @param queryConstraint the JPQL where query.
-     * @param initialLimit the initial value of a limit by expression
-     * @param maxLimit the max limit of a limit by expression.
-     * @return a JSON array of ICAT Log JSON Objects.
-     * @throws DashboardException Troubles accessing the database.
+     * @param queryConstraint any JPQL expression that can be appended to "SELECT download from Download download", e.g. "where download.id = 10".
+     * @param initialLimit the initial limit value. Similar to LIMIT in SQL with initial Limit being the first value.
+     * @param maxLimit the end limit value.  Similar to LIMIT in SQL with max Limit being the scond value.
+     * @return a JSON array of ICAT Log JSON Objects in the format of [{"duration":9,"entityType":"Investigation","query":"Investigation AS Investigation$ INCLUDE Investigation$.type AS InvestigationType_$, Investigation$.investigationInstruments AS InvestigationInstrument_$, InvestigationInstrument_$.instrument AS Instrument_$, Investigation$.publications AS Publication_$, Investigation$.investigationUsers AS InvestigationUser_$, InvestigationUser_$.user AS User_$","ipAddress":null,"fullName":"Mr ICAT DOI Reader","entityId":15071364,"id":4093564351,"operation":"get","logTime":"2014-01-29T15:49:30"}]
+     * 
+     * @throws BadRequestException      
+     * @throws AuthenticationException
+     * @throws InternalException
+   
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("logs")
@@ -143,8 +157,15 @@ public class IcatRest {
      *
      * @param sessionID for authentication
      * @param logId the unique identifier of an ICAT log.
-     * @return a JSON containing the city, longitude and latitude.
-     * @throws DashboardException
+     * @return a JSON in the format of [{"number":1,"city":"Abingdon","countryCode":"United Kingdom","latitude":51.6711,"isp":"Science and Technology Facilites Council","longitude":-1.2828}]
+     * 
+     * @throws BadRequestException  
+     * @throws AuthenticationException
+     * @throws InternalException
+     
+    
+     * 
+     * @statuscode 200 To indicate success
      */
     @GET
     @Path("logs/location")
@@ -199,18 +220,24 @@ public class IcatRest {
     }
     
     /**
-     * Gets the number of entities inserted into the ICAT for each day between the start 
+     * Retrieves the number of entities inserted into the ICAT for each day between the start 
      * and end date.
-     * @param entity to search for
+     * @param entity to search for. e.g. Datafile
      * @param sessionID for authentication.
-     * @param startDate to search from.
-     * @param endDate to search to.
-     * @return a JSONArray containing JSONObjects of {date:2015-01-20, number:200}
-     * @throws BadRequestException
+     * @param startDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @return a JSONArray containing JSONObjects of [{date:2015-01-20, number:200}]
+     * 
+     * @throws BadRequestException  
      * @throws AuthenticationException 
+    
+     * 
+     * @statuscode 200 To indicate success
+     
      */
     @GET
     @Path("{entity}/number")
+    @Produces(MediaType.APPLICATION_JSON)
     public String getEntityCount(@PathParam("entity") String entity,
                                  @QueryParam("sessionID") String sessionID,
                                  @QueryParam("startDate") String startDate,
@@ -250,11 +277,12 @@ public class IcatRest {
     }
     
     /**
-     * Gets a list of entities that have been counted from the ICAT.
+     * Retrieves a list of entities that have been counted from the ICAT.
      * @return A JSONArray of entity objects e.g. {name:"DATAFILE"}.
      */
     @GET
     @Path("entity/name")
+    @Produces(MediaType.APPLICATION_JSON)
     public String getEntities(){
         
         String entityQuery = "SELECT DISTINCT(entity.entityType) FROM EntityCount as entity ORDER BY entity.entityType ASC";
@@ -275,8 +303,26 @@ public class IcatRest {
         
     }
     
+    
+    /**
+     * Retrieves the volume of investigations in order of highest volume.
+     * 
+     * @param sessionID for authentication.
+     * @param startDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param limit the top list of investigations e.g. 10 will return top 10.
+     * @return a JSONArray containing JSONObjects in the form of [{"investigationId":79110229,"value":289},{"investigationId":81650413,"value":24}]
+     * 
+     * @throws BadRequestException  
+     * @throws AuthenticationException 
+    
+     * 
+     * @statuscode 200 To indicate success
+     
+     */
     @GET
     @Path("investigation/datafile/volume")
+    @Produces(MediaType.APPLICATION_JSON)
     public String getInvestigationDatafileVolume(
                                  @QueryParam("sessionID") String sessionID,
                                  @QueryParam("startDate") String startDate,
@@ -293,9 +339,27 @@ public class IcatRest {
                 
         return getInvestigationMetaData("datafileVolume",startDate,endDate,limit); 
     }
-        
+     
+    
+    /**
+     * Retrieves the number of datafiles per investigations in order of the highest number.
+     * 
+     * @param sessionID for authentication.
+     * @param startDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate to search from in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param limit the top list of investigations e.g. 10 will return top 10.
+     * @return a JSONArray containing JSONObjects in the form of [{"investigationId":79110229,"value":289},{"investigationId":81650413,"value":24}]
+     * 
+     * @throws BadRequestException  
+     * @throws AuthenticationException 
+    
+     * 
+     * @statuscode 200 To indicate success
+     
+     */
     @GET
     @Path("investigation/datafile/number")
+    @Produces(MediaType.APPLICATION_JSON)
     public String getInvestigationDatafileNumber(
                                  @QueryParam("sessionID") String sessionID,
                                  @QueryParam("startDate") String startDate,
@@ -319,12 +383,17 @@ public class IcatRest {
      * @param sessionID for authentication.
      * @param startDate to search from.
      * @param endDate to search to.
-     * @return a JSONArray containing JSONObjects with date and value pairs.
-     * @throws BadRequestException incorrect value passed.
-     * @throws AuthenticationException incorrect sessionId passed.
+     * @return a JSONArray containing JSONObjects with date and value pairs in the form of [{"date":"2016-06-07","number":0},{"date":"2016-06-08","number":195676447}]
+     * 
+     * @throws BadRequestException 
+     * @throws AuthenticationException
+  
+     * 
+     * @statuscode 200 To indicate success 
      */
     @GET
     @Path("datafile/volume")
+    @Produces(MediaType.APPLICATION_JSON)
     public String getDatafileNumber(
                                  @QueryParam("sessionID") String sessionID,
                                  @QueryParam("startDate") String startDate,
@@ -362,14 +431,20 @@ public class IcatRest {
     }
     
 
-    /***
-     * Gets the number of datafiles created for the specified instrument over a specific date. 
+    /**
+     * Retrieves the number of datafiles created on a day to day basis between
+     * the two dates provided and on the instrument provided.
      * @param sessionID for authentication.
-     * @param instrument name of the instrument to search for.
-     * @param startDate of when the datafiles were created.
-     * @param endDate of when the datafiles were created.
-     * @return a JSON Array of JSON Objects containing date and number of datafiles.
-     * @throws DashboardException 
+     * @param instrument name of the instrument.
+     * @param startDate to search from.
+     * @param endDate to search to.
+     * @return a JSONArray containing JSONObjects with date and value pairs in the form of [{"date":"2016-06-07","number":0},{"date":"2016-06-08","number":195676447}]
+     * 
+     * @throws BadRequestException 
+     * @throws AuthenticationException
+  
+     * 
+     * @statuscode 200 To indicate success 
      */
     @GET
     @Path("{instrument}/datafile/number")
@@ -390,13 +465,19 @@ public class IcatRest {
     }
     
     /**
-     * Gets the volume of datafiles for the specified instrument over the specified time.
+     * Retrieves the volume of datafiles created on a day to day basis between
+     * the two dates provided and on the instrument provided.
      * @param sessionID for authentication.
-     * @param instrument to search for.
-     * @param startDate range from.
-     * @param endDate range to.
-     * @return a JSONArray of JSON
-     * @throws DashboardException 
+     * @param instrument name of the instrument.
+     * @param startDate to search from.
+     * @param endDate to search to.
+     * @return a JSONArray containing JSONObjects with date and value pairs in the form of [{"date":"2016-06-07","number":0},{"date":"2016-06-08","number":195676447}]
+     * 
+     * @throws BadRequestException 
+     * @throws AuthenticationException
+  
+     * 
+     * @statuscode 200 To indicate success 
      */
     @GET
     @Path("{instrument}/datafile/volume")
