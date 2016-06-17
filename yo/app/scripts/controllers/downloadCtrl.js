@@ -732,9 +732,7 @@
 						formattedData=[['average',0],['min',0],['max',0]];
 					}		
 
-					console.log(byteFormat)
 
-					console.log(responseData)
 					
 					vm.ispBandwidth = {
 						data: {							 	 				 	 
@@ -750,7 +748,7 @@
 				    	xLabel:"ISP",
 				    	yLabel: "Bandwidth "+byteFormat+ "/S",
 				    	selectOp:vm.downloadMethodTypes,
-				    	 optionTitle:"Method",
+				    	optionTitle:"Method",
 				    	rawData:responseData
 					};	
 					
