@@ -56,18 +56,20 @@
 		<li>Check that it works.</li>
 	</ol>
 
-        <h2>ICAT transfer script<h2>
+        <h2>ICAT transfer script</h2>
 
         <p>This is a python script that will perform an initial database transfer of data from the ICAT to the dashboard. </p>
 
-        <p>To run the script just type python icat_transfer.py --vendor. The vendor option is currently either --oracle or --mysql </p>
+        <p>To run the script:</p>
+
+        <code>icat_transfer --vendor </code> <p>The vendor option is currently either --oracle or --mysql </p>
 
         <h3>Prerequisites</h3>
 
         <ul>
 		<li>The database for the dashboard must be empty to prevent data clashes. </li>
-                <li>Python package cx_Oracle is installed.</li>
-                <li>Python package pymysql is installed.</li>
+                <li>IFF Oracle Databases: Python package cx_Oracle is installed.</li>
+                <li>IFF MySql Databases: Python package pymysql is installed.</li>
               
 	</ul>
 
@@ -145,8 +147,6 @@
 
 	<h2>The dashboard.properties file</h2>
 
-	<h3>General Properties</h3>
-
 	<dl>
 		<dt>icat.url</dt>
 		<dd>
@@ -190,9 +190,19 @@
         <h1>
 		<a id="post"></a> Post-installation work
 	</h1>
-	<h1>
+	
+
+        <h2>Fresh Install</h2>
+
+            For the Dashboard to start collecting daily information on the ICAT use and
+            to collect meta information on the ICAT from its inception then you will need 
+            to run the ICAT transfer python script.
+
+        <h2>In all cases</h2>   
+
+        <h1>
 		<a id="performance"></a> Performance
-	</h1>
+	</h1> 
 
 	To improve performance:
 	<ul>
