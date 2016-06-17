@@ -92,7 +92,7 @@ public class ICATListener implements MessageListener {
         String operation = log.getOperation();
         ICATUser user = log.getUser();
         
-        if("login".equals(operation)){
+        if("login".equals(operation)||"refresh".equals(operation)){
              user.setLogged(true);
              beanManager.update(user, manager);
         }
