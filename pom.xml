@@ -243,7 +243,13 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <organizationId>dc731ef3-4f2e-4202-941a-eff901711670</organizationId>
+                    <licence>cHJvamVjdHxvcmcuaWNhdHByb2plY3QuZGFzaGJvYXJkfDIwMTgtMDYtMjd8dHJ1ZXwtMSNNQ3dDRkhyMmpXUFplK2VTWDdYODRUc3hlcWZRd2RXZ0FoUVgrci9OUE50enJadytWL21VREV5aXp4MDRiUT09</licence>
+                    <output>
+						<html>
+							<location>site/miredot</location>
+							<baseUrl>https://example.com/dashboard</baseUrl>
+						</html>
+					</output>
                     <analysis>
 						<checks>
 							<JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>ignore</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
