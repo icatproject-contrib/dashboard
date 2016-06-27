@@ -19,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -135,18 +136,28 @@ public class DownloadListener implements MessageListener {
 
         TextMessage text = (TextMessage) message;
         downloadSize = 0;
+        
+        HashSet functionalAccounts = prop.getFunctionalAccounts();    
+       
+        
         try {
-            String operation = text.getStringProperty("operation");
-            switch (operation) {
-                case "prepareData":
-                    prepareDataHandler(text);
-                    break;
-                case "getData":
-                    getDataHandler(text);
-                    break;
-                case "getDataStart":
-                    getDataStartHandler(text);
-                    break;
+            HashMap<String,Object> messageValues = parseJMSText(text.getText()); 
+            
+            if(!functionalAccounts.contains(messageValues.get("userName"))){
+            
+                String operation = text.getStringProperty("operation");
+
+                switch (operation) {
+                    case "prepareData":
+                        prepareDataHandler(messageValues,message);
+                        break;
+                    case "getData":
+                        getDataHandler(messageValues,message);
+                        break;
+                    case "getDataStart":
+                        getDataStartHandler(messageValues,text);
+                        break;
+                }
             }
 
         } catch (JMSException | ParseException ex) {
@@ -163,10 +174,10 @@ public class DownloadListener implements MessageListener {
      *
      * @param message The message from JMS.
      */
-    private void prepareDataHandler(TextMessage message) throws ParseException {
+    private void prepareDataHandler(HashMap<String,Object> messageValues,Message message) throws ParseException {
         try {
            
-            HashMap<String,Object> messageValues = parseJMSText(message.getText());            
+                       
             download = new Download();
             download.setUser(getUser(messageValues.get("userName").toString()));
             download.setDownloadEntities(createDownloadEntities(messageValues));
@@ -179,14 +190,13 @@ public class DownloadListener implements MessageListener {
             beanManager.create(download, manager);
             
 
-        } catch (IcatException_Exception| JMSException | DashboardException | SecurityException | IllegalStateException ex) {
-            LOG.error("A Fatal Error has Occured ",ex);
+        } catch (JMSException | IcatException_Exception| DashboardException | SecurityException | IllegalStateException ex) {
+            LOG.error("A Fatal Error has Occured " +ex);
         }
     }
     
-    private void getDataHandler(TextMessage message) throws JMSException{
-        
-        HashMap<String,Object> messageValues = parseJMSText(message.getText());
+    private void getDataHandler(HashMap<String,Object> messageValues, Message message) throws JMSException{        
+       
         
         long duration = message.getLongProperty("millis");   
         long startMilli = message.getLongProperty("start");
@@ -196,25 +206,28 @@ public class DownloadListener implements MessageListener {
          
         try {
             download = getDownload((Long)messageValues.get("transferId"));
-            download.setDownloadEnd(endDate);
-           
-            download.setDuriation(duration);
-           
-            if(messageValues.containsKey("exceptionClass")){
-                download.setStatus(failed);
+            //If not found then do not do anything.
+            if(download!=null){
+                download.setDownloadEnd(endDate);
+
+                download.setDuriation(duration);
+
+                if(messageValues.containsKey("exceptionClass")){
+                    download.setStatus(failed);
+                }
+                else{
+                     download.setStatus(finished);
+                     //Don't want to set the bandiwdth if it failed as do not know how much was downloaded.
+                     download.setBandwidth(calculateBandwidth(duration ,download.getDownloadSize()));
+                }
+
+
+                beanManager.update(download, manager);
             }
-            else{
-                 download.setStatus(finished);
-                 //Don't want to set the bandiwdth if it failed as do not know how much was downloaded.
-                 download.setBandwidth(calculateBandwidth(duration ,download.getDownloadSize()));
-            }
-               
-           
-            beanManager.update(download, manager);
             
             
         } catch (InternalException ex) {
-            Logger.getLogger(DownloadListener.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.error("A Fatal Error has Occured " +ex);
         }
          
                  
@@ -228,11 +241,9 @@ public class DownloadListener implements MessageListener {
      *
      * @param message The JMS message that contains the download information.
      */
-    private void getDataStartHandler(TextMessage message)  {
-        try {
-         
-            
-            HashMap<String,Object> messageValues = parseJMSText(message.getText());   
+    private void getDataStartHandler(HashMap<String,Object> messageValues, TextMessage message )  {
+        try {       
+          
             
             if(messageValues.containsKey("preparedId")){
                 checkDownload(message);                
@@ -441,7 +452,7 @@ public class DownloadListener implements MessageListener {
         if (existingDownload.size() > 0) {
             return (Download) existingDownload.get(0);
         }
-        //not found rare case
+        //not found due to being functional account.
         return null;
     }
     /***
