@@ -16,7 +16,7 @@
 
 	<ul>
 		<li>The dashboard distribution: <a
-			href="${repoUrl}/org/icatproject/ids.server/${project.version}/dashboar-${project.version}-distro.zip">dashboard-${project.version}-distro.zip</a>
+			href="${repoUrl}/org/icatproject/dashboard/${project.version}/dashboard-${project.version}-distro.zip">dashboard-${project.version}-distro.zip</a>
 		</li>
 		
 		<li>A database as described in <a

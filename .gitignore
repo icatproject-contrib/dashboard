@@ -1,3 +1,6 @@
 /src/main/java/org/dashboard/core/collector/DownloadGenerator.java
 /target/
 /nbproject/
+/.classpath
+/.project
+/.settings/
