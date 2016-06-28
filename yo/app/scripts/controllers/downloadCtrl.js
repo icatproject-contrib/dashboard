@@ -816,8 +816,13 @@
 
 
 
-				var volumeTotal = total === 0 ? "No Data":$filter('bytes')(total).split(' ')[0];				
-				var volumeAverage = total===0 ?"No Data":Math.round(volumeTotal.split(' ')[0]/dates.length);				    		
+				var volumeTotal = total === 0 ? "No Data":$filter('bytes')(total).split(' ')[0];	
+					
+				var volumeAverage = volumeTotal===0 ?"No Data":(volumeTotal/dates.length).toString();	
+
+				if(volumeAverage.indexOf(".") > -1){
+                    volumeAverage = volumeAverage.slice(0, (volumeAverage.indexOf("."))+3);
+                } 			    		
 				
 	    		vm.volume = { 	
 	    			data:{

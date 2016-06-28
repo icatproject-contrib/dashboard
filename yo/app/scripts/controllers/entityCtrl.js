@@ -167,8 +167,14 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
 					var total = getArrayTotal(dataForGraph.slice(1,dataForGraph.length));
 
-					var volumeTotal = total === 0 ? "No Data":total;
-					var volumeAverage = total === 0 ? "No Data":Math.round(total/(dates.length-1));
+					var volumeTotal = total === 0 ? 0:total;
+					var volumeAverage = volumeTotal===0 ?"0":(volumeTotal/dates.length).toString();	
+
+					if(volumeAverage.indexOf(".") > -1){
+	                    volumeAverage = volumeAverage.slice(0, (volumeAverage.indexOf("."))+3);
+	                } 	
+
+	                byteFormat = byteFormat === undefined? "":byteFormat;
 
 
 					vm.dataFileVolume = {
@@ -311,7 +317,13 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 					var total = getArrayTotal(dataForGraph.slice(1,dataForGraph.length));
 
 					var volumeTotal = total;
-					var volumeAverage = total === 0 ? 0:Math.round(total/(dates.length-1));
+
+					var volumeAverage = volumeTotal===0 ?"0":(volumeTotal/dates.length).toString();	
+
+					if(volumeAverage.indexOf(".") > -1){
+	                    volumeAverage = volumeAverage.slice(0, (volumeAverage.indexOf("."))+3);
+	                } 	
+
 
 					byteFormat = byteFormat === undefined? "":byteFormat
 
