@@ -12,9 +12,10 @@
 
   <container qualifier="glassfish" default="true">
     <configuration>
-      <property name="remoteServerAddress">localhost</property>
-      <property name="remoteServerHttpPort">8080</property>
-      <property name="remoteServerAdminPort">4848</property>
+      <property name="adminHost ">localhost</property>      
+      <property name="adminPort ">4848</property>
+	  <property name="adminUser">admin</property>
+	  <property name="adminPassword"></property>
     </configuration>
   </container>
 
