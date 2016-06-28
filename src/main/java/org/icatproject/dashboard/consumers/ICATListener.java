@@ -51,7 +51,7 @@ public class ICATListener implements MessageListener {
     @Override
     public void onMessage(Message message) {
         
-        LOG.info("Recieved a JMS message from the ICAT");
+        LOG.debug("Recieved a JMS message from the ICAT");
 
         
         TextMessage text = (TextMessage) message;       

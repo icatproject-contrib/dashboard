@@ -37,7 +37,8 @@ public class EntityBeanManager {
      * @param manager EntityManager to prevent threading issues.
      * @return If the sessionID is valid.
      */
-    public boolean checkSessionID(String sessionID, EntityManager manager) {       
+    public boolean checkSessionID(String sessionID, EntityManager manager) {
+        
         Session session = (Session) manager.find(Session.class, sessionID);        
         return session!=null;
     }
@@ -58,6 +59,7 @@ public class EntityBeanManager {
             try {              
                 manager.persist(session);
                 manager.flush();
+                logger.info(userName+" has logged in");
                 String result = session.getId();
 
                 return result;

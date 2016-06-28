@@ -230,18 +230,18 @@
                     </dependency>
                 </dependencies>
             </plugin>
-            <!-- TEMP TO REMOVE -->
             <plugin>
-                <groupId>com.qmino</groupId>
-                <artifactId>miredot-plugin</artifactId>
-                <version>2.0-RC3</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>restdoc</goal>
-                        </goals>
-                    </execution>
-                </executions>
+				<groupId>com.qmino</groupId>
+				<artifactId>miredot-plugin</artifactId>
+				<version>1.6.2</version>
+				<executions>
+					<execution>
+						<id>miredot</id>
+						<goals>
+							<goal>restdoc</goal>
+						</goals>
+					</execution>
+				</executions>
                 <configuration>
                     <licence>cHJvamVjdHxvcmcuaWNhdHByb2plY3QuZGFzaGJvYXJkfDIwMTgtMDYtMjd8dHJ1ZXwtMSNNQ3dDRkhyMmpXUFplK2VTWDdYODRUc3hlcWZRd2RXZ0FoUVgrci9OUE50enJadytWL21VREV5aXp4MDRiUT09</licence>
                     <output>
@@ -316,7 +316,7 @@
                     <!-- insert other configuration here (optional) -->
                 </configuration>
             </plugin>
-            <!-- TEMP TO REMOVE -->
+         
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

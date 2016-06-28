@@ -132,7 +132,7 @@ public class DownloadListener implements MessageListener {
     public void onMessage(Message message) {
         
         
-        LOG.info("Recieved a JMS message from the IDS");
+        LOG.debug("Recieved a JMS message from the IDS");
 
         TextMessage text = (TextMessage) message;
         downloadSize = 0;
