@@ -256,7 +256,7 @@
 					<output>
 						<html>
 							<location>site/miredot</location>
-							<baseUrl>https://example.com/dashboard</baseUrl>
+							<baseUrl>https://example.com/dashboard/rest</baseUrl>
 						</html>
 					</output>
 					<analysis>

@@ -52,7 +52,7 @@ import org.json.simple.JSONObject;
 
 @Stateless
 @LocalBean
-@Path("download")
+@Path("/download")
 public class DownloadRest {
 
     @EJB

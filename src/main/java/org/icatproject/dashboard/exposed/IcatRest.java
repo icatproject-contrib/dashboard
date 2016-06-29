@@ -51,7 +51,7 @@ import org.json.simple.JSONObject;
 
 @Stateless
 @LocalBean
-@Path("icat")
+@Path("/icat")
 public class IcatRest {
 
     @EJB

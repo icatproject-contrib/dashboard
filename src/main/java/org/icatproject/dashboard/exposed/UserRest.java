@@ -46,7 +46,7 @@ import org.json.simple.JSONObject;
 
 @Stateless
 @LocalBean
-@Path("user")
+@Path("/user")
 public class UserRest {
 
     @EJB
