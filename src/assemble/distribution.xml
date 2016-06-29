@@ -27,11 +27,12 @@
             <directory>${project.basedir}/src/main/scripts</directory>
         </fileSet>
 
-        <fileSet>
+         <fileSet>
             <outputDirectory>dashboard</outputDirectory>
-            <directory>${project.basedir}/target</directory>
+            <directory>${basedir}</directory>
+            <filtered>true</filtered>
             <includes>
-                <include>*.war</include>
+                <include>*.txt</include>
             </includes>
         </fileSet>
 

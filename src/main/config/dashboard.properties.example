@@ -20,4 +20,7 @@ collectionTime=1
 #TopCat Admin login Information
 topCatURL= https://topcat.facility.ac.uk
 
+# Uncomment to permit configuration of logback
+!logback.xml = dashboard.logback.xml
+
 
