@@ -296,7 +296,7 @@ public class IcatDataManager {
         } catch (IcatException | ParseException ex) {
             LOG.error("Issue with collecting instrument names and ids from the ICAT ",ex);
         }
-        LOG.info("Collected instument ids from the ICAT.");
+        LOG.info("Collected the instruments from the ICAT.");
         
         return instrumentIds;
     }
