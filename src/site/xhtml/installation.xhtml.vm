@@ -33,7 +33,9 @@
 		
 
 		<li>Python (version 2.4 to 2.7) installed on the server.</li>
-
+                
+                <li>Python module lxml.</li>
+                
                 <li>The IDS must have its logging level set to READ WRITE PREPARE.</li>
 
                 <li>If the IDS and ICAT are on Linux machines the Dashboard machine must have access to 

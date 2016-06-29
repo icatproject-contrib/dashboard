@@ -90,14 +90,27 @@ prop_list = []
 
 if arg in ["CONFIGURE", "INSTALL"]: actions.configure(prop_name, prop_list) 
 dashboardProperties = getProperties(prop_name, prop_list)
+log4backXml = dashboardProperties.get("logback.xml")
 
 
-if arg in ["CONFIGURE", "INSTALL"]:    
+if arg in ["CONFIGURE", "INSTALL"]:
+    if log4backXml: actions.configure(os.path.basename(log4backXml), [], log4backXml)
     actions.checkNoErrors()	
 
 if arg == "INSTALL":  
+
+    if  log4backXml:
+        dir, file = os.path.split(log4backXml)
+        if not os.path.exists(file): abort("log4back.xml file " + file + " not found")
    
-    actions.installFile("dashboard.properties")    
+    actions.installFile("dashboard.properties") 
+
+    if log4backXml:
+        dir, file = os.path.split(log4backXml)
+        if dir:
+            actions.installFile(file, dir)
+        else:
+            actions.installFile(file)	
     
     try:                   
         uninstall()
@@ -110,7 +123,14 @@ if arg == "INSTALL":
         abort(str(e))
                 
 if arg == "UNINSTALL":        
-    actions.removeFile(prop_name)   
+    actions.removeFile(prop_name)
+	
+    if log4backXml:
+        dir, file = os.path.split(log4backXml)
+        if dir:
+            actions.removeFile(file, dir)
+        else:
+            actions.removeFile(file)	
     
     try:
         uninstall()

@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ImportCheck extends EntityBaseBean implements Serializable {
     
     @Comment("The date the check was checked agaisnt.")
-    @Column(unique=true, nullable = false)
+    @Column(nullable = false)
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date checkDate;
     

@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.DependsOn;
@@ -180,19 +181,11 @@ public class IcatDataManager {
             QName qName = new QName("http://icatproject.org", "ICATService");
             ICATService service = new ICATService(icatUrl, qName);
             icat = service.getICATPort();            
-                                        
-           
-                    
-        } catch (MalformedURLException ex) {
-            LOG.error("Error connecting to the ICAT ",ex);
-        }
-        
        
-        
-        try {
             session = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
             LOG.info("Successfuly retrieved a sessionId from ICAT: "+properties.getICATUrl());
-        } catch (IcatException_Exception ex) {
+            
+        } catch (IcatException_Exception | MalformedURLException ex) {
             LOG.error("Error logging into the ICAT ",ex);
         }
         
@@ -296,7 +289,7 @@ public class IcatDataManager {
         } catch (IcatException | ParseException ex) {
             LOG.error("Issue with collecting instrument names and ids from the ICAT ",ex);
         }
-        LOG.info("Collected instument ids from the ICAT.");
+        LOG.info("Collected the instruments from the ICAT.");
         
         return instrumentIds;
     }
