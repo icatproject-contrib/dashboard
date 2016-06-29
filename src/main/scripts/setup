@@ -20,16 +20,16 @@ def uninstall():
 isn't equal to ejb-jar.xml then it will append it to a new zipe file.
 Finally it will then add the modified ejb-jar.xml to the war.
 '''
-def updateAddressList(properties,ejbFile):
+def updateAddressList(properties, ejbFile):
 
     warname = "dashboard.war"
     
     for name in glob.glob('*.war'):        
-        warname=name
+        warname = name
 
     extractEjb(warname)
 
-    updateEjb('WEB-INF/'+ejbFile,properties)
+    updateEjb('WEB-INF/' + ejbFile, properties)
 
     tempdir = tempfile.mkdtemp()
     try:
@@ -38,13 +38,13 @@ def updateAddressList(properties,ejbFile):
             with zipfile.ZipFile(tempname, 'w') as zipwrite:
                 for item in zipread.infolist():
                                       
-                    if item.filename not in 'WEB-INF/'+ejbFile:
+                    if item.filename not in 'WEB-INF/' + ejbFile:
                         data = zipread.read(item.filename)
                         zipwrite.writestr(item, data)
         shutil.move(tempname, warname)
         
         with zipfile.ZipFile(warname, 'a') as z:
-            z.write(ejbFile,'WEB-INF/'+ejbFile)
+            z.write(ejbFile, 'WEB-INF/' + ejbFile)
     finally:
         shutil.rmtree(tempdir)
         os.remove(ejbFile)
@@ -54,7 +54,7 @@ def updateAddressList(properties,ejbFile):
         
                 
 
-#Removes the EJB from the directory
+# Removes the EJB from the directory
 def extractEjb(warname):
     archive = zipfile.ZipFile(warname)
 
@@ -62,27 +62,27 @@ def extractEjb(warname):
         if file == "WEB-INF/ejb-jar.xml":
             archive.extract(file)
     
-#Updates the ejb with the IDS and ICAT names
-def updateEjb(fileName,properties):
+# Updates the ejb with the IDS and ICAT names
+def updateEjb(fileName, properties):
     tree = etree.parse(fileName)
 
-    root= tree.getroot()
+    root = tree.getroot()
         
-    idsAddress= root.xpath('/ns:ejb-jar/ns:enterprise-beans/ns:message-driven[ns:ejb-name="DownloadListener"]/ns:activation-config/ns:activation-config-property[ns:activation-config-property-name="addressList"]/ns:activation-config-property-value',namespaces={'ns':'http://java.sun.com/xml/ns/javaee'})
+    idsAddress = root.xpath('/ns:ejb-jar/ns:enterprise-beans/ns:message-driven[ns:ejb-name="DownloadListener"]/ns:activation-config/ns:activation-config-property[ns:activation-config-property-name="addressList"]/ns:activation-config-property-value', namespaces={'ns':'http://java.sun.com/xml/ns/javaee'})
 
-    icatAddress = root.xpath('/ns:ejb-jar/ns:enterprise-beans/ns:message-driven[ns:ejb-name="ICATListener"]/ns:activation-config/ns:activation-config-property[ns:activation-config-property-name="addressList"]/ns:activation-config-property-value',namespaces={'ns':'http://java.sun.com/xml/ns/javaee'})
+    icatAddress = root.xpath('/ns:ejb-jar/ns:enterprise-beans/ns:message-driven[ns:ejb-name="ICATListener"]/ns:activation-config/ns:activation-config-property[ns:activation-config-property-name="addressList"]/ns:activation-config-property-value', namespaces={'ns':'http://java.sun.com/xml/ns/javaee'})
 
     idsAddress[0].text = properties["ids.address"]
     icatAddress[0].text = properties["icat.address"]
     
-    etree.ElementTree(root).write('ejb-jar.xml',pretty_print=True)    
+    etree.ElementTree(root).write('ejb-jar.xml', pretty_print=True)    
 
 
     
 
 
     
-actions, arg, props = getActions("dashboard-setup.properties", ["db.driver", "db.url", "db.username", "db.password","ids.address","icat.address"])
+actions, arg, props = getActions("dashboard-setup.properties", ["db.driver", "db.url", "db.username", "db.password", "ids.address", "icat.address"])
 
 
 prop_name = "dashboard.properties"
@@ -114,9 +114,9 @@ if arg == "INSTALL":
     
     try:                   
         uninstall()
-        updateAddressList(props,'ejb-jar.xml')
+        updateAddressList(props, 'ejb-jar.xml')
         actions.registerDB("dashboard", props["db.driver"], props["db.url"], props["db.username"], props["db.password"])        
-	actions._asadmin("restart-domain")
+
 	actions.deploy(deploymentorder=130, target=props.get("db.target"), logging=props.get("db.logging"))   
         
     except Exception, e:
