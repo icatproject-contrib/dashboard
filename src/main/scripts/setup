@@ -117,7 +117,7 @@ if arg == "INSTALL":
         updateAddressList(props,'ejb-jar.xml')
         actions.registerDB("dashboard", props["db.driver"], props["db.url"], props["db.username"], props["db.password"])        
 	actions._asadmin("restart-domain")
-	actions.deploy(deploymentorder=100, target=props.get("db.target"), logging=props.get("db.logging"))   
+	actions.deploy(deploymentorder=130, target=props.get("db.target"), logging=props.get("db.logging"))   
         
     except Exception, e:
         abort(str(e))
