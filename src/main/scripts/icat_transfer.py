@@ -1,8 +1,7 @@
 import sys
-import cx_Oracle
 import datetime
 import argparse
-import pymysql
+
 from ConfigParser import ConfigParser
 
 #Parse the configuration file
@@ -439,11 +438,13 @@ if __name__ == "__main__":
 		icatCon = connectToMySql(configuration,"icat")
 		dashboardCon = connectToMySql(configuration,"dashboard")		
 		database="mySql"
+		import pymysql
 
 	elif(args.oracle):
 		configuration = parseOracleConfig()
 		icatCon = connectToOracle(configuration,"icat")
-		dashboardCon = connectToOracle(configuration,"dashboard")		
+		dashboardCon = connectToOracle(configuration,"dashboard")
+		import cx_Oracle 
 
 
 	exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
