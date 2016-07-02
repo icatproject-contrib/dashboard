@@ -4,6 +4,8 @@ import argparse
 
 from ConfigParser import ConfigParser
 
+hasLogTable = False
+
 #Parse the configuration file
 def parseOracleConfig():
 	print("Parsing the configuration file")
@@ -239,7 +241,11 @@ def getEntityAmount(entity, connection):
 	
 #Retrieves a list of entities and how many were created on certain dates.
 def exportEntityCount(cursor,entity,database):
-	result = []	
+	result = []
+
+        if entity in ("LOG","log"):
+                hasLogTable = True
+	
 	if(database=="mySql"):
 		query ="SELECT COUNT("+entity+".id), DATE_FORMAT("+entity+".CREATE_TIME, '%Y,%m,%d') FROM "+entity+" WHERE "+entity+".CREATE_TIME < CURDATE()  GROUP BY DATE_FORMAT("+entity+".CREATE_TIME, '%Y,%m,%d');"
 	elif(database=="oracle"):
@@ -448,8 +454,9 @@ if __name__ == "__main__":
 
 
 	exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
-	exportLogs(icatCon,dashboardCon,database)	
 	importEntitiesCount(dashboardCon, icatCon, database,configuration)
+	if hasLogTable:
+                exportLogs(icatCon,dashboardCon,database)	
 	importInstrumentMeta(dashboardCon,icatCon,database)
 	importInvestigationMeta(dashboardCon,icatCon,database)
 	
