@@ -21,7 +21,7 @@
 			return getLoginStatus();
 		}
 
-		$rootScope.baseURL = '/dashboard/';
+		$rootScope.baseURL = '/dashboard/rest/';
 
 		$rootScope.graphColours = ["#4DFA90","#FABE4D","#FF5468"];
 
