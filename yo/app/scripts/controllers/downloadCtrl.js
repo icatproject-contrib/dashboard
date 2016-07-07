@@ -632,8 +632,8 @@
 	    		}  		
 	    		
 	    		
-	    		var countTotal = total=== 0 ? "No Data":total;  		
-    		 	var countAverage = total===0 ?"No Data":Math.round(total/numbers.length);			
+	    		var countTotal = total=== 0 ? 0:total;  		
+    		 	var countAverage = total===0 ?0:Math.round(total/numbers.length);			
 
 	    		dates.unshift("x");		
 							
@@ -812,17 +812,15 @@
 				 
 				var byteFormat = formattedData[1];
 
-				
-
-
-
-				var volumeTotal = total === 0 ? "No Data":$filter('bytes')(total).split(' ')[0];	
+				var volumeTotal = total === 0 ? 0:$filter('bytes')(total).split(' ')[0];	
 					
-				var volumeAverage = volumeTotal===0 ?"No Data":(volumeTotal/dates.length).toString();	
+				var volumeAverage = volumeTotal===0 ?'0':(volumeTotal/dates.length).toString();	
 
 				if(volumeAverage.indexOf(".") > -1){
                     volumeAverage = volumeAverage.slice(0, (volumeAverage.indexOf("."))+3);
-                } 			    		
+                } 	
+
+                byteFormat = byteFormat === undefined? "":byteFormat;		    		
 				
 	    		vm.volume = { 	
 	    			data:{

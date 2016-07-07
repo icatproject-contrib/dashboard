@@ -311,7 +311,7 @@ def exportInstrumentMeta(icatCon,database,dashboardCon):
 			result.append(row)
 		
 	except Exception as e:
-		print "An error has occured exporting instrument data " , e
+		print "An error has occurred exporting instrument data " , e
 		sys.exit(1)
 	
 	finally:
@@ -439,18 +439,20 @@ if __name__ == "__main__":
 	database="oracle"
 	
 	if(args.mysql):
-
+		import pymysql
+		global pymysql
 		configuration = parseMySqlConfig()
 		icatCon = connectToMySql(configuration,"icat")
 		dashboardCon = connectToMySql(configuration,"dashboard")		
 		database="mySql"
-		import pymysql
 
 	elif(args.oracle):
+		import cx_Oracle 
+		global cx_Oracle
 		configuration = parseOracleConfig()
 		icatCon = connectToOracle(configuration,"icat")
 		dashboardCon = connectToOracle(configuration,"dashboard")
-		import cx_Oracle 
+		
 
 
 	exportUsers(icatCon,dashboardCon,database,configuration['rootUserName'])
