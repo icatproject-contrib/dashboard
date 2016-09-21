@@ -8,20 +8,18 @@ angular.module('dashboardApp').controller('LoginCtrl', LoginCtrl);
 		var lc = this;
 
 		
-
+                /*
 		var authenticators = LoginService.getAuthenticators();
 
-        authenticators.then(function(responseData){
+                authenticators.then(function(responseData){
+                    lc.authenticators = responseData;
 
-
-        	lc.authenticators = responseData;
-
-        });
-
+                });
+                */
 
 		lc.login = function(){
 
-			LoginService.login(lc.authenticator, lc.username, lc.password).
+			LoginService.login(lc.username, lc.password).
 				then(function(responseData){
 								
 					$sessionStorage.sessionData = {

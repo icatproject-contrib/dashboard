@@ -40,6 +40,8 @@ import org.slf4j.LoggerFactory;
 @LocalBean
 @Path("/")
 public class DashboardRest {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(DashboardRest.class);
 
     private String icatURL;
 
@@ -52,8 +54,7 @@ public class DashboardRest {
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DashboardRest.class);
-
+    
     @PostConstruct
     public void init() {
         icatURL = properties.getICATUrl();
@@ -79,9 +80,11 @@ public class DashboardRest {
     public String login(Login login) throws DashboardException, URISyntaxException {
 
         try {
+            /*
             if (login.getAuthenticator() == null) {
                 throw new BadRequestException(" authenticator type must be provided");
             }
+            */
             if (login.getUsername() == null) {
                 throw new BadRequestException(" username must be provided");
             }
@@ -101,7 +104,8 @@ public class DashboardRest {
 
             credentials.put("username", login.getUsername());
             credentials.put("password", login.getPassword());
-            authenticator = login.getAuthenticator();
+            // authenticator = login.getAuthenticator();
+            authenticator = "uows";
 
             Session session = icat.login(authenticator, credentials);
 
