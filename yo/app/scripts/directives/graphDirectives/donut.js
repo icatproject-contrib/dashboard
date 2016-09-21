@@ -15,7 +15,8 @@
 			},
 
 			templateUrl : 'views/graphTemplate.html',
-
+                        
+                        // lightweight controller (link) -> could just have a controller
 			link:function($scope,$element,$rootScope){
 				
 	

@@ -63,9 +63,7 @@
 
 					},						
 
-				    getDownloadMethodNumber : function(startDate,endDate, userName){
-					
-						
+                                         getDownloadMethodNumber : function(startDate,endDate, userName){
 						return $http.get(baseURL+"/method/number?sessionID=" + $sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&userName="+userName)
 							.then(function(response){
 
@@ -100,6 +98,16 @@
 					getUsersDownloadFrequency : function(startDate,endDate, method){
 
 						return $http.get(baseURL+"/frequency/users?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
+							.then(function(response){
+
+								return response.data;
+							
+							});
+					},
+
+                                        getFileExtensionDownloadFrequency : function(startDate,endDate, method){
+
+						return $http.get(baseURL+"/files/extension?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
 							.then(function(response){
 
 								return response.data;

@@ -15,9 +15,14 @@ import org.icatproject.dashboard.entity.Download;
 import org.icatproject.dashboard.entity.EntityBaseBean;
 import org.icatproject.dashboard.entity.EntityCount;
 import org.icatproject.dashboard.entity.ICATUser;
+import org.icatproject.dashboard.entity.Entity_;
 import org.icatproject.dashboard.entity.InstrumentMetaData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PredicateCreater {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(DownloadRest.class);
 
     /**
      * *
@@ -35,8 +40,10 @@ public class PredicateCreater {
      * downloads during the start and end date.
      */
     public static Predicate createDownloadPredicate(CriteriaBuilder cb, Date start, Date end, Root<Download> download, Join<Download, ICATUser> userJoin, String userName, String method) {
-
+        LOG.info("Called create download predicate");
         Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
+        
+        LOG.info("Download start : " + startGreater.toString());
         Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"), end);
         Predicate betweenStart = cb.between(download.<Date>get("downloadStart"), start, end);
         Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"), start, end);
@@ -57,6 +64,33 @@ public class PredicateCreater {
 
         return finalPredicate;
 
+    }
+    
+    /**
+     * *
+     * Creates a predicate that applies a restriction to gather all downloads
+     * between the start and end date and any during those period.
+     *
+     * @param cb CriteriaBuilder to build the Predicate.
+     * @param start Start time of the predicate statement.
+     * @param end End time of the predicate statement.
+     * @param entity
+     * @param method The name of a method to add to the predicate.
+     * @return a predicate object that contains restrictions to gather all
+     * downloads during the start and end date.
+     */
+    public static Predicate createDownloadPredicateEntity(CriteriaBuilder cb, Date start, Date end, Root<Entity_> entity, String method) {
+        
+        Predicate startGreater = cb.greaterThan(entity.<Date>get("createTime"), start);
+        Predicate endLess = cb.lessThan(entity.<Date>get("modTime"), end);
+        Predicate betweenStart = cb.between(entity.<Date>get("createTime"), start, end);
+        Predicate betweenEnd = cb.between(entity.<Date>get("modTime"), start, end);
+        
+        Predicate combineBetween = cb.or(betweenStart, betweenEnd);
+        Predicate combineGL = cb.and(startGreater, endLess);
+        Predicate finalPredicate = cb.or(combineBetween, combineGL);
+        
+        return finalPredicate;
     }
 
     /**

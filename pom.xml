@@ -148,12 +148,9 @@
 			<groupId>org.jboss.arquillian.protocol</groupId>
 			<artifactId>arquillian-protocol-servlet</artifactId>
 		</dependency>
-
-
-
-
-
+                
 	</dependencies>
+        
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -189,6 +186,8 @@
 					<artifactId>javax.persistence</artifactId>
 					<version>2.1.1</version>
 				</dependency>
+                                
+                                        
 
 
 			</dependencies>

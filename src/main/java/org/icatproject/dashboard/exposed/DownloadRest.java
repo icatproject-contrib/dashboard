@@ -19,6 +19,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
@@ -30,6 +31,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.icatproject.dashboard.entity.Download;
+import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.DownloadEntityAge;
 import org.icatproject.dashboard.entity.Entity_;
 import org.icatproject.dashboard.entity.GeoLocation;
@@ -42,6 +44,7 @@ import org.icatproject.dashboard.exceptions.NotFoundException;
 import org.icatproject.dashboard.exceptions.NotImplementedException;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadLocationPredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadPredicate;
+import static org.icatproject.dashboard.exposed.PredicateCreater.createDownloadPredicateEntity;
 import static org.icatproject.dashboard.exposed.PredicateCreater.createJoinDatePredicate;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.PropsManager;
@@ -49,12 +52,18 @@ import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Stateless
 @LocalBean
 @Path("/download")
 public class DownloadRest {
-
+    
+    private static final Logger LOG = LoggerFactory.getLogger(DownloadRest.class);
+    
     @EJB
     EntityBeanManager beanManager;
 
@@ -147,7 +156,104 @@ public class DownloadRest {
         }
 
         return ary.toJSONString();
+    }
+    
+    /**
+     * Retrieves the number of downloads per file.
+     *
+     * @param sessionID for authentication
+     * @param startDate Start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate End time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param method the method of download
+     * @return A JSON array of JSON objects in the format of [{"date":"2016-06-07","number":0},{"date":"2016-06-08","number":0},{"date":"2016-06-09","number":31},{"date":"2016-06-10","number":1},{"date":"2016-06-11","number":0},{"date":"2016-06-12","number":0},{"date":"2016-06-13","number":8},{"date":"2016-06-14","number":0},{"date":"2016-06-15","number":0},{"date":"2016-06-16","number":0}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
+     */
 
+    @GET
+    @Path("files/extension")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getFileExtensionDownloadFrequency(@QueryParam("sessionID") String sessionID,
+                                           @QueryParam("startDate") String startDate,
+                                           @QueryParam("endDate") String endDate,
+                                           @QueryParam("method") String method) throws DashboardException {
+        
+        if (sessionID == null) {
+            throw new BadRequestException("A SessionID must be provided");
+        }
+        
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }
+
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));
+        
+        JSONArray ary = new JSONArray();
+        
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<Entity_> entity = query.from(Entity_.class);
+        
+        query.multiselect(cb.count(entity), entity.get("entityName"));
+        
+        Predicate finalPredicate = createDownloadPredicateEntity(cb, start, end, entity, method);
+        
+        //String query = "SELECT download, user.name, user.fullName from Download download JOIN download.user user ";
+        //String query = "SELECT entity from Entity_ entity JOIN entity.downloadEntities de JOIN de.download download ";
+        
+        //LOG.info(finalPredicate.toString());
+        
+        query.where(finalPredicate);
+        
+        query.groupBy(entity.get("entityName"));
+
+        List<Object[]> entities = manager.createQuery(query).getResultList(); 
+        
+        Map<String, Integer> pairList = new HashMap<String, Integer>();
+
+        for (Object[] singleDownload : entities) {
+            String entityName = (String) singleDownload[1];
+            
+            String extension = "";
+            int i = entityName.lastIndexOf('.');
+            if (i > 0) {
+                extension = entityName.substring(i+1).toUpperCase();
+            }
+            else {
+                break;
+            }
+            
+            boolean inHashmap = false;
+            
+            for (Map.Entry<String, Integer> entry : pairList.entrySet()) {
+                if (entry.getKey().equals(extension)) {
+                    entry.setValue(entry.getValue() + 1);
+                    inHashmap = true;
+                    break;
+                }
+            }
+            
+            if (!inHashmap) {
+                pairList.put(extension, 1);
+            }
+        }
+        
+        for (Map.Entry<String, Integer> entry : pairList.entrySet()) {
+            JSONObject temp = new JSONObject();
+            temp.put("entityName", entry.getKey());
+            temp.put("count", entry.getValue());
+            ary.add(temp);
+        }
+
+        return ary.toJSONString();
     }
     
     /**
@@ -363,6 +469,7 @@ public class DownloadRest {
                                         @QueryParam("endDate") String endDate,
                                         @QueryParam("userName") String userName,
                                         @QueryParam("method") String method) throws DashboardException {
+        
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
         }
@@ -384,13 +491,13 @@ public class DownloadRest {
         Root<Download> download = query.from(Download.class);
         Join<Download, ICATUser> userJoin = download.join("user");
 
-        //Get methods and count how many their are.
+        //Get methods and count how many there are.
         query.multiselect(download.get("downloadStart"), download.get("downloadEnd"));
 
         Predicate finalPredicate = createDownloadPredicate(cb, start, end, download, userJoin, userName, method);
 
         query.where(finalPredicate);
-
+        
         List<Object[]> downloads = manager.createQuery(query).getResultList();
 
         for (Object[] singleDownload : downloads) {
@@ -472,7 +579,7 @@ public class DownloadRest {
         query.groupBy(userJoin.get("name"));
 
         List<Object[]> users = manager.createQuery(query).getResultList();
-
+        
         JSONArray result = new JSONArray();
 
         for (Object[] user : users) {
@@ -520,6 +627,8 @@ public class DownloadRest {
             @QueryParam("endDate") String endDate,
             @QueryParam("userName") String userName,
             @QueryParam("method") String method) throws BadRequestException, NotImplementedException, AuthenticationException, InternalException, NotFoundException  {
+        
+        
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
         }
@@ -849,6 +958,8 @@ public class DownloadRest {
             @QueryParam("endDate") String endDate,
             @QueryParam("userName") String userName,
             @QueryParam("method") String method) throws DashboardException {
+        
+        
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
         }
@@ -925,6 +1036,8 @@ public class DownloadRest {
             @QueryParam("endDate") String endDate,
             @QueryParam("userName") String userName,
             @QueryParam("method") String method) throws DashboardException {
+        
+        
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
         }
@@ -956,7 +1069,7 @@ public class DownloadRest {
         Predicate finishedPrecicate = cb.equal(download.get("status"), finished);
 
         query.where(cb.and(generalPredicate, finishedPrecicate));
-
+        
         List<Object[]> downloads = manager.createQuery(query).getResultList();
 
         TreeMap<LocalDate, Long> downloadDates = downloadHelper.calculateDataDownloaded(downloads);
@@ -994,6 +1107,7 @@ public class DownloadRest {
             @QueryParam("endDate") String endDate,
             @QueryParam("userName") String userName,
             @QueryParam("method") String method) throws DashboardException {
+
 
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
@@ -1067,6 +1181,7 @@ public class DownloadRest {
             @QueryParam("endDate") String endDate,
             @QueryParam("userName") String userName,
             @QueryParam("method") String method) throws DashboardException {
+        
         if (sessionID == null) {
             throw new BadRequestException("A SessionID must be provided");
         }

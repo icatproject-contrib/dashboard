@@ -167,7 +167,8 @@
 			vm.updateGlobalLocation()
 			vm.updateDownloadFrequency()
 			vm.updateISPBandwidth()
-			vm.updateDownloadVolume() 		
+			vm.updateDownloadVolume()
+                        vm.updateFilesDownload()
 
         }  
 
@@ -185,8 +186,9 @@
 			var updateDownloadFrequencyPromise = vm.updateDownloadFrequency(method,true);
 			var updateISPBandwidthPromise = vm.updateISPBandwidth(method,true);
 			var updateDownloadVolumePromise = vm.updateDownloadVolume(method,true);
+                        var updateFilesDownloadPromise = vm.updateFilesDownload(method, true);
 
-			var groupPromise = $q.all([updateUserDownloadPromise,updateMethodDownloadPromise,updateDownloadStatusPromise,updadeDownloadEntityAgePromise,updateLocalLocationPromise,updateGlobalLocationPromise,updateDownloadFrequencyPromise,updateISPBandwidthPromise,updateDownloadVolumePromise])
+			var groupPromise = $q.all([updateFilesDownloadPromise,updateUserDownloadPromise,updateMethodDownloadPromise,updateDownloadStatusPromise,updadeDownloadEntityAgePromise,updateLocalLocationPromise,updateGlobalLocationPromise,updateDownloadFrequencyPromise,updateISPBandwidthPromise,updateDownloadVolumePromise])
 
     		 	groupPromise.then(function(){
 					updateCSV(); 
@@ -260,7 +262,7 @@
 
 		}	
     	 	
-
+            
        
 
         vm.updateUserDownload = function(method,initialUpload){
@@ -316,7 +318,7 @@
 				    selectOp:vm.downloadMethodTypes,
 				    optionTitle:"Method",
 				};
-
+                                
 				if(!initialUpload){
 				    	 updateCSV();
 				}	
@@ -351,7 +353,7 @@
 
 				var largestVolume = Math.max.apply(Math,volumeRaw);
 
-				//Conver the data to human readable format.
+				//Convert the data to human readable format.
 				var formattedVolume = $filter('bytes')(volumeRaw,largestVolume);
 				var formattedVolumeData = formattedVolume[0];
 
@@ -377,15 +379,33 @@
 					description :  "This donut chart displays the number and volume of downloads by download mechanism.",
 				    title :"Download Methods"
 				};
-
-				if(!initialUpload){
-				    updateCSV();
-				}	
-
-
-			});			
-			
+			});					
         }
+        
+
+        vm.updateFilesDownload =function(method, initialUpload){
+                method = parseMethod(method)
+
+
+         	return downloadService.getFileExtensionDownloadFrequency(getStartDate(),getEndDate(), method).then(function(responseData) {
+                
+                    var frequency = _.map(responseData, function(data){
+                                            return [data.entityName, data.count];
+                                    });
+
+                    vm.fileExtension = {
+                        datasets: ["number"],
+                        number: {
+                            "data": frequency,
+                            "title": "Number of downloads per file extension",
+                            "rawData": responseData
+                        },
+                        description: "This donut chart displays the number of downloads of different file extensions",
+                        title: "File Downloads"
+                    }
+                });
+                
+        }				
 
         vm.updateDownloadStatus = function(method, initialUpload){
         	method = parseMethod(method)
