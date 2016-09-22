@@ -38,6 +38,10 @@ public class GeoTool {
      * @return DownloadLocation object with its filled in variables.
      */
     public static GeoLocation getGeoLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) {
+        
+        if (ipAddress.contains("127.0.0.1")) {
+            ipAddress = "http://ip-api.com/json/";
+        }
 
         GeoLocation location; 
         
@@ -45,8 +49,7 @@ public class GeoTool {
         
         //If not found from the ipAddress then contact the API to get the long and latitude. 
         if(locations.isEmpty()){
-                        
-                      
+            
             JSONParser parser = new JSONParser();
             JSONObject result = new JSONObject();
             try {
@@ -116,6 +119,7 @@ public class GeoTool {
 
                 }
             } catch (IOException e) {
+                // This will usually happen when there are too many requests in one minute (more than 150)
                 LOG.error("Error has occured with contacting the GeoTool API ", e);
             }
             conn.disconnect();
