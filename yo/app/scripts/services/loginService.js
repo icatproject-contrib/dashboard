@@ -16,7 +16,7 @@ angular.module('dashboardApp')
 	   		
 	   		var service = {
 
-	   			/*	
+
 	   			//Retrieves a list of authenticators the ICAT is using.
 		   		getAuthenticators:function(){
 		   			return $http.get(baseURL+'icat/authenticators'). 
@@ -25,11 +25,11 @@ angular.module('dashboardApp')
 		   				return response.data;
 		   			});
 
-		   		},*/
+		   		},
 	   		
 	   			//Logins into the dashboard
-		   		login: function(username,password){
-		   			 return $http.post(baseURL+'session/login', {"username": username ,
+		   		login: function(authenticator,username,password){
+		   			 return $http.post(baseURL+'session/login', {'authenticator' : authenticator, "username": username ,
 							   "password" : password }).
 		   			 then(function(response){
 		   			 	return response.data;

@@ -104,8 +104,7 @@ public class DashboardRest {
 
             credentials.put("username", login.getUsername());
             credentials.put("password", login.getPassword());
-            // authenticator = login.getAuthenticator();
-            authenticator = "uows";
+            authenticator = login.getAuthenticator();
 
             Session session = icat.login(authenticator, credentials);
 
