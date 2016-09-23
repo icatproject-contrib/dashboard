@@ -39,6 +39,9 @@ public class GeoTool {
      */
     public static GeoLocation getGeoLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) {
         
+        
+        // An IP address of 127.0.0.1 will cause the program to crash. If you give the api no ip address, it will automatically generate information
+        // for your local address. In this way, these errors can be avoided and useful information can still be recieved from the API.
         if (ipAddress.contains("127.0.0.1")) {
             ipAddress = "http://ip-api.com/json/";
         }
