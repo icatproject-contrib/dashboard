@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javax.persistence.TypedQuery;
 
 @Stateless
 @LocalBean
@@ -214,15 +215,17 @@ public class DownloadRest {
         query.where(finalPredicate);
         
         query.groupBy(entity.get("entityName"));
-
-        List<Object[]> entities = manager.createQuery(query).getResultList(); 
         
-        Map<String, Integer> pairList = new HashMap<String, Integer>();
+        TypedQuery<Object[]> typedQuery = manager.createQuery(query);
+        
+        List<Object[]> entities = typedQuery.getResultList(); 
+        
+        Map<String, Integer> pairList = new HashMap<>();
 
         for (Object[] singleDownload : entities) {
             String entityName = (String) singleDownload[1];
             
-            String extension = "";
+            String extension = null;
             int i = entityName.lastIndexOf('.');
             if (i > 0) {
                 extension = entityName.substring(i+1).toUpperCase();

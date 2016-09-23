@@ -108,9 +108,16 @@ public class DataCollector {
         
         LocalDate earliestEntityImport = getNextImportDate("entity");   
         LocalDate earliestInstrumentImport = getNextImportDate("instrument"); 
-        LocalDate earliestInvestigationImport = getNextImportDate("investigation"); 
+        LocalDate earliestInvestigationImport = getNextImportDate("investigation");
         
-        
+        // Import data into Dashboard even if the import script has never been run
+        if(earliestEntityImport == null && earliestInstrumentImport == null && earliestInvestigationImport == null) {
+            LocalDate past = LocalDate.now().minusWeeks(1);
+            counter.performEntityCountCollection(past, today);
+            counter.performInstrumentMetaCollection(past, today);
+            counter.performInvestigationMetaCollection(past, today);
+        }
+
         //An actual import has happened. 
         if(earliestEntityImport!=null){
             counter.performEntityCountCollection(earliestEntityImport, today);

@@ -229,10 +229,7 @@ public class DownloadListener implements MessageListener {
         } catch (InternalException ex) {
             LOG.error("A Fatal Error has Occured " +ex);
         }
-         
-                 
-         
-        
+
     }
 
     /**
