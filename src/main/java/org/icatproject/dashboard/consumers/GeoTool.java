@@ -71,7 +71,9 @@ public class GeoTool {
             } catch (ParseException ex) {
                 LOG.error("Issue parsing JSON data", ex);
                 throw new GetLocationException("Failed to get location for "  + ipAddress);
-            }            
+            } catch (GetLocationException ex) {
+                throw new GetLocationException(ex.getShortMessage());
+            }
             
             double latitude = (double) result.get("lat");
             double longitude = (double) result.get("lon");
@@ -121,7 +123,7 @@ public class GeoTool {
      * @param ipAddress
      * @return
      */
-    private static String contactAPI(String ipAddress) {
+    private static String contactAPI(String ipAddress) throws GetLocationException {
         /* Simple implementation of the token bucket algorithm to limit the number of requests to 150 per minute.
          * It works using a sliding window of time and enforces that a maximum of 150 requests to this method can 
          * be dealt with during that time. It should solve the issue of being blocked by the GeoTool API.
@@ -165,6 +167,7 @@ public class GeoTool {
                     } catch (IOException e) {
                         // This will usually happen when there are too many requests in one minute (more than 150)
                         LOG.error("Error has occured with contacting the GeoTool API ", e);
+                        throw new GetLocationException("Failed to get location for "  + ipAddress);
                     }
                     conn.disconnect();
                     return sb.toString();
