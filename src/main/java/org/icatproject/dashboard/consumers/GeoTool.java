@@ -15,6 +15,7 @@ import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.icatproject.dashboard.exceptions.GetLocationException;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -37,7 +38,7 @@ public class GeoTool {
      * @param beanManager
      * @return DownloadLocation object with its filled in variables.
      */
-    public static GeoLocation getGeoLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) {
+    public static GeoLocation getGeoLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) throws GetLocationException {
         
         
         // An IP address of 127.0.0.1 will cause the program to crash. If you give the api no ip address, it will automatically generate information
@@ -48,10 +49,11 @@ public class GeoTool {
 
         GeoLocation location; 
         
+        // Get the previous locations from the database (i.e locations that have already downloaded files)
         List<GeoLocation> locations = manager.createNamedQuery("GeoLocation.ipCheck").setParameter("ipAddress", ipAddress).getResultList();
         
         //If not found from the ipAddress then contact the API to get the long and latitude. 
-        if(locations.isEmpty()){
+        if(locations.isEmpty()) {
             
             JSONParser parser = new JSONParser();
             JSONObject result = new JSONObject();
@@ -59,6 +61,7 @@ public class GeoTool {
                 result = (JSONObject) parser.parse(contactAPI(ipAddress));
             } catch (ParseException ex) {
                 LOG.error("Issue parsing JSON data", ex);
+                throw new GetLocationException("Failed to get location for "  + ipAddress);
             }            
             
             double latitude = (double) result.get("lat");
@@ -71,27 +74,29 @@ public class GeoTool {
             if (locations.size() > 0) {
                 location = locations.get(0);
             }
-            else{
+            else {
                 location = new GeoLocation( longitude, latitude, countryCode, city,  isp);      
                 
-            
-            try {
-                beanManager.create(location, manager);
-            } catch (DashboardException ex) {
-                LOG.error("Issue creating GeoLocation: "+ex);
-            }  
-                
-           }   
+                try {
+                    beanManager.create(location, manager);
+                } catch (DashboardException ex) {
+                    // Finding the location has failed. Must set to the dummy location to make sure the download is still added to Dashboard.
+                    // Don't need to create a bean manager for this as it's only a dummy value anyway.
+                    LOG.error(ex.getShortMessage());
+                    throw new GetLocationException("Failed to get location for "  + ipAddress);
+                }  
+            }   
                         
             //Add the GeoIpAddress to the GeoLocation.
             try {
                 GeoIpAddress geoIp = new GeoIpAddress(location,ipAddress);
                 beanManager.create(geoIp, manager);
             } catch (DashboardException ex) {
-                LOG.error("Issue creating GeoIpAddress: "+ex);
+                LOG.error("Issue creating GeoIpAddress: " + ex);
+                throw new GetLocationException("Failed to get location for "  + ipAddress);
             }
         } 
-        else{
+        else {
             location = locations.get(0);
         }
 

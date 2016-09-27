@@ -15,11 +15,13 @@ import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.manager.UserManager;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.entity.ICATLog;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.InternalException;
+import org.icatproject.dashboard.exceptions.GetLocationException;
 
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.json.simple.JSONObject;
@@ -30,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 @MessageDriven
 public class ICATListener implements MessageListener {
+    
+    private final GeoLocation dummyLocation = new GeoLocation(54.3739, 2.9376, "GB", "Windermere", "Dummy ISP");
     
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ICATListener.class);
     
@@ -78,8 +82,16 @@ public class ICATListener implements MessageListener {
      * @param log to have it's location added.     
      */
     private void addLocation(ICATLog log){
-        
-        log.setLocation(GeoTool.getGeoLocation(log.getIpAddress(), manager, beanManager));
+        try {
+            log.setLocation(GeoTool.getGeoLocation(log.getIpAddress(), manager, beanManager));
+        }
+        catch (GetLocationException ex) {
+            /* Finding the location has failed. Must set to the dummy location to make sure the download is still added to Dashboard.
+             * Don't need to create a bean manager for this as it's only a dummy value anyway.
+             */
+            LOG.error(ex.getShortMessage());
+            log.setLocation(dummyLocation);
+        }
         
     }
     

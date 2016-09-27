@@ -35,10 +35,12 @@ import org.icatproject.dashboard.entity.InvestigationMetaData;
 import org.icatproject.dashboard.exceptions.AuthenticationException;
 import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
+import org.icatproject.dashboard.exceptions.GetLocationException;
 import org.icatproject.dashboard.exceptions.InternalException;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getDatePredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getEntityCountPredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getInstrumentPredicate;
+import org.icatproject.dashboard.manager.DashboardSessionManager;
 import static org.icatproject.dashboard.utility.RestUtility.convertResultsToJson;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.IcatDataManager;
@@ -48,11 +50,14 @@ import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTi
 import static org.icatproject.dashboard.utility.RestUtility.createPrePopulatedLongMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.slf4j.LoggerFactory;
 
 @Stateless
 @LocalBean
 @Path("/icat")
 public class IcatRest {
+    
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(DashboardSessionManager.class);
 
     @EJB
     EntityBeanManager beanManager;
@@ -65,7 +70,8 @@ public class IcatRest {
 
     @PersistenceContext(unitName = "dashboard")
     private EntityManager manager;
-
+    
+    private final GeoLocation dummyLocation = new GeoLocation(54.3739, 2.9376, "GB", "Windermere", "Dummy ISP");
     
     /**
      * Retrieves the authenticators that are used within the current ICAT group.
@@ -512,13 +518,23 @@ public class IcatRest {
         List<Object> location = manager.createQuery(locationQuery).getResultList();
         GeoLocation geoLocation;
 
-        /*Location has not been set due to it being a functional account log. We do not store that to prevent
-             * the geoLocation API blocking the dashboards ip.
+        /* Location has not been set due to it being a functional account log. We do not store that to prevent
+         * the geoLocation API blocking the dashboards ip.
          */
         if (location.isEmpty()) {
             List<Object> ipList = manager.createQuery(ipQuery).getResultList();
-            geoLocation = GeoTool.getGeoLocation((String) ipList.get(0), manager, beanManager);
-
+            
+            try {
+                geoLocation = GeoTool.getGeoLocation((String) ipList.get(0), manager, beanManager);
+            }
+            catch (GetLocationException ex) {
+                /* Finding the location has failed. Must set to the dummy location to make sure the download is still added to Dashboard.
+                 * Don't need to create a bean manager for this as it's only a dummy value anyway.
+                */
+                LOG.error(ex.getShortMessage());
+                geoLocation = dummyLocation;
+            }
+            
         } else {
             geoLocation = (GeoLocation) location.get(0);
         }

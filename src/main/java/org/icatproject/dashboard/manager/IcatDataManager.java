@@ -112,8 +112,6 @@ public class IcatDataManager {
         timerService.createIntervalTimer(600000, 600000, checkUserSession);
         
         LOG.info("Finished creating timers for ICAT data mangement.");
-       
-        
     }
     
     private String retrieveAuthenticators(){

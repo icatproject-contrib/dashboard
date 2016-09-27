@@ -43,8 +43,8 @@ public class GeoIpAddress extends EntityBaseBean {
         this.ipAddress = ipAddress;
     }
     
-        public GeoLocation getGeoLocation() {
-        return location;
+    public GeoLocation getGeoLocation() {
+    return location;
     }
 
     public void setGeoLocation(GeoLocation location) {

@@ -42,6 +42,7 @@ import org.icatproject.dashboard.entity.DownloadEntity;
 import org.icatproject.dashboard.entity.Entity_;
 import org.icatproject.dashboard.entity.ICATUser;
 import org.icatproject.dashboard.exceptions.DashboardException;
+import org.icatproject.dashboard.exceptions.GetLocationException;
 import org.icatproject.dashboard.exceptions.InternalException;
 
 import org.icatproject.dashboard.manager.EntityBeanManager;
@@ -72,6 +73,8 @@ import org.slf4j.LoggerFactory;
  */
 @MessageDriven
 public class DownloadListener implements MessageListener {
+    
+    private final GeoLocation dummyLocation = new GeoLocation(54.3739, 2.9376, "GB", "Windermere", "Dummy ISP");
     
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(DashboardSessionManager.class);
 
@@ -391,11 +394,7 @@ public class DownloadListener implements MessageListener {
         download.setTransferID(transferId);
         download.setStatus(inProgress);
         beanManager.create(download, manager);
-        
-        
     }
-
- 
 
     /**
      * Creates a download location object using the GeoTool module.
@@ -403,7 +402,18 @@ public class DownloadListener implements MessageListener {
      * @param ipAddress The idAddress to have its GeoLocation resolved.
      */
     private GeoLocation getLocation(String ipAddress) {
-        GeoLocation location = GeoTool.getGeoLocation(ipAddress, manager, beanManager);      
+        GeoLocation location;
+        
+        try {
+            location = GeoTool.getGeoLocation(ipAddress, manager, beanManager); 
+        }
+        catch (GetLocationException ex) {
+            /* Finding the location has failed. Must set to the dummy location to make sure the download is still added to Dashboard.
+             * Don't need to create a bean manager for this as it's only a dummy value anyway.
+             */
+            LOG.error(ex.getShortMessage());
+            location = dummyLocation;
+        }     
 
         return location;
     }
@@ -416,8 +426,7 @@ public class DownloadListener implements MessageListener {
      * @return bandwidth in bytes per second
      */
     private double calculateBandwidth(long duration, long size) { 
-        
-         double bandwidth = (double) size / ((double) duration/1000);
+        double bandwidth = (double) size / ((double) duration/1000);
         
         return bandwidth;
     }
