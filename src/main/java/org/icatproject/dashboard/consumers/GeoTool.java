@@ -7,6 +7,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import javax.persistence.EntityManager;
 import org.icatproject.dashboard.entity.GeoIpAddress;
 import org.icatproject.dashboard.entity.GeoLocation;
@@ -28,6 +30,13 @@ public class GeoTool {
     private static final String APIENDPOINT = "http://ip-api.com/json/";
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GeoTool.class);
+    
+    private static double rate = 150.0;
+    private static double seconds = 60.0;
+    
+    private static double messageAllowance = rate;
+    
+    private static LocalDateTime lastCheckTime;
 
     /**
      * Gets the longitude and latitude from the above API and inserts it into a
@@ -113,34 +122,59 @@ public class GeoTool {
      * @return
      */
     private static String contactAPI(String ipAddress) {
-
-        try {
-
-            URL url = new URL(APIENDPOINT + ipAddress);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            StringBuilder sb = null;
-            try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-                sb = new StringBuilder();
-                String line;
-                while ((line = rd.readLine()) != null) {
-                    sb.append(line);
-
-                }
-            } catch (IOException e) {
-                // This will usually happen when there are too many requests in one minute (more than 150)
-                LOG.error("Error has occured with contacting the GeoTool API ", e);
-            }
-            conn.disconnect();
-
-            return sb.toString();
-        } catch (MalformedURLException ex) {
-            LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
-        } catch (IOException ex) {
-            LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
+        /* Simple implementation of the token bucket algorithm to limit the number of requests to 150 per minute.
+         * It works using a sliding window of time and enforces that a maximum of 150 requests to this method can 
+         * be dealt with during that time. It should solve the issue of being blocked by the GeoTool API.
+         */
+        
+        LocalDateTime nowTime = LocalDateTime.now();
+        
+        if (lastCheckTime == null) {
+            lastCheckTime = LocalDateTime.now();
         }
+            double secondsPassed = ChronoUnit.SECONDS.between(lastCheckTime, nowTime);
+            lastCheckTime = nowTime;
+            
+            messageAllowance += secondsPassed * (rate / seconds);
+            
+            if (messageAllowance > rate) {
+                messageAllowance = rate;
+            }
+            if (messageAllowance < 1.0) {
+                try {
+                    LOG.info("API recieved too many calls, waiting 10 seconds and then trying again");
+                    Thread.sleep(10000);
+                    contactAPI(ipAddress);
+                }
+                catch (InterruptedException ex) {
+                    LOG.error("Thread sleep was interrupted ", ex);
+                }
+            }
+            else {
+                try {
+                    URL url = new URL(APIENDPOINT + ipAddress);
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    StringBuilder sb = null;
+                    try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                        sb = new StringBuilder();
+                        String line;
+                        while ((line = rd.readLine()) != null) {
+                            sb.append(line);
 
+                        }
+                    } catch (IOException e) {
+                        // This will usually happen when there are too many requests in one minute (more than 150)
+                        LOG.error("Error has occured with contacting the GeoTool API ", e);
+                    }
+                    conn.disconnect();
+                    return sb.toString();
+                } catch (MalformedURLException ex) {
+                    LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
+                } catch (IOException ex) {
+                    LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
+                }
+            }
         return null;
-
     }
 
 }
