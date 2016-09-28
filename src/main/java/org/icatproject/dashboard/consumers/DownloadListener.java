@@ -163,7 +163,7 @@ public class DownloadListener implements MessageListener {
                 }
             }
 
-        } catch (JMSException | ParseException ex) {
+        } catch (Exception ex) {
             LOG.error("An error has occured", ex);
         }
     }
@@ -266,26 +266,29 @@ public class DownloadListener implements MessageListener {
      */
     private void checkDownload(TextMessage message) throws JMSException, ParseException, DashboardException, IcatException_Exception, InterruptedException {
         
-        HashMap<String,Object> messageValues = parseJMSText(message.getText());   
-       
-        download = getDownload(messageValues.get("preparedId").toString());       
-        
-        long startMilli = message.getLongProperty("start");
-        
-        //Has happened before so requires a new download.
-        if(download.getDownloadEnd()!=null){
-            String ipAddress = message.getStringProperty("ip");
-            createDownload(download, ipAddress, startMilli, (Long)messageValues.get("transferId"));          
-        }
-        else {
-            //Update download                
+        try {
+            HashMap<String,Object> messageValues = parseJMSText(message.getText());  
             
-            download.setDownloadStart(new Date(startMilli));                      
-            download.setStatus(inProgress);
-            download.setTransferID((Long)messageValues.get("transferId"));
-            beanManager.update(download, manager);
+            download = getDownload(messageValues.get("preparedId").toString());       
+
+            long startMilli = message.getLongProperty("start");
+
+            //Has happened before so requires a new download.
+            if(download.getDownloadEnd()!=null){
+                String ipAddress = message.getStringProperty("ip");
+                createDownload(download, ipAddress, startMilli, (Long)messageValues.get("transferId"));          
+            }
+            else {
+                //Update download                
+
+                download.setDownloadStart(new Date(startMilli));                      
+                download.setStatus(inProgress);
+                download.setTransferID((Long)messageValues.get("transferId"));
+                beanManager.update(download, manager);
+            }
+        } catch (Exception ex) {
+            LOG.error("A Fatal Error has Occured ", ex);
         }
-        
     }
 
     /**
@@ -311,11 +314,9 @@ public class DownloadListener implements MessageListener {
             download.setTransferID((Long)messageValues.get("transferId"));     
             download.setStatus(inProgress);
             beanManager.create(download, manager);
-        } catch (DashboardException | JMSException | ParseException ex) {
-            LOG.error("A Fatal Error has Occured ",ex);
-        }
-        
-                
+        } catch (Exception ex) {
+            LOG.error("A Fatal Error has Occured ", ex);
+        }         
     }
     
     /**
@@ -323,7 +324,7 @@ public class DownloadListener implements MessageListener {
      * @param message from the JMS.
      * @return List of data retrieved from the JMS Message.
      */
-    private HashMap<String,Object> parseJMSText(String messageBody){
+    private HashMap<String,Object> parseJMSText(String messageBody) throws Exception{
         
         HashMap<String,Object> messageValues = new HashMap<>();
         
@@ -366,7 +367,8 @@ public class DownloadListener implements MessageListener {
             }
             
         } catch (ParseException ex) {
-            LOG.info("Issue with parsing the JMS message body: ",ex.getMessage());
+            LOG.error("Issue with parsing the JMS message body: ",ex.getMessage());
+            throw new Exception("Failed to parse JMS message body");
         }
         
         return messageValues;
@@ -382,18 +384,23 @@ public class DownloadListener implements MessageListener {
      */
     private void createDownload(Download oldDownload, String ipAddress, long startMilli, long transferId) throws DashboardException, ParseException, IcatException_Exception, JMSException{
         
-        download = new Download();        
-        download.setUser(oldDownload.getUser());
-        download.setPreparedID(oldDownload.getPreparedID());
-        download.setDownloadEntities(createDownloadEntities(getEntities(oldDownload.getId())));
-        download.setDownloadSize(oldDownload.getDownloadSize());            
-        download.setLocation(getLocation(ipAddress));
-        download.setMethod(oldDownload.getMethod());        
-        download.setDownloadStart(new Date(startMilli));
-        download.setDownloadEntityAges(createDownloadEntityAges(getDownloadEntityIDs(oldDownload.getPreparedID()))); 
-        download.setTransferID(transferId);
-        download.setStatus(inProgress);
-        beanManager.create(download, manager);
+        try {
+            download = new Download();        
+            download.setUser(oldDownload.getUser());
+            download.setPreparedID(oldDownload.getPreparedID());
+            download.setDownloadEntities(createDownloadEntities(getEntities(oldDownload.getId())));
+            download.setDownloadSize(oldDownload.getDownloadSize());            
+            download.setLocation(getLocation(ipAddress));
+            download.setMethod(oldDownload.getMethod());        
+            download.setDownloadStart(new Date(startMilli));
+            download.setDownloadEntityAges(createDownloadEntityAges(getDownloadEntityIDs(oldDownload.getPreparedID()))); 
+            download.setTransferID(transferId);
+            download.setStatus(inProgress);
+            beanManager.create(download, manager);
+        } catch (Exception ex) {
+            
+        }
+        
     }
 
     /**
