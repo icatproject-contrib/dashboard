@@ -3,10 +3,13 @@
       <p id="login-message">Welcome</p>
         <form class="login-form" ng-submit="login.login()">
             
-          <select class="login-menu form-control" ng-option="nme" ng-model="login.authenticator" ng-options="auth.mnemonic as auth.mnemonic for auth in login.authenticators">                 
-                <option value = "" disabled selected>Authenticator</option>          
-          </select>
-          
+          <div ng-if="login.display()">
+            <select class="login-menu form-control" ng-option="nme" ng-model="login.authenticator" ng-options="auth.mnemonic as auth.mnemonic for auth in login.authenticators">
+
+                      <option value = "" disabled selected>Authenticator</option>      
+            </select>
+          </div>
+            
           <label for="inputUsername" class="sr-only"></label>
 
           <input type="text" id="inputUsername" class="login-menu form-control" placeholder="Username" required autofocus ng-model="login.username"/>

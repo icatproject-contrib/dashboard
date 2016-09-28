@@ -20,8 +20,12 @@
 			
 			return getLoginStatus();
 		}
-
-		$rootScope.baseURL = '/dashboard/rest/';
+		
+		if(window.location.port == "9000"){
+			$rootScope.baseURL = 'https://localhost:8181/dashboard/rest/';
+		} else {
+			$rootScope.baseURL = '/dashboard/rest/';
+		}
 
 		$rootScope.graphColours = ["#4DFA90","#FABE4D","#FF5468"];
 
