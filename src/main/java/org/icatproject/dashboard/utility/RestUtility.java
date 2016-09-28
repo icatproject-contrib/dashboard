@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import javax.persistence.TypedQuery;
 import org.icatproject.dashboard.entity.ICATUser;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
 import org.json.simple.JSONArray;
@@ -114,12 +115,12 @@ public class RestUtility {
             
             query.where(cb.equal(user.get("name"), name));
             
-            String fullName = manager.createQuery(query).getSingleResult();
+            TypedQuery<String> typedQuery = manager.createQuery(query);
             
+            String fullName = typedQuery.getSingleResult();
             
             return fullName;
-        
-        
+            
         }
         
     /**

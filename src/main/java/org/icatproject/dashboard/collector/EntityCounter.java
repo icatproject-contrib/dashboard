@@ -18,6 +18,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.TypedQuery;
 import org.icatproject.dashboard.manager.EntityBeanManager;
 import org.icatproject.dashboard.manager.IcatDataManager;
 import org.icatproject.dashboard.entity.EntityCount;
@@ -279,7 +280,7 @@ public class EntityCounter  {
         }
         
         CriteriaBuilder cb = manager.getCriteriaBuilder();
-        CriteriaQuery<Object> query = cb.createQuery(Object.class);
+        CriteriaQuery<ImportCheck> query = cb.createQuery(ImportCheck.class);
         Root<ImportCheck> importCheckEntity = query.from(ImportCheck.class);
         
         Predicate betweenDatePred = cb.between(importCheckEntity.<Date>get("checkDate"), convertToDate(date), convertToDate(date.plusDays(1)));
@@ -288,19 +289,20 @@ public class EntityCounter  {
         
         query.multiselect(importCheckEntity);
         query.where(finalPred);      
+
+        TypedQuery<ImportCheck> importQuery = manager.createQuery(query);
         
-        
-        List<Object> imports = manager.createQuery(query).getResultList();
+        List<ImportCheck> imports = importQuery.getResultList();
         
         ImportCheck importCheck;
         //Incase it has failed before and needs updating
-        if(!imports.isEmpty()){
-            importCheck =  (ImportCheck) imports.get(0);
+        if(!imports.isEmpty()) {
+            importCheck = imports.get(0);
             importCheck.setPassed(passed);
             
             beanManager.update(importCheck, manager);
             
-        }else{
+        } else {
             //Create a new one if one has not been found.            
             importCheck = new ImportCheck(convertToDate(date),passed,importType);
             try {
@@ -309,16 +311,6 @@ public class EntityCounter  {
             LOG.error("Issue inserting import check into dashboard ", ex);
             }
         }   
-        
-  
     }
-    
-    
-   
-    
-    
-   
-    
-    
     
 }
