@@ -33,6 +33,7 @@ import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.xml.namespace.QName;
 
 import org.icatproject.ICAT;
@@ -219,11 +220,11 @@ public class IcatDataManager {
      */
     private void checkUserStatus(){
         
-        List<Object> loggedInUsers = manager.createQuery("SELECT user FROM ICATUser user WHERE user.logged=1").getResultList(); 
+        TypedQuery<ICATUser> loggedInUsersQuery = manager.createQuery("SELECT user FROM ICATUser user WHERE user.logged=1", ICATUser.class);
         
-        for(Object result:loggedInUsers){
-            ICATUser user = (ICATUser)result;
-            
+        List<ICATUser> loggedInUsers = loggedInUsersQuery.getResultList();
+        
+        for(ICATUser user:loggedInUsers){
             boolean loggedInAnymore = isUserLoggedIn(user.getName());
             
             if(!loggedInAnymore){

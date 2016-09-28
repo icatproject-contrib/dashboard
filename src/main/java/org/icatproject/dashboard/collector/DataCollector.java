@@ -21,12 +21,12 @@ import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import org.icatproject.*;
 import org.icatproject.dashboard.entity.ImportCheck;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javax.persistence.TypedQuery;
 
 
 @DependsOn("IcatDataManager")
@@ -143,39 +143,30 @@ public class DataCollector {
      */
     public void checkForFailedImports(){
          LOG.info("Check for missed data collections.");
-        Query failedImprotQuery = manager.createQuery("SELECT ic FROM ImportCheck ic WHERE ic.passed=0");
+        TypedQuery <ImportCheck> failedImportQuery = manager.createQuery("SELECT ic FROM ImportCheck ic WHERE ic.passed = 0", ImportCheck.class);
         
-        List<Object> failedImports = failedImprotQuery.getResultList();
+        List<ImportCheck> failedImports = failedImportQuery.getResultList();
         
         if(!failedImports.isEmpty()){
             
-            for(Object result : failedImports){
+            for(ImportCheck ic : failedImports){
                 
-                ImportCheck ic = (ImportCheck) result;
                 String type = ic.getType();
                 LocalDate failedDate = convertToLocalDate(ic.getCheckDate());
                 
                 LOG.info("Found a failed import for "+type+" on the "+failedDate.toString());
                 
-                if("instrument".equals(type)){
+                if ("instrument".equals(type)) {
                     counter.performInstrumentMetaCollection(failedDate, failedDate.plusDays(1));
-                }else if("investigation".equals(type)){
+                } else if ("investigation".equals(type)){
                      counter.performInvestigationMetaCollection(failedDate, failedDate.plusDays(1));
                     
                 }else if("entity".equals(type)){
                     counter.performEntityCountCollection(failedDate, failedDate.plusDays(1));
-                    
-                }
-                
-                
-                
+                } 
             }
-            
-            
         }
-        
         LOG.info("Finished checking for missed data collections.");
-        
     }
     
     
@@ -185,20 +176,22 @@ public class DataCollector {
      * Finds out the earliest LocalDate that an import check has been inserted and then
      * returns the next day
      * @return the date of when to perform the next import. If no check was found then 
+     * @param type The type of the import that we want to find (i.e entity, instrument or investigation)
      * null is returned.
      */
     public LocalDate getNextImportDate(String type){
         
-        Query importCheckQuery = manager.createQuery("SELECT ic.checkDate FROM ImportCheck ic WHERE ic.passed=1 AND ic.type='"+type+"' ORDER BY ic.checkDate desc");
+        TypedQuery <Date> importCheckQuery = manager.createQuery("SELECT ic.checkDate FROM ImportCheck ic WHERE ic.passed=1 AND ic.type='" + type + "' ORDER BY ic.checkDate desc", Date.class);
                     
         importCheckQuery.setMaxResults(1);
+        
         //Have to use getResultList as getSingleResult will fail if no collection has occured.        
-        List<Object> dates = importCheckQuery.getResultList();
+        List<Date> dates = importCheckQuery.getResultList();
         
         LocalDate earliestImport = null;
         
         if(!dates.isEmpty()){
-            earliestImport =  convertToLocalDate((Date)dates.get(0));
+            earliestImport =  convertToLocalDate(dates.get(0));
             earliestImport = earliestImport.plusDays(1);
         }                
                 
