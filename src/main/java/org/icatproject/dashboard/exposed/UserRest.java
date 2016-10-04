@@ -19,6 +19,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
@@ -302,23 +303,23 @@ public class UserRest {
         String operation;
 
         //First check if the users is downloading or preparing a downloading.            
-        Query query = manager.createQuery("SELECT download.status FROM Download download JOIN download.user user WHERE (download.status='preparing' OR download.status='inProgress') AND user.name= :name ORDER BY download.createTime desc");
+        TypedQuery <String> query = manager.createQuery("SELECT download.status FROM Download download JOIN download.user user WHERE (download.status='preparing' OR download.status='inProgress') AND user.name= :name ORDER BY download.createTime desc", String.class);
         query.setParameter("name", name);
         query.setMaxResults(1);
 
-        List<Object> downloadResult = query.getResultList();
+        List<String> downloadResult = query.getResultList();
 
         //If the user isn't downloading anything then we need to look into the log table.
         if (downloadResult.isEmpty()) {
-            Query logQuery = manager.createQuery("SELECT log.operation FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc");
+            TypedQuery <String> logQuery = manager.createQuery("SELECT log.operation FROM ICATLog log JOIN log.user user WHERE user.name= :name ORDER BY log.logTime desc", String.class);
             logQuery.setParameter("name", name);
             logQuery.setMaxResults(1);
 
-            operation = (String) logQuery.getSingleResult();
+            operation = logQuery.getSingleResult();
 
         } else {
 
-            operation = "Download (" + (String) downloadResult.get(0) + ")";
+            operation = "Download (" + downloadResult.get(0) + ")";
 
         }
 
