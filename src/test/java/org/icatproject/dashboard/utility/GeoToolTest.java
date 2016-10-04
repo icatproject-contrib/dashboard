@@ -1,0 +1,92 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates the template in the editor.
+ */
+package org.icatproject.dashboard.utility;
+
+
+import java.util.List;
+import java.util.ArrayList;
+import org.icatproject.dashboard.consumers.GeoTool;
+import static org.mockito.Mockito.*;
+import javax.persistence.EntityManager;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Query;
+import org.icatproject.dashboard.entity.GeoLocation;
+
+import org.icatproject.dashboard.exceptions.GetLocationException;
+import org.icatproject.dashboard.entity.GeoLocation;
+import org.icatproject.dashboard.manager.EntityBeanManager;
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
+
+/**
+ *
+ * @author Tom Gowland
+ */
+
+/*
+This will test various aspects of the GeoTool class which primarily deals with getting the locations of a users download.
+
+The class uses Mockito (http://mockito.org/) as a Unit Test framework to mock various persistence aspects including the entity manager.
+*/
+
+public class GeoToolTest {
+    private EntityManager entityManager;
+    private Query query;
+    private EntityBeanManager beanManager;
+    
+    @Before
+    public void setup() {
+        // Here we initialise some of the peristence aspects which need to be mocked. 
+        entityManager = mock(EntityManager.class);
+        query = mock(Query.class);
+        beanManager = mock(EntityBeanManager.class);
+    }
+    
+    
+    /*
+    The following test ensures that when an ipAddress of 127.0.0.1 is sent to GeoTool that it is converted to http://ip-api.com/json/ so 
+    that a location can still be read properly. The test would only return a value if the IP is changed to http://ip-api.com/json/ else it
+    will throw a nullpointerexception and fail. 
+    */
+    @Test
+    public void testGetData() {
+        String ipAddress = "127.0.0.1";
+        String otherIp = "http://ip-api.com/json/";
+        
+        List<GeoLocation> locations = new ArrayList<>();
+        
+        GeoLocation geoLocation = new GeoLocation();
+        
+        locations.add(geoLocation);
+        
+        /*
+        The when method (http://www.baeldung.com/mockito-behavior) can be used to create the responses of queries to our mock database.
+        Here, we mimic the same query that is called in the getGeoLocation method in GeoTool.java. In this way, when we call that method
+        later on in the test, the class will use the following when statements to execute the query. We return an example list of locations
+        which I have added a test location to so that we can make sure it is returned later on.
+        */
+        
+        when(entityManager.createNamedQuery("GeoLocation.ipCheck")).thenReturn(query);
+        when(query.setParameter("ipAddress", otherIp)).thenReturn(query);
+        when(query.getResultList()).thenReturn(locations);
+
+        GeoLocation location = new GeoLocation();
+        
+        try {
+            GeoLocation testLocation;
+            /*
+            Finally, we access the getGeoLocation method with the 127.0.0.1 IP address and ensure that the result returned is the one we entered 
+            into the list earlier. If the test passes, this tells us that the IP address has been successfully changed over to http://ip-api.com/json/.
+            */
+            testLocation = GeoTool.getGeoLocation(ipAddress, entityManager, beanManager);
+            assertEquals(testLocation, geoLocation);
+        }
+        catch (GetLocationException e) {
+            // Reaching here means the test has failed. 
+        }
+    }
+}

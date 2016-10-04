@@ -55,8 +55,8 @@ public class GeoTool {
         if (ipAddress.contains("127.0.0.1")) {
             ipAddress = "http://ip-api.com/json/";
         }
-
-        GeoLocation location; 
+        
+        GeoLocation location;
         
         // Get the previous locations from the database (i.e locations that have already downloaded files)
         List<GeoLocation> locations = manager.createNamedQuery("GeoLocation.ipCheck").setParameter("ipAddress", ipAddress).getResultList();
@@ -82,6 +82,9 @@ public class GeoTool {
             String isp = (String) result.get("isp");
             
             locations = manager.createNamedQuery("GeoLocation.check").setParameter("longitude", longitude).setParameter("latitude", latitude).getResultList();
+            
+            System.out.println("Got to here 3");
+            
             if (locations.size() > 0) {
                 location = locations.get(0);
             }
