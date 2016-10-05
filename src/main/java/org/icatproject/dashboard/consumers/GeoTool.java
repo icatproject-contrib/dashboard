@@ -19,6 +19,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.icatproject.dashboard.exceptions.GetLocationException;
 import org.slf4j.LoggerFactory;
+import java.util.stream.IntStream;
 
 /**
  * This class is used as a module for getting location
@@ -31,12 +32,15 @@ public class GeoTool {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GeoTool.class);
     
-    private static double rate = 150.0;
-    private static double seconds = 60.0;
-    
-    private static double messageAllowance = rate;
-    
-    private static LocalDateTime lastCheckTime;
+    /* Set to 149 even though the limit is 150. This is just to compensate for any difference in calculations
+       between the API and Dashboard due to rounding errors.
+    */
+    private static double limit = 149.0;
+
+    public static LocalDateTime startTime;
+	
+    public static int[] cycles = new int [60];
+    public static int[] requests = new int [60];
 
     /**
      * Gets the longitude and latitude from the above API and inserts it into a
@@ -45,6 +49,7 @@ public class GeoTool {
      * @param ipAddress
      * @param manager
      * @param beanManager
+     * @throws GetLocationException
      * @return DownloadLocation object with its filled in variables.
      */
     public static GeoLocation getGeoLocation(String ipAddress, EntityManager manager, EntityBeanManager beanManager) throws GetLocationException {
@@ -53,7 +58,7 @@ public class GeoTool {
         // An IP address of 127.0.0.1 will cause the program to crash. If you give the api no ip address, it will automatically generate information
         // for your local address. In this way, these errors can be avoided and useful information can still be recieved from the API.
         if (ipAddress.contains("127.0.0.1")) {
-            ipAddress = "http://ip-api.com/json/";
+            ipAddress = "";
         }
         
         GeoLocation location;
@@ -74,7 +79,7 @@ public class GeoTool {
             } catch (GetLocationException ex) {
                 throw new GetLocationException(ex.getShortMessage());
             }
-            
+
             double latitude = (double) result.get("lat");
             double longitude = (double) result.get("lon");
             String city = (String) result.get("city");
@@ -82,8 +87,6 @@ public class GeoTool {
             String isp = (String) result.get("isp");
             
             locations = manager.createNamedQuery("GeoLocation.check").setParameter("longitude", longitude).setParameter("latitude", latitude).getResultList();
-            
-            System.out.println("Got to here 3");
             
             if (locations.size() > 0) {
                 location = locations.get(0);
@@ -132,55 +135,82 @@ public class GeoTool {
          * be dealt with during that time. It should solve the issue of being blocked by the GeoTool API.
          */
         
-        LocalDateTime nowTime = LocalDateTime.now();
-        
-        if (lastCheckTime == null) {
-            lastCheckTime = LocalDateTime.now();
+        if (startTime == null) {
+            startTime = LocalDateTime.now();
         }
-            double secondsPassed = ChronoUnit.SECONDS.between(lastCheckTime, nowTime);
-            lastCheckTime = nowTime;
-            
-            messageAllowance += secondsPassed * (rate / seconds);
-            
-            if (messageAllowance > rate) {
-                messageAllowance = rate;
+		
+        LocalDateTime measureTime = LocalDateTime.now();
+
+        double secondsPassed = ChronoUnit.SECONDS.between(startTime, measureTime);
+
+        int roundedSeconds = (int) Math.round(secondsPassed);
+
+        int moduloSeconds = roundedSeconds % 60;
+        int divideSeconds = roundedSeconds / 60;
+        
+        int sum = sumArray(requests);
+        
+        if (cycles[moduloSeconds] != divideSeconds) {
+            cycles[moduloSeconds] = divideSeconds;
+            requests[moduloSeconds] = 0;
+        }
+        
+        if (sum > limit) {
+            try {
+                Thread.sleep(1000);
+                return contactAPI(ipAddress);
             }
-            if (messageAllowance < 1.0) {
+            catch (InterruptedException e) {
+                LOG.error("Thread sleep was interrupted " + e);
+            }
+        }
+        
+        else {
+            if (cycles[moduloSeconds] == divideSeconds) {
+			requests[moduloSeconds] += 1;
+            }
+            else {
+                cycles[moduloSeconds] = divideSeconds;
+                requests[moduloSeconds] = 1;
+            }
+            try {
+                URL url = new URL(APIENDPOINT + ipAddress);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                StringBuilder sb = null;
+                try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                    sb = new StringBuilder();
+                    String line;
+                    while ((line = rd.readLine()) != null) {
+                        sb.append(line);
+                    }
+                } catch (IOException e) {
+                    // This will usually happen when there are too many requests in one minute (more than 150)
+                    LOG.error("Error has occured with contacting the GeoTool API ", e);
+                    throw new GetLocationException("Failed to get location for "  + ipAddress);
+                }
+                conn.disconnect();
                 try {
-                    LOG.info("API recieved too many calls, waiting 10 seconds and then trying again");
-                    Thread.sleep(10000);
-                    contactAPI(ipAddress);
+                    Thread.sleep(100);
                 }
                 catch (InterruptedException ex) {
                     LOG.error("Thread sleep was interrupted ", ex);
                 }
+                return sb.toString();
+            } catch (MalformedURLException ex) {
+                LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
+            } catch (IOException ex) {
+                LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
             }
-            else {
-                try {
-                    URL url = new URL(APIENDPOINT + ipAddress);
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    StringBuilder sb = null;
-                    try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-                        sb = new StringBuilder();
-                        String line;
-                        while ((line = rd.readLine()) != null) {
-                            sb.append(line);
-
-                        }
-                    } catch (IOException e) {
-                        // This will usually happen when there are too many requests in one minute (more than 150)
-                        LOG.error("Error has occured with contacting the GeoTool API ", e);
-                        throw new GetLocationException("Failed to get location for "  + ipAddress);
-                    }
-                    conn.disconnect();
-                    return sb.toString();
-                } catch (MalformedURLException ex) {
-                    LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
-                } catch (IOException ex) {
-                    LOG.error("Error has occured with processing the return for the GeoTool API ", ex);
-                }
-            }
+        }
         return null;
+    }
+    
+    public static int sumArray (int [] array) {
+        int count = 0;
+        for (int a : array) {
+            count += a;
+        }
+        return count;
     }
 
 }

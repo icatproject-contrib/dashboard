@@ -46,16 +46,15 @@ public class GeoToolTest {
         beanManager = mock(EntityBeanManager.class);
     }
     
-    
     /*
     The following test ensures that when an ipAddress of 127.0.0.1 is sent to GeoTool that it is converted to http://ip-api.com/json/ so 
     that a location can still be read properly. The test would only return a value if the IP is changed to http://ip-api.com/json/ else it
     will throw a nullpointerexception and fail. 
     */
     @Test
-    public void testGetData() {
+    public void testLocalIp() {
         String ipAddress = "127.0.0.1";
-        String otherIp = "http://ip-api.com/json/";
+        String otherIp = "";
         
         List<GeoLocation> locations = new ArrayList<>();
         
@@ -87,6 +86,40 @@ public class GeoToolTest {
         }
         catch (GetLocationException e) {
             // Reaching here means the test has failed. 
+        }
+    }
+    
+    
+    /*
+    The following test will attempt to request information from the ip API 155 times. If the algorithm in GeoTool didn't work, this test would fail
+    as the IP address would be banned at the 151st request. The test takes quite a long time to run as the algorithm needs to wait for a minute until
+    it can access the API again. Unfortunately, there isn't a way around this if we're trying to test that the API isn't blocked. 
+    */
+    @Test
+    public void testRequests() {
+        String ipAddress = "";
+        int count = 0;
+        
+        List<GeoLocation> locations = new ArrayList<>();
+        
+        when(entityManager.createNamedQuery("GeoLocation.ipCheck")).thenReturn(query);
+        when(query.setParameter("ipAddress", ipAddress)).thenReturn(query);
+        when(query.getResultList()).thenReturn(locations);
+        
+        when(entityManager.createNamedQuery("GeoLocation.check")).thenReturn(query);
+        when(query.setParameter(eq("longitude"), anyDouble())).thenReturn(query);
+        when(query.setParameter(eq("latitude"), anyDouble())).thenReturn(query);
+        when(query.getResultList()).thenReturn(locations);
+        
+        // Access the getGeoLocation 155 times. 
+        while(count < 154) {
+            try {
+                GeoTool.getGeoLocation(ipAddress, entityManager, beanManager);  
+            }
+            catch (GetLocationException e) {
+                // If this exception is thrown, the test should fail.
+            }
+            count ++;
         }
     }
 }
