@@ -79,6 +79,11 @@ public class GeoTool {
             } catch (GetLocationException ex) {
                 throw new GetLocationException(ex.getShortMessage());
             }
+            
+            // If the JSON contains this, something is wrong with the IP address so we need to throw the exception.
+            if(result.containsValue("invalid query")) {
+                throw new GetLocationException("ip address '" + ipAddress + "' was invalid");
+            }
 
             double latitude = (double) result.get("lat");
             double longitude = (double) result.get("lon");

@@ -7,13 +7,12 @@ package org.icatproject.dashboard.utility;
 
 import java.util.List;
 import java.util.ArrayList;
+import javax.jms.Connection;
 import org.icatproject.dashboard.consumers.GeoTool;
 import static org.mockito.Mockito.*;
 import javax.persistence.EntityManager;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Query;
-import org.icatproject.dashboard.entity.GeoLocation;
+import org.icatproject.dashboard.consumers.DownloadListener;
 
 import org.icatproject.dashboard.exceptions.GetLocationException;
 import org.icatproject.dashboard.entity.GeoLocation;
@@ -34,9 +33,16 @@ The class uses Mockito (http://mockito.org/) as a Unit Test framework to mock va
 */
 
 public class GeoToolTest {
+    
+    
+    private DownloadListener listener = new DownloadListener();
+    
     private EntityManager entityManager;
     private Query query;
     private EntityBeanManager beanManager;
+    private Connection connection;
+    
+    
     
     @Before
     public void setup() {
@@ -44,6 +50,15 @@ public class GeoToolTest {
         entityManager = mock(EntityManager.class);
         query = mock(Query.class);
         beanManager = mock(EntityBeanManager.class);
+        connection = mock(Connection.class);
+        
+        List<GeoLocation> locations = new ArrayList<>();
+        
+        when(entityManager.createNamedQuery("GeoLocation.ipCheck")).thenReturn(query);
+        when(query.setParameter("ipAddress", "1")).thenReturn(query);
+        when(query.getResultList()).thenReturn(locations);
+        
+        listener.setManagers(entityManager, beanManager); 
     }
     
     /*
@@ -66,7 +81,8 @@ public class GeoToolTest {
         The when method (http://www.baeldung.com/mockito-behavior) can be used to create the responses of queries to our mock database.
         Here, we mimic the same query that is called in the getGeoLocation method in GeoTool.java. In this way, when we call that method
         later on in the test, the class will use the following when statements to execute the query. We return an example list of locations
-        which I have added a test location to so that we can make sure it is returned later on.
+        which I have added a test location to so that we can make sure it is returned later on. This same principle is used in the tests 
+        subsequent to this one. 
         */
         
         when(entityManager.createNamedQuery("GeoLocation.ipCheck")).thenReturn(query);
@@ -88,8 +104,7 @@ public class GeoToolTest {
             // Reaching here means the test has failed. 
         }
     }
-    
-    
+
     /*
     The following test will attempt to request information from the ip API 155 times. If the algorithm in GeoTool didn't work, this test would fail
     as the IP address would be banned at the 151st request. The test takes quite a long time to run as the algorithm needs to wait for a minute until
@@ -121,5 +136,26 @@ public class GeoToolTest {
             }
             count ++;
         }
+    }
+
+    /*
+    The following test will send an invalid IP address to the getLocation method. This should mean that the location returned is set to a dummy
+    location rather than ignoring the download completely. The test will access the getLocation method and then will check to see if the 
+    GeoLocation that is returned is the dummy one which we are expecting. 
+    */
+    @Test
+    public void testMessage() {
+        
+        // Pass through an IP address that getLocation cannot deal with (because the API gives an error).
+        GeoLocation testLocation = listener.getLocation("1");
+        
+        // Get the latitude and longitude of the location that is returned.
+        double latitude = testLocation.getLatitude();
+        double longitude = testLocation.getLongitude();
+        GeoLocation dummyLocation = new GeoLocation(54.3739, 2.9376, "GB", "Windermere", "Dummy ISP");
+        
+        // Ensure the latitude and longitude are the same as one another.
+        assertEquals(latitude, dummyLocation.getLatitude(), 0.0);
+        assertEquals(longitude, dummyLocation.getLongitude(), 0.0);
     }
 }

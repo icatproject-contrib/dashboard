@@ -112,7 +112,7 @@ public class DownloadListener implements MessageListener {
     private Download download;
 
     private long downloadSize = 0;
-
+    
     /**
      * Initialises the connection with the ICAT.
      */
@@ -134,10 +134,12 @@ public class DownloadListener implements MessageListener {
     @Override
     public void onMessage(Message message) {
         
-        
         LOG.debug("Recieved a JMS message from the IDS");
-
+        
         TextMessage text = (TextMessage) message;
+        
+        System.out.println(text.toString());
+        
         downloadSize = 0;
         
         HashSet functionalAccounts = prop.getFunctionalAccounts();    
@@ -168,7 +170,13 @@ public class DownloadListener implements MessageListener {
         }
     }
     
-    
+    /*
+     * Method for unit testing to set the beanManager and normal manager
+    */
+    public void setManagers (EntityManager manager, EntityBeanManager beanManager) {
+        this.manager = manager;
+        this.beanManager = beanManager;
+    }
 
     /**
      * 
@@ -407,8 +415,9 @@ public class DownloadListener implements MessageListener {
      * Creates a download location object using the GeoTool module.
      *
      * @param ipAddress The idAddress to have its GeoLocation resolved.
+     * @return location The location of the IP Address
      */
-    private GeoLocation getLocation(String ipAddress) {
+    public GeoLocation getLocation(String ipAddress) {
         GeoLocation location;
         
         try {
@@ -418,7 +427,7 @@ public class DownloadListener implements MessageListener {
             /* Finding the location has failed. Must set to the dummy location to make sure the download is still added to Dashboard.
              * Don't need to create a bean manager for this as it's only a dummy value anyway.
              */
-            LOG.error(ex.getShortMessage());
+            LOG.error(ex.getMessage());
             location = dummyLocation;
         }     
 
