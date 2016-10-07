@@ -14,11 +14,18 @@ public class GetLocationException extends Exception {
     
     private final String message;
     
-    public GetLocationException(String message) {
+    private final String ipAddress;
+    
+    public GetLocationException(String message, String ipAddress) {
         this.message = message;
+        this.ipAddress = ipAddress;
     }
 
     public String getShortMessage() {
         return message;
+    }
+    
+    public String getIpAddress() {
+        return ipAddress;
     }
 }

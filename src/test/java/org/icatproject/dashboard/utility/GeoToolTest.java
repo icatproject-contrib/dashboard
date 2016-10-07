@@ -42,8 +42,6 @@ public class GeoToolTest {
     private EntityBeanManager beanManager;
     private Connection connection;
     
-    
-    
     @Before
     public void setup() {
         // Here we initialise some of the peristence aspects which need to be mocked. 
@@ -101,7 +99,7 @@ public class GeoToolTest {
             assertEquals(testLocation, geoLocation);
         }
         catch (GetLocationException e) {
-            // Reaching here means the test has failed. 
+            // Reaching here means the test has failed. The exception should have been dealt with by this point.
         }
     }
 

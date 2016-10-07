@@ -144,7 +144,6 @@ public class DownloadListener implements MessageListener {
         
         HashSet functionalAccounts = prop.getFunctionalAccounts();    
        
-        
         try {
             HashMap<String,Object> messageValues = parseJMSText(text.getText()); 
             
@@ -165,7 +164,7 @@ public class DownloadListener implements MessageListener {
                 }
             }
 
-        } catch (Exception ex) {
+        } catch (JMSException | ParseException ex) {
             LOG.error("An error has occured", ex);
         }
     }
@@ -272,59 +271,52 @@ public class DownloadListener implements MessageListener {
      * @throws JMSException If there is an issue with accessing the JMS message properties.
      * @throws ParseException if there is an issue parsing the JSON message.
      */
-    private void checkDownload(TextMessage message) throws JMSException, ParseException, DashboardException, IcatException_Exception, InterruptedException {
+    private void checkDownload(TextMessage message) throws JMSException, ParseException, DashboardException, IcatException_Exception, InterruptedException, InternalException {
         
-        try {
-            HashMap<String,Object> messageValues = parseJMSText(message.getText());  
-            
-            download = getDownload(messageValues.get("preparedId").toString());       
 
-            long startMilli = message.getLongProperty("start");
+        HashMap<String,Object> messageValues = parseJMSText(message.getText());  
 
-            //Has happened before so requires a new download.
-            if(download.getDownloadEnd()!=null){
-                String ipAddress = message.getStringProperty("ip");
-                createDownload(download, ipAddress, startMilli, (Long)messageValues.get("transferId"));          
-            }
-            else {
-                //Update download                
+        download = getDownload(messageValues.get("preparedId").toString());       
 
-                download.setDownloadStart(new Date(startMilli));                      
-                download.setStatus(inProgress);
-                download.setTransferID((Long)messageValues.get("transferId"));
-                beanManager.update(download, manager);
-            }
-        } catch (Exception ex) {
-            LOG.error("A Fatal Error has Occured ", ex);
+        long startMilli = message.getLongProperty("start");
+
+        //Has happened before so requires a new download.
+        if(download.getDownloadEnd()!=null){
+            String ipAddress = message.getStringProperty("ip");
+            createDownload(download, ipAddress, startMilli, (Long)messageValues.get("transferId"));          
         }
+        else {
+            //Update download                
+            download.setDownloadStart(new Date(startMilli));                      
+            download.setStatus(inProgress);
+            download.setTransferID((Long)messageValues.get("transferId"));
+            beanManager.update(download, manager);
+        }
+        
     }
 
     /**
      * Creates the download for a getData call without a preparedID.
      * @param message the getData JMS message.
      */
-    private void createDownload(TextMessage message) throws InternalException, IcatException_Exception{
-        try {            
-            
-            long startMilli = message.getLongProperty("start");
-            
-            HashMap<String,Object> messageValues = parseJMSText(message.getText());
-            
-            download = new Download();
-            download.setUser(getUser(messageValues.get("userName").toString()));
-            download.setDownloadEntities(createDownloadEntities(messageValues));
-            download.setDownloadSize(downloadSize);            
-            download.setLocation(getLocation(message.getStringProperty("ip")));
-            //Assumes the user is using a secure download.
-            download.setMethod("https");           
-            download.setDownloadStart(new Date(startMilli));
-            download.setDownloadEntityAges(createDownloadEntityAges(messageValues));
-            download.setTransferID((Long)messageValues.get("transferId"));     
-            download.setStatus(inProgress);
-            beanManager.create(download, manager);
-        } catch (Exception ex) {
-            LOG.error("A Fatal Error has Occured ", ex);
-        }         
+    private void createDownload(TextMessage message) throws InternalException, IcatException_Exception, ParseException, DashboardException, JMSException {
+
+        long startMilli = message.getLongProperty("start");
+
+        HashMap<String,Object> messageValues = parseJMSText(message.getText());
+
+        download = new Download();
+        download.setUser(getUser(messageValues.get("userName").toString()));
+        download.setDownloadEntities(createDownloadEntities(messageValues));
+        download.setDownloadSize(downloadSize);            
+        download.setLocation(getLocation(message.getStringProperty("ip")));
+        //Assumes the user is using a secure download.
+        download.setMethod("https");           
+        download.setDownloadStart(new Date(startMilli));
+        download.setDownloadEntityAges(createDownloadEntityAges(messageValues));
+        download.setTransferID((Long)messageValues.get("transferId"));     
+        download.setStatus(inProgress);
+        beanManager.create(download, manager);       
     }
     
     /**
@@ -332,12 +324,10 @@ public class DownloadListener implements MessageListener {
      * @param message from the JMS.
      * @return List of data retrieved from the JMS Message.
      */
-    private HashMap<String,Object> parseJMSText(String messageBody) throws Exception{
+    private HashMap<String,Object> parseJMSText(String messageBody) throws ParseException {
         
         HashMap<String,Object> messageValues = new HashMap<>();
-        
-        
-        try {
+
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(messageBody);
             JSONObject json = (JSONObject) obj;
@@ -373,12 +363,7 @@ public class DownloadListener implements MessageListener {
             if(json.containsKey("exceptionClass")){
                 messageValues.put("exceptionClass",(String)json.get("exceptionClass"));
             }
-            
-        } catch (ParseException ex) {
-            LOG.error("Issue with parsing the JMS message body: ",ex.getMessage());
-            throw new Exception("Failed to parse JMS message body");
-        }
-        
+
         return messageValues;
         
     }
@@ -390,24 +375,20 @@ public class DownloadListener implements MessageListener {
      * @param duration of the the new download.
      * @param startMilli the start time in milliseconds.
      */
-    private void createDownload(Download oldDownload, String ipAddress, long startMilli, long transferId) throws DashboardException, ParseException, IcatException_Exception, JMSException{
-        
-        try {
-            download = new Download();        
-            download.setUser(oldDownload.getUser());
-            download.setPreparedID(oldDownload.getPreparedID());
-            download.setDownloadEntities(createDownloadEntities(getEntities(oldDownload.getId())));
-            download.setDownloadSize(oldDownload.getDownloadSize());            
-            download.setLocation(getLocation(ipAddress));
-            download.setMethod(oldDownload.getMethod());        
-            download.setDownloadStart(new Date(startMilli));
-            download.setDownloadEntityAges(createDownloadEntityAges(getDownloadEntityIDs(oldDownload.getPreparedID()))); 
-            download.setTransferID(transferId);
-            download.setStatus(inProgress);
-            beanManager.create(download, manager);
-        } catch (Exception ex) {
-            
-        }
+    private void createDownload(Download oldDownload, String ipAddress, long startMilli, long transferId) throws DashboardException, ParseException, IcatException_Exception, JMSException, InternalException {
+
+        download = new Download();        
+        download.setUser(oldDownload.getUser());
+        download.setPreparedID(oldDownload.getPreparedID());
+        download.setDownloadEntities(createDownloadEntities(getEntities(oldDownload.getId())));
+        download.setDownloadSize(oldDownload.getDownloadSize());            
+        download.setLocation(getLocation(ipAddress));
+        download.setMethod(oldDownload.getMethod());        
+        download.setDownloadStart(new Date(startMilli));
+        download.setDownloadEntityAges(createDownloadEntityAges(getDownloadEntityIDs(oldDownload.getPreparedID()))); 
+        download.setTransferID(transferId);
+        download.setStatus(inProgress);
+        beanManager.create(download, manager);
         
     }
 
@@ -425,9 +406,9 @@ public class DownloadListener implements MessageListener {
         }
         catch (GetLocationException ex) {
             /* Finding the location has failed. Must set to the dummy location to make sure the download is still added to Dashboard.
-             * Don't need to create a bean manager for this as it's only a dummy value anyway.
-             */
-            LOG.error(ex.getMessage());
+            * Don't need to create a bean manager for this as it's only a dummy value anyway.
+            */
+            LOG.error(ex.getMessage() + " ipAddress: " + ex.getIpAddress());
             location = dummyLocation;
         }     
 
@@ -477,20 +458,16 @@ public class DownloadListener implements MessageListener {
         //not found due to being functional account.
         return null;
     }
+    
     /***
      * Gathers the Entities from a pre existing download and gathers them into a list. 
      * @param downloadID of the download you wish to get the entities from. 
      * @return a list of Entity_ objects that are associated with a download.
      */
-    private List<Entity_> getEntities(long downloadID) {
-        List<Object> entityQuery = new ArrayList();
-        List<Entity_> entities = new ArrayList();
+    private List<Entity_> getEntities(long downloadID) throws InternalException {
         
-        try {        
-            entityQuery = beanManager.search("SELECT e FROM Entity_ e JOIN e.downloadEntities ed JOIN ed.download d WHERE d.id='"+ downloadID +"'", manager);
-        } catch (InternalException ex) {
-            LOG.error("A Fatal Error has Occured ",ex);
-        }
+        List<Entity_> entities = new ArrayList();
+        List<Object> entityQuery = beanManager.search("SELECT e FROM Entity_ e JOIN e.downloadEntities ed JOIN ed.download d WHERE d.id='"+ downloadID +"'", manager);
         
         for(Object e : entityQuery){
             entities.add((Entity_)e);
@@ -518,7 +495,7 @@ public class DownloadListener implements MessageListener {
      * @param prepearedID of the download.
      * @return A JSONObject of the topCat response.
      */
-    private JSONObject callTopCat(String preparedID){
+    private JSONObject callTopCat(String preparedID) {
         JSONObject topCatOutput = null;
         
         try {
@@ -536,7 +513,7 @@ public class DownloadListener implements MessageListener {
             topCatOutput = (JSONObject) jsonArray.get(0);
         }
         catch (IOException | ParseException ex) {
-             LOG.error("A Fatal Error has Occured ",ex);
+             LOG.error("A Fatal Error has Occured ", ex);
         }
         
         return topCatOutput;

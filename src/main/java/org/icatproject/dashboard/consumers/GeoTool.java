@@ -75,14 +75,12 @@ public class GeoTool {
                 result = (JSONObject) parser.parse(contactAPI(ipAddress));
             } catch (ParseException ex) {
                 LOG.error("Issue parsing JSON data", ex);
-                throw new GetLocationException("Failed to get location for "  + ipAddress);
-            } catch (GetLocationException ex) {
-                throw new GetLocationException(ex.getShortMessage());
+                throw new GetLocationException("Failed to get location", ipAddress);
             }
             
             // If the JSON contains this, something is wrong with the IP address so we need to throw the exception.
             if(result.containsValue("invalid query")) {
-                throw new GetLocationException("ip address '" + ipAddress + "' was invalid");
+                throw new GetLocationException("Failed to get location", ipAddress);
             }
 
             double latitude = (double) result.get("lat");
@@ -105,7 +103,7 @@ public class GeoTool {
                     // Finding the location has failed. Must set to the dummy location to make sure the download is still added to Dashboard.
                     // Don't need to create a bean manager for this as it's only a dummy value anyway.
                     LOG.error(ex.getShortMessage());
-                    throw new GetLocationException("Failed to get location for "  + ipAddress);
+                    throw new GetLocationException("Failed to get location", ipAddress);
                 }  
             }   
                         
@@ -115,7 +113,7 @@ public class GeoTool {
                 beanManager.create(geoIp, manager);
             } catch (DashboardException ex) {
                 LOG.error("Issue creating GeoIpAddress: " + ex);
-                throw new GetLocationException("Failed to get location for "  + ipAddress);
+                throw new GetLocationException("Failed to get location", ipAddress);
             }
         } 
         else {
@@ -191,7 +189,7 @@ public class GeoTool {
                 } catch (IOException e) {
                     // This will usually happen when there are too many requests in one minute (more than 150)
                     LOG.error("Error has occured with contacting the GeoTool API ", e);
-                    throw new GetLocationException("Failed to get location for "  + ipAddress);
+                    throw new GetLocationException("Failed to get location", ipAddress);
                 }
                 conn.disconnect();
                 try {

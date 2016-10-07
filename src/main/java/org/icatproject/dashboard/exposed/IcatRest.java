@@ -531,7 +531,7 @@ public class IcatRest {
                 /* Finding the location has failed. Must set to the dummy location to make sure the download is still added to Dashboard.
                  * Don't need to create a bean manager for this as it's only a dummy value anyway.
                 */
-                LOG.error(ex.getShortMessage());
+                LOG.error(ex.getMessage() + " ipAddress: " + ex.getIpAddress());
                 geoLocation = dummyLocation;
             }
             
