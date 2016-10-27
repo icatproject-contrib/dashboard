@@ -160,7 +160,7 @@ public class DownloadRest {
     }
     
     /**
-     * Retrieves the number of downloads per file.
+     * Retrieves the number of downloads per file extension.
      *
      * @param sessionID for authentication
      * @param startDate Start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
@@ -200,38 +200,26 @@ public class DownloadRest {
         JSONArray ary = new JSONArray();
         
         CriteriaBuilder cb = manager.getCriteriaBuilder();
-        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        CriteriaQuery<Object> query = cb.createQuery(Object.class);
         Root<Entity_> entity = query.from(Entity_.class);
         
-        query.multiselect(cb.count(entity), entity.get("entityName"));
-        
+        query.select(entity.get("entityName"));
         Predicate finalPredicate = createDownloadPredicateEntity(cb, start, end, entity, method);
-        
-        //String query = "SELECT download, user.name, user.fullName from Download download JOIN download.user user ";
-        //String query = "SELECT entity from Entity_ entity JOIN entity.downloadEntities de JOIN de.download download ";
-        
-        //LOG.info(finalPredicate.toString());
-        
         query.where(finalPredicate);
-        
         query.groupBy(entity.get("entityName"));
-        
-        TypedQuery<Object[]> typedQuery = manager.createQuery(query);
-        
-        List<Object[]> entities = typedQuery.getResultList(); 
-        
+        TypedQuery<Object> typedQuery = manager.createQuery(query);
+        List<Object> entities = typedQuery.getResultList();
         Map<String, Integer> pairList = new HashMap<>();
 
-        for (Object[] singleDownload : entities) {
-            String entityName = (String) singleDownload[1];
-            
+        for (Object singleDownload : entities) {
+            String entityName = (String) singleDownload;
             String extension = null;
             int i = entityName.lastIndexOf('.');
             if (i > 0) {
                 extension = entityName.substring(i+1).toUpperCase();
             }
             else {
-                break;
+                continue;
             }
             
             boolean inHashmap = false;

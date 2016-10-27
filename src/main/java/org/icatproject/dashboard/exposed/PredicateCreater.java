@@ -40,10 +40,7 @@ public class PredicateCreater {
      * downloads during the start and end date.
      */
     public static Predicate createDownloadPredicate(CriteriaBuilder cb, Date start, Date end, Root<Download> download, Join<Download, ICATUser> userJoin, String userName, String method) {
-        LOG.info("Called create download predicate");
         Predicate startGreater = cb.greaterThan(download.<Date>get("downloadStart"), start);
-        
-        LOG.info("Download start : " + startGreater.toString());
         Predicate endLess = cb.lessThan(download.<Date>get("downloadEnd"), end);
         Predicate betweenStart = cb.between(download.<Date>get("downloadStart"), start, end);
         Predicate betweenEnd = cb.between(download.<Date>get("downloadEnd"), start, end);
