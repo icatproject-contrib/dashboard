@@ -52,7 +52,15 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 	        		vm.updatePage();
 	        	});       	
 
-	        }  
+                }
+                
+                vm.display = function() {
+                    if (vm.instrumentNames.length == 0) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                };
 
 	        //Updates the date and the page
 	        vm.updateDates = function(startDate,endDate){

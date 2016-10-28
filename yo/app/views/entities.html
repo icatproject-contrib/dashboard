@@ -1,24 +1,29 @@
 <div ng-init="entity.initPage()" >               
 
     <search-bar select-values= "entity.updateDates(startDate,endDate)" csv-data="entity.dataCsv" user-option="entity.userOption"></search-bar>
-
-    <div class="row">  
-        <div class="col-lg-3 col-lg-offset-1">
-            <head-line data="entity.insDataFileCount.headLine"></head-line> 
-        </div>       
-        <div class="col-lg-7  ">     
-            <time-line-graph class="chart" data='entity.insDataFileCount' select-Options= "entity.updateInsDfCount(value)"></time-line-graph>         
-        </div>
-               
-    </div> 
-    <div class="row">
-        <div class="col-lg-3 col-lg-offset-1 ">
-            <head-line data="entity.insDataFileVolume.headLine"></head-line> 
+    
+    <div ng-if="entity.display()">
+        <div class="row">  
+            <div class="col-lg-3 col-lg-offset-1">
+                <head-line data="entity.insDataFileCount.headLine"></head-line> 
+            </div>       
+            <div class="col-lg-7  ">     
+                <time-line-graph class="chart" data='entity.insDataFileCount' select-Options= "entity.updateInsDfCount(value)"></time-line-graph>         
+            </div>      
         </div> 
-        <div class="col-lg-7">     
-                <time-line-graph class="chart" data='entity.insDataFileVolume' select-Options= "entity.updateInsDfVolume(value)"></time-line-graph>         
-        </div>
+    </div>
+    
+    
+    <div ng-if="entity.display()">
+        <div class="row">
+            <div class="col-lg-3 col-lg-offset-1 ">
+                <head-line data="entity.insDataFileVolume.headLine"></head-line> 
+            </div> 
+            <div class="col-lg-7">     
+                    <time-line-graph class="chart" data='entity.insDataFileVolume' select-Options= "entity.updateInsDfVolume(value)"></time-line-graph>         
+            </div>
 
+        </div>
     </div>
 
     <div class="row">
@@ -28,7 +33,8 @@
          <div class="col-lg-3 ">
             <head-line data="entity.countEntity.headLine"></head-line> 
         </div> 
-    </div>   
+    </div>
+        
     <div class="row">
         <div class="col-lg-7 col-lg-offset-1">     
             <time-line-graph class="chart" data='entity.dataFileVolume'></time-line-graph>         
@@ -37,13 +43,13 @@
             <head-line data="entity.dataFileVolume.headLine"></head-line> 
         </div> 
     </div>
-     <div class="row">
-        <div class="col-lg-10 col-lg-offset-1">
-            <donut class="chart" data='entity.investigationDatafile'></donut>        
+        
+    <div ng-if="entity.display()">
+        <div class="row">
+            <div class="col-lg-10 col-lg-offset-1">
+                <donut class="chart" data='entity.investigationDatafile'></donut>        
+            </div>
         </div>
     </div>
 
     </div>
-
-
-</div>
