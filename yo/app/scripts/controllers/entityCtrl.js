@@ -205,7 +205,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 							data:volumeTotal							
 						},	
 						{
-							title:"Avergae Daily Datafile Volume ("+byteFormat+")",
+							title:"Average Daily Datafile Volume ("+byteFormat+")",
 							data:volumeAverage 
 						}					
 

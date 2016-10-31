@@ -3,7 +3,7 @@
       <p id="login-message">Welcome</p>
         <form class="login-form" ng-submit="login.login()">
             
-          <div ng-if="login.display()">
+          <div ng-cloak ng-if="login.display()">
             <select class="login-menu form-control" ng-option="nme" ng-model="login.authenticator" ng-options="auth.mnemonic as auth.mnemonic for auth in login.authenticators">
 
                       <option value = "" disabled selected>Authenticator</option>      
