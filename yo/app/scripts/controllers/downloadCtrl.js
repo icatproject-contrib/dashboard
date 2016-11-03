@@ -160,6 +160,7 @@
         	vm.userName = userName;
       
 			vm.updateUserDownload()
+                        vm.updateDownloadFormat()
 			vm.updateMethodDownload()
 			vm.updateDownloadStatus()
 			vm.updateDownloadEntityAge()
@@ -178,6 +179,7 @@
             //Create all of the promises 
 			//Create all of the promises 
 			var updateUserDownloadPromise = vm.updateUserDownload(method,true);
+                        var updateDownloadFormat = vm.updateDownloadFormat(method,true);
 			var updateMethodDownloadPromise	= vm.updateMethodDownload(true);
 			var updateDownloadStatusPromise = vm.updateDownloadStatus(method,true);
 			var updadeDownloadEntityAgePromise = vm.updateDownloadEntityAge(method,true);
@@ -405,7 +407,32 @@
                     }
                 });
                 
-        }				
+        }
+        
+        vm.updateDownloadFormat =function(method, initialUpload){
+                method = parseMethod(method)
+
+
+         	return downloadService.getFormatDownloadFrequency(getStartDate(),getEndDate(), method).then(function(responseData) {
+                
+                    var frequency = _.map(responseData, function(data){
+                                            return [data.type, data.count];
+                                    });
+
+                    vm.downloadFormat = {
+                        datasets: ["number"],
+                        number: {
+                            "data": frequency,
+                            "title": "Number of downloads in each format",
+                            "rawData": responseData
+                        },
+                        description: "This donut chart displays the number of downloads per format (eg: dataset, datafiles etc...)",
+                        title: "Format Downloads"
+                    }
+                });
+                
+        }
+        
 
         vm.updateDownloadStatus = function(method, initialUpload){
         	method = parseMethod(method)

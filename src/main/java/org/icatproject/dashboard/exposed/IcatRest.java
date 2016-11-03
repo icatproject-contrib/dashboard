@@ -608,8 +608,6 @@ public class IcatRest {
         if (instrumentId.equals("null")) {
             instrumentId = "1";
         }
-       
-        LOG.error("New Instrument ID = " + instrumentId); 
         
         //Criteria objects.
         CriteriaBuilder cb = manager.getCriteriaBuilder();

@@ -206,7 +206,6 @@ public class DownloadRest {
         query.select(entity.get("entityName"));
         Predicate finalPredicate = createDownloadPredicateEntity(cb, start, end, entity, method);
         query.where(finalPredicate);
-        query.groupBy(entity.get("entityName"));
         TypedQuery<Object> typedQuery = manager.createQuery(query);
         List<Object> entities = typedQuery.getResultList();
         Map<String, Integer> pairList = new HashMap<>();
@@ -240,6 +239,84 @@ public class DownloadRest {
         for (Map.Entry<String, Integer> entry : pairList.entrySet()) {
             JSONObject temp = new JSONObject();
             temp.put("entityName", entry.getKey());
+            temp.put("count", entry.getValue());
+            ary.add(temp);
+        }
+
+        return ary.toJSONString();
+    }
+    
+    /**
+     * Retrieves the number of downloads per format of download.
+     *
+     * @param sessionID for authentication
+     * @param startDate Start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate End time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param method the method of download
+     * @return A JSON array of JSON objects in the format of [{"date":"2016-06-07","number":0},{"date":"2016-06-08","number":0},{"date":"2016-06-09","number":31},{"date":"2016-06-10","number":1},{"date":"2016-06-11","number":0},{"date":"2016-06-12","number":0},{"date":"2016-06-13","number":8},{"date":"2016-06-14","number":0},{"date":"2016-06-15","number":0},{"date":"2016-06-16","number":0}]
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
+     */
+    @GET
+    @Path("files/format")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getFormatDownloadFrequency(@QueryParam("sessionID") String sessionID,
+                                           @QueryParam("startDate") String startDate,
+                                           @QueryParam("endDate") String endDate,
+                                           @QueryParam("method") String method) throws DashboardException {
+        
+        if (sessionID == null) {
+            throw new BadRequestException("A SessionID must be provided");
+        }
+        
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }
+
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));
+        
+        JSONArray ary = new JSONArray();
+        
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object> query = cb.createQuery(Object.class);
+        Root<Entity_> entity = query.from(Entity_.class);
+        
+        query.select(entity.get("type"));
+        Predicate finalPredicate = createDownloadPredicateEntity(cb, start, end, entity, method);
+        query.where(finalPredicate);
+        TypedQuery<Object> typedQuery = manager.createQuery(query);
+        List<Object> entities = typedQuery.getResultList();
+        Map<String, Integer> pairList = new HashMap<>();
+        
+        for (Object singleDownload : entities) {
+            String formatType = (String) singleDownload;
+            
+            boolean inHashmap = false;
+            
+            for (Map.Entry<String, Integer> entry : pairList.entrySet()) {
+                if (entry.getKey().equals(formatType)) {
+                    entry.setValue(entry.getValue() + 1);
+                    inHashmap = true;
+                    break;
+                }
+            }
+            
+            if (!inHashmap) {
+                pairList.put(formatType, 1);
+            }
+        }
+
+        for (Map.Entry<String, Integer> entry : pairList.entrySet()) {
+            JSONObject temp = new JSONObject();
+            temp.put("type", entry.getKey());
             temp.put("count", entry.getValue());
             ary.add(temp);
         }
@@ -770,7 +847,7 @@ public class DownloadRest {
         Root<Download> download = query.from(Download.class);
         Join<Download, ICATUser> userJoin = download.join("user");
 
-        //Get methods and count how many their are.
+        //Get methods and count how many there are.
         query.multiselect(download.get("method"), cb.sum(download.<Long>get("downloadSize")));
 
         //Create a where clause that deals with the provided query params.
