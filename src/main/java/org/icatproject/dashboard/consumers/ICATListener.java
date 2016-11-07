@@ -54,25 +54,22 @@ public class ICATListener implements MessageListener {
      */
     @Override
     public void onMessage(Message message) {
-        
-        LOG.debug("Recieved a JMS message from the ICAT");
-
-        
-        TextMessage text = (TextMessage) message;       
-      
-        log = parseJMSMessage(text);
-        
-        updateUserInfo(log);
-        
-        addLocation(log);
-        
-       
         try {
+            LOG.debug("Recieved a JMS message from the ICAT");
+
+
+            TextMessage text = (TextMessage) message;       
+
+            log = parseJMSMessage(text);
+
+            updateUserInfo(log);
+
+            addLocation(log);
+       
             beanManager.create(log, manager);
-        } catch (DashboardException ex) {
-           LOG.error("Issue inserting ICATLog into the dashboard ",ex);
+        } catch (DashboardException | ParseException | JMSException ex) {
+           LOG.error("Issue inserting ICATLog into the dashboard ", ex);
         }
-        
     }
     
     
@@ -123,49 +120,43 @@ public class ICATListener implements MessageListener {
      * @param message the message to have its data extracted.
      * @return a HashMap of data extracted from the message.
      */
-    private ICATLog parseJMSMessage(TextMessage messageBody){
+    private ICATLog parseJMSMessage(TextMessage messageBody) throws ParseException, JMSException, InternalException {
         ICATLog icatLog = new ICATLog();
         
-        try {
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(messageBody.getText());
-            JSONObject json = (JSONObject) obj;
-            
-            if(json.containsKey("userName")){
-                icatLog.setUser(getUser((String)json.get("userName")));            
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(messageBody.getText());
+        JSONObject json = (JSONObject) obj;
+
+        if(json.containsKey("userName")){
+            icatLog.setUser(getUser((String)json.get("userName")));            
+        }
+
+        if(json.containsKey("entityName")){
+            icatLog.setEntityType((String)json.get("entityName"));
+        }
+
+        if(json.containsKey("entityId")){
+            icatLog.setEntityId((Long)json.get("entityId"));
+        }
+
+        if(json.containsKey("query")){
+            String query = (String)json.get("query");
+            if(query.length() > 4000){
+                query = query.substring(0, 3990) + "...";
             }
-            
-            if(json.containsKey("entityName")){
-                icatLog.setEntityType((String)json.get("entityName"));
-            }
-            
-            if(json.containsKey("entityId")){
-                icatLog.setEntityId((Long)json.get("entityId"));
-            }
-            
-            if(json.containsKey("query")){
-                String query = (String)json.get("query");
-                if(query.length() > 4000){
-                    query = query.substring(0, 3990) + "...";
-                }
-                icatLog.setQuery(query);
-            }                    
-            
-            
-           icatLog.setIpAddress(messageBody.getStringProperty("ip"));
-           
-           icatLog.setDuration(messageBody.getLongProperty("millis"));
-           
-           icatLog.setOp(messageBody.getStringProperty("operation"));   
-           
-           icatLog.setLogTime(new Date(messageBody.getLongProperty("start")));
-           
-            
-        } catch (ParseException | JMSException | InternalException ex) {
-            LOG.info("Issue with parsing the JMS message body: ",ex.getMessage());
-        }        
+            icatLog.setQuery(query);
+        }                    
+
+
+       icatLog.setIpAddress(messageBody.getStringProperty("ip"));
+
+       icatLog.setDuration(messageBody.getLongProperty("millis"));
+
+       icatLog.setOp(messageBody.getStringProperty("operation"));   
+
+       icatLog.setLogTime(new Date(messageBody.getLongProperty("start")));       
         
-        return icatLog;
+       return icatLog;
         
     }
     

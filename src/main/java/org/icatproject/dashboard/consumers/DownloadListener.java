@@ -118,9 +118,14 @@ public class DownloadListener implements MessageListener {
      */
     @PostConstruct
     private void init() {
-        icat = createICATLink();
-        sessionID = sessionManager.getSessionID();
-        topCatApi= prop.getTopCatURL()+"/topcat/admin/downloads?icatUrl="+prop.getICATUrl()+"&sessionId="+sessionManager.getSessionID()+"&queryOffset=";
+        try {
+            icat = createICATLink();
+            sessionID = sessionManager.getSessionID();
+            topCatApi= prop.getTopCatURL()+"/topcat/admin/downloads?icatUrl="+prop.getICATUrl()+"&sessionId="+sessionManager.getSessionID()+"&queryOffset=";
+        }
+        catch (MalformedURLException ex) {
+            LOG.error("Fatal error - Problem with the URL: " + prop.getICATUrl(), ex);
+        }
     }
     
     
@@ -184,7 +189,7 @@ public class DownloadListener implements MessageListener {
      *
      * @param message The message from JMS.
      */
-    private void prepareDataHandler(HashMap<String,Object> messageValues,Message message) throws ParseException {
+    private void prepareDataHandler(HashMap<String,Object> messageValues,Message message) {
         try {
            
                        
@@ -200,7 +205,7 @@ public class DownloadListener implements MessageListener {
             beanManager.create(download, manager);
             
 
-        } catch (JMSException | IcatException_Exception| DashboardException | SecurityException | IllegalStateException ex) {
+        } catch (JMSException | IcatException_Exception| DashboardException | SecurityException | IllegalStateException | ParseException | IOException ex) {
             LOG.error("A Fatal Error has Occured " +ex);
         }
     }
@@ -259,7 +264,7 @@ public class DownloadListener implements MessageListener {
             }            
            
             
-        } catch (DashboardException | JMSException |  ParseException | InterruptedException | IcatException_Exception ex) {
+        } catch (DashboardException | JMSException |  ParseException | InterruptedException | IcatException_Exception | IOException ex) {
              LOG.error("A Fatal Error has Occured",ex);
         } 
     }
@@ -271,7 +276,7 @@ public class DownloadListener implements MessageListener {
      * @throws JMSException If there is an issue with accessing the JMS message properties.
      * @throws ParseException if there is an issue parsing the JSON message.
      */
-    private void checkDownload(TextMessage message) throws JMSException, ParseException, DashboardException, IcatException_Exception, InterruptedException, InternalException {
+    private void checkDownload(TextMessage message) throws JMSException, ParseException, DashboardException, IcatException_Exception, InterruptedException, InternalException, IOException {
         
 
         HashMap<String,Object> messageValues = parseJMSText(message.getText());  
@@ -375,7 +380,7 @@ public class DownloadListener implements MessageListener {
      * @param duration of the the new download.
      * @param startMilli the start time in milliseconds.
      */
-    private void createDownload(Download oldDownload, String ipAddress, long startMilli, long transferId) throws DashboardException, ParseException, IcatException_Exception, JMSException, InternalException {
+    private void createDownload(Download oldDownload, String ipAddress, long startMilli, long transferId) throws DashboardException, ParseException, IcatException_Exception, JMSException, InternalException, IOException {
 
         download = new Download();        
         download.setUser(oldDownload.getUser());
@@ -482,8 +487,8 @@ public class DownloadListener implements MessageListener {
      * @param preparedID The unique download identifier.
      * @return
      */
-    private String getMethod(String preparedID)  {
-       
+    private String getMethod(String preparedID) throws IOException, ParseException {
+        
         String method = callTopCat(preparedID).get("transport").toString();       
         return method;
          
@@ -495,7 +500,7 @@ public class DownloadListener implements MessageListener {
      * @param prepearedID of the download.
      * @return A JSONObject of the topCat response.
      */
-    private JSONObject callTopCat(String preparedID) {
+    private JSONObject callTopCat(String preparedID) throws IOException, ParseException{
         JSONObject topCatOutput = null;
         
         try {
@@ -513,7 +518,8 @@ public class DownloadListener implements MessageListener {
             topCatOutput = (JSONObject) jsonArray.get(0);
         }
         catch (IOException | ParseException ex) {
-             LOG.error("A Fatal Error has Occured ", ex);
+            LOG.error("A Fatal Error has Occured ", ex);
+            throw ex;
         }
         
         return topCatOutput;
@@ -529,7 +535,7 @@ public class DownloadListener implements MessageListener {
      * associated with.
      * @throws ParseException issues accessing the returned JSON string. 
      */    
-    private HashMap getDownloadEntityIDs(String preparedID) throws ParseException{
+    private HashMap getDownloadEntityIDs(String preparedID) throws ParseException, IOException {
         
         String entityIDs = callTopCat(preparedID).get("downloadItems").toString();       
 
@@ -808,7 +814,7 @@ public class DownloadListener implements MessageListener {
      * @return A list of download entities.
      * @throws DashboardException If there is an issue creating the entities.
      */
-    private List<DownloadEntity> createDownloadEntities(HashMap messageValues) throws DashboardException {
+    private List<DownloadEntity> createDownloadEntities(HashMap messageValues) throws DashboardException, IcatException_Exception {
         List<DownloadEntity> collection = new ArrayList();
         Entity_ ent;
 
@@ -868,7 +874,7 @@ public class DownloadListener implements MessageListener {
      * @throws DashboardException If there has been problems inserting the data
      * into the dashboard database.
      */
-    private Entity_ createEntity(Long id, String entityType) throws DashboardException {
+    private Entity_ createEntity(Long id, String entityType) throws DashboardException, IcatException_Exception {
         //Check if entity already exists. 
         Entity_ entity = checkEntity(id, entityType);
         
@@ -929,17 +935,12 @@ public class DownloadListener implements MessageListener {
     /**
      * Gets an investigation object from the ICAT.
      *
-     * @param id The ID of the investigation.
+     * @param id The ID of the investigation
+     * @throws IcatException_Exception
      * @return An investigation object from the ICAT.
      */
-    public Investigation getInvestigation(Long id) {
-        Investigation inv = null;
-
-        try {
-            inv = (Investigation) icat.get(sessionID, "Investigation", id);
-        } catch (IcatException_Exception ex) {
-            LOG.error("A fatal error has occured ",ex);
-        }
+    public Investigation getInvestigation(Long id) throws IcatException_Exception {
+        Investigation inv = (Investigation) icat.get(sessionID, "Investigation", id);
 
         return inv;
     }
@@ -948,16 +949,12 @@ public class DownloadListener implements MessageListener {
      * Gets a dataset object from the ICAT.
      *
      * @param id The id of the dataset.
+     * @throws IcatException_Exception
      * @return A dataset object from the ICAT
      */
-    public Dataset getDataset(Long id) {
-        Dataset ds = null;
-
-        try {
-            ds = (Dataset) icat.get(sessionID, "Dataset", id);
-        } catch (IcatException_Exception ex) {
-            LOG.error("A fatal error has occured ",ex);
-        }
+    public Dataset getDataset(Long id) throws IcatException_Exception{
+        Dataset ds = (Dataset) icat.get(sessionID, "Dataset", id);
+        
         return ds;
     }
 
@@ -965,18 +962,13 @@ public class DownloadListener implements MessageListener {
      * Gets a datafile object from the ICAT.
      *
      * @param id The id of the datafile.
+     * @throws IcatException_Exception
      * @return A datafile object from the ICAT.
      */
-    public Datafile getDatafile(Long id) {
-        Datafile df = null;
+    public Datafile getDatafile(Long id) throws IcatException_Exception {
+        Datafile df = (Datafile) icat.get(sessionID, "Datafile", id);
 
-        try {
-            df = (Datafile) icat.get(sessionID, "Datafile", id);
-        } catch (IcatException_Exception ex) {
-            LOG.error("A fatal error has occured ",ex);
-        }
         return df;
-
     }
 
     /**
@@ -984,16 +976,12 @@ public class DownloadListener implements MessageListener {
      * datafiles.
      *
      * @param id The id of the investigation in ICAT.
+     * @throws IcatException_Exception
      * @return The total size of the investigation.
      */
-    public Long getInvSize(Long id) {
-        long size = 0;
+    public Long getInvSize(Long id) throws IcatException_Exception {        
+        long size = Long.parseLong((icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds JOIN ds.investigation i WHERE i.id=" + id).toArray()[0].toString()));
 
-        try {
-            size = Long.parseLong((icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds JOIN ds.investigation i WHERE i.id=" + id).toArray()[0].toString()));
-        } catch (IcatException_Exception ex) {
-            LOG.error("A fatal error has occured ",ex);
-        }
         return size;
     }
 
@@ -1002,39 +990,28 @@ public class DownloadListener implements MessageListener {
      * Gets the size of the dataset by summing all of the datafiles.
      *
      * @param id The id of the dataset in ICAT.
+     * @throws IcatException_Exception
      * @return The total size of the dataset.
      */
-    public long getDatasetSize(Long id) {
-        long size = 0;
-
-        try {
-            size = Long.parseLong(icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds WHERE ds.id=" + id).toArray()[0].toString());
-        } catch (IcatException_Exception ex) {
-            LOG.error("A fatal error has occured ",ex);
-        }
-
+    public long getDatasetSize(Long id) throws IcatException_Exception {
+        long size = Long.parseLong(icat.search(sessionID, "SELECT SUM(d.fileSize) FROM Datafile d JOIN d.dataset ds WHERE ds.id=" + id).toArray()[0].toString());
+        
         return size;
     }
 
     /**
      * Creates an ICAT object that can be used to communicate the provided ICAT.
-     *
+     * @throws MalformedURLException
      * @return an ICAT object.
      */
-    public ICAT createICATLink() {
-        ICAT icat = null;
-        try {
-            URL hostUrl;
-            hostUrl = new URL(prop.getICATUrl());
-            URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
-            QName qName = new QName("http://icatproject.org", "ICATService");
-            ICATService service = new ICATService(icatUrl, qName);
-            icat = service.getICATPort();
-
-        } catch (MalformedURLException ex) {
-           LOG.error("A fatal error has occured ",ex);
-        }
-
+    public ICAT createICATLink() throws MalformedURLException {
+        URL hostUrl;
+        hostUrl = new URL(prop.getICATUrl());
+        URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
+        QName qName = new QName("http://icatproject.org", "ICATService");
+        ICATService service = new ICATService(icatUrl, qName);
+        ICAT icat = service.getICATPort();
+        
         return icat;
     }
 

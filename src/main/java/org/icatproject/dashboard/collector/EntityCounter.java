@@ -153,13 +153,13 @@ public class EntityCounter  {
                     beanManager.create(ec, manager);
                 }
                 
+                LOG.info("Successfully completed entity count for date ", countLocalDate.toString());
+                
             } catch (org.icatproject.icat.client.IcatException | DashboardException | ParseException ex) {
-                LOG.error("A error has occured counting entities ",ex);
+                LOG.error("A error has occured counting entities on date " + countLocalDate.toString(), ex);
                 passed = false;
             }
         }        
-        
-        LOG.info("Completed entity count for date ", countLocalDate.toString());
         
         return passed;
     }
@@ -204,17 +204,14 @@ public class EntityCounter  {
                 
             } 
             
-             
+            LOG.info("Successfully completed Instrument meta data collection for date "+ collectionLocalDate.toString());
             
         } catch (org.icatproject.icat.client.IcatException | DashboardException | ParseException ex) {
-            LOG.error("Issue with instrument meta collection ", ex);
+            LOG.error("Issue with instrument meta collection for date " + collectionLocalDate.toString(), ex);
             passed = false;
         } 
-         
-         
-         LOG.info("Completed Instrument meta data collection for "+ collectionLocalDate.toString());
-         
-         return passed;
+
+        return passed;
     }
     
     /**
@@ -255,15 +252,14 @@ public class EntityCounter  {
                  
                 }
                 
+                LOG.info("Successfully completed Instrument meta data collection for ", collectionLocalDate.toString());
             } 
         } catch (org.icatproject.icat.client.IcatException  | DashboardException | ParseException ex) {
             LOG.error("Issue with instrument meta collection ", ex);
             passed = false;
         }
-         
-         LOG.info("Completed Instrument meta data collection for ", collectionLocalDate.toString());
-         
-         return passed;
+
+        return passed;
     }   
     /**
      * Checks to see if the ImportCheck for the specified date needs updating or creating.
