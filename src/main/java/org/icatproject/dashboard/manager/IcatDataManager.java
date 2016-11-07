@@ -85,13 +85,15 @@ public class IcatDataManager {
     @PostConstruct
     public void init(){
         LOG.info("Initiating ICATSession Manager");
-        createTimers();
-        sessionID = loginICAT(properties);
-        restSession = createRestSession(properties);
-        authenticators = retrieveAuthenticators();
-        instrumentIdMapping = mapInstrumentIds();
-        
-       
+        try {
+            createTimers();
+            sessionID = loginICAT(properties);
+            restSession = createRestSession(properties);
+            authenticators = retrieveAuthenticators();
+            instrumentIdMapping = mapInstrumentIds(); 
+        } catch (IOException | ParseException | IcatException_Exception | IcatException | URISyntaxException ex) {
+            LOG.error("Dashboard failed to initialise whilst loading data from the ICAT", ex);
+        }
     }
      /**
      * Creates the timers with the TimerService object. Currently creates two.
@@ -115,44 +117,40 @@ public class IcatDataManager {
         LOG.info("Finished creating timers for ICAT data mangement.");
     }
     
-    private String retrieveAuthenticators(){
+    private String retrieveAuthenticators() throws IOException, ParseException {
         URL url;
         JSONArray mnemonicArray = new JSONArray();
 
-        try {
-            url = new URL(properties.getICATUrl() + "/icat/properties");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
+        url = new URL(properties.getICATUrl() + "/icat/properties");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
 
-            BufferedReader responseBuffer = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream())));
+        BufferedReader responseBuffer = new BufferedReader(new InputStreamReader(
+                (conn.getInputStream())));
 
-            StringBuilder buffer = new StringBuilder();
-            String output;
+        StringBuilder buffer = new StringBuilder();
+        String output;
 
-            while ((output = responseBuffer.readLine()) != null) {
-                buffer.append(output);
-            }
+        while ((output = responseBuffer.readLine()) != null) {
+            buffer.append(output);
+        }
 
-            conn.disconnect();
+        conn.disconnect();
 
-            JSONParser parser = new JSONParser();
+        JSONParser parser = new JSONParser();
 
-            JSONObject response = (JSONObject) parser.parse(buffer.toString());
-            JSONArray authns = (JSONArray) response.get("authenticators");
+        JSONObject response = (JSONObject) parser.parse(buffer.toString());
+        JSONArray authns = (JSONArray) response.get("authenticators");
 
-            mnemonicArray = new JSONArray();
+        mnemonicArray = new JSONArray();
 
-            for (int i = 0; i < authns.size(); i++) {
-                JSONObject temp = (JSONObject) authns.get(i);
-                JSONObject mnemonic = new JSONObject();
+        for (int i = 0; i < authns.size(); i++) {
+            JSONObject temp = (JSONObject) authns.get(i);
+            JSONObject mnemonic = new JSONObject();
 
-                mnemonic.put("mnemonic", temp.get("mnemonic"));
+            mnemonic.put("mnemonic", temp.get("mnemonic"));
 
-                mnemonicArray.add(mnemonic);
-            }
-        } catch (IOException | ParseException ex) {
-                LOG.error("Unable to collect the authenticator list from the ICAT ",ex);
+            mnemonicArray.add(mnemonic);
         }
         
         LOG.info("Collected authenticators from the ICAT: "+mnemonicArray.toJSONString());
@@ -167,29 +165,21 @@ public class IcatDataManager {
      * @param authenticator type of authenticator
      * @return 
      */
-    private String loginICAT(PropsManager properties){
-        
-        String session =null;
-        try {
-            URL hostUrl;
-            
-            LOG.info("Getting sessionId from ICAT: "+properties.getICATUrl());
-            
-            hostUrl = new URL(properties.getICATUrl());
-            URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
-            QName qName = new QName("http://icatproject.org", "ICATService");
-            ICATService service = new ICATService(icatUrl, qName);
-            icat = service.getICATPort();            
-       
-            session = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
-            LOG.info("Successfuly retrieved a sessionId from ICAT: "+properties.getICATUrl());
-            
-        } catch (IcatException_Exception | MalformedURLException ex) {
-            LOG.error("Error logging into the ICAT ",ex);
-        }
-        
+    private String loginICAT(PropsManager properties) throws IcatException_Exception, MalformedURLException {
+        URL hostUrl;
+
+        LOG.info("Getting sessionId from ICAT: "+properties.getICATUrl());
+
+        hostUrl = new URL(properties.getICATUrl());
+        URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
+        QName qName = new QName("http://icatproject.org", "ICATService");
+        ICATService service = new ICATService(icatUrl, qName);
+        icat = service.getICATPort();            
+
+        String session = icat.login(properties.getAuthenticator(), getCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
+        LOG.info("Successfuly retrieved a sessionId from ICAT: "+properties.getICATUrl());
+
         return session;
-        
     }
     
      /**
@@ -199,26 +189,28 @@ public class IcatDataManager {
      * @param timer is the object that is invoked when the timerservice is invoked.
      */
     @Timeout
-    public void timeout(Timer timer){
-     
-        if("refreshSession".equals(timer.getInfo())){
-            refreshSession();
-        }
-        else if("refreshData".equals(timer.getInfo())){
-            authenticators = retrieveAuthenticators();
-            instrumentIdMapping = mapInstrumentIds();
-        }
-        else if("loginCheck".equals(timer.getInfo())){
-            checkUserStatus();
-        }
-        
+    public void timeout(Timer timer) {
+        try {
+            if("refreshSession".equals(timer.getInfo())){
+                refreshSession();
+            }
+            else if("refreshData".equals(timer.getInfo())){
+                authenticators = retrieveAuthenticators();
+                instrumentIdMapping = mapInstrumentIds();
+            }
+            else if("loginCheck".equals(timer.getInfo())){
+                checkUserStatus();
+            }  
+        } catch (IOException | ParseException | IcatException ex) {
+            LOG.error("Failed to refresh the session", ex);
+        }  
     }
     
     /**
      * Gets all the logged in users and checks to see if they are logged in or not. It then
      * updates them in the database.
      */
-    private void checkUserStatus(){
+    private void checkUserStatus() throws ParseException {
         
         TypedQuery<ICATUser> loggedInUsersQuery = manager.createQuery("SELECT user FROM ICATUser user WHERE user.logged=1", ICATUser.class);
         
@@ -232,33 +224,26 @@ public class IcatDataManager {
                 beanManager.update(user, manager);
             }
         }
-    
     }
     
    
     
     //Contacts the ICAT
-    private boolean isUserLoggedIn(String userName){
+    private boolean isUserLoggedIn(String userName) throws ParseException {
         
         boolean isLoggedIn = false;
-        
-        try {
-            Client client = Client.create();            
-            WebResource webResource  = client.resource(properties.getICATUrl()+"/icat/user/"+userName);
-            ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
-            String result = response.getEntity(String.class);
-            
-            
-            JSONParser parser = new JSONParser();
-            
-            JSONObject resultObj = (JSONObject) parser.parse(result);            
-            
-            isLoggedIn = (boolean) resultObj.get("loggedIn");
-           
-            
-        } catch (ParseException ex) {
-            LOG.error("Issue contacting the ICAT to find out if "+userName+" is logged in. "+ex);
-        }
+
+        Client client = Client.create();            
+        WebResource webResource  = client.resource(properties.getICATUrl()+"/icat/user/"+userName);
+        ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
+        String result = response.getEntity(String.class);
+
+
+        JSONParser parser = new JSONParser();
+
+        JSONObject resultObj = (JSONObject) parser.parse(result);            
+
+        isLoggedIn = (boolean) resultObj.get("loggedIn");
         
         return isLoggedIn;
     }
@@ -267,28 +252,23 @@ public class IcatDataManager {
      * Maps instrument IDs to their name.
      * @return a Treemap of instrument IDs and names.
      */
-    private LinkedHashMap<String,Long> mapInstrumentIds(){
+    private LinkedHashMap<String,Long> mapInstrumentIds() throws IcatException, ParseException {
         
         LinkedHashMap<String,Long> instrumentIds = new LinkedHashMap<>();
         
         JSONParser parser = new JSONParser();
         JSONArray resultArray;
         
-        try {
-            String queryResult = restSession.search("SELECT instrument.name, instrument.id FROM Instrument as instrument ORDER BY instrument.name ASC");
-            
-            resultArray = (JSONArray) parser.parse(queryResult);
-            
-            for (Iterator it = resultArray.iterator(); it.hasNext();) {
-                 JSONArray subArray = (JSONArray) it.next();
-                 instrumentIds.put((String)subArray.get(0),(Long)subArray.get(1));
-            }
-            
-            
-        } catch (IcatException | ParseException ex) {
-            LOG.error("Issue with collecting instrument names and ids from the ICAT ",ex);
+        String queryResult = restSession.search("SELECT instrument.name, instrument.id FROM Instrument as instrument ORDER BY instrument.name ASC");
+
+        resultArray = (JSONArray) parser.parse(queryResult);
+
+        for (Iterator it = resultArray.iterator(); it.hasNext();) {
+             JSONArray subArray = (JSONArray) it.next();
+             instrumentIds.put((String)subArray.get(0),(Long)subArray.get(1));
         }
-        LOG.info("Collected the instruments from the ICAT.");
+
+        LOG.info("Successfully collected the instruments from the ICAT.");
         
         return instrumentIds;
     }
@@ -298,16 +278,13 @@ public class IcatDataManager {
      * @param properties that contain the login details.
      * @return a ICAT RestFul client.
      */
-    private Session createRestSession(PropsManager properties){
-        Session session = null;
+    private Session createRestSession(PropsManager properties) throws URISyntaxException, IcatException {
+        org.icatproject.icat.client.ICAT icatClient = new org.icatproject.icat.client.ICAT(properties.getICATUrl());
         
-        try {
-            org.icatproject.icat.client.ICAT icatClient = new org.icatproject.icat.client.ICAT(properties.getICATUrl());
-            session = icatClient.login(properties.getAuthenticator(), mapCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
-            LOG.info("Successfully creating a RESTFul client with the ICAT.");
-        } catch (URISyntaxException | IcatException ex) {
-            LOG.error("Issue creating the RestFul client ",ex);
-        }
+        Session session = icatClient.login(properties.getAuthenticator(), mapCredentials(properties.getReaderUserName(),properties.getReaderPassword()));
+        
+        LOG.info("Successfully creating a RESTFul client with the ICAT.");
+        
         return session;
     }
     
@@ -330,7 +307,7 @@ public class IcatDataManager {
     * Refreshes the ICAT session ID so the collector can keep connected to the ICAT
     * @throws IcatException_Exception Incase it can't connect to the ICAT
     */
-    private void refreshSession(){
+    private void refreshSession() {
         try {
             LOG.info("Refresshing the Session ID");
             icat.refresh(sessionID);

@@ -53,33 +53,31 @@ public class UserManager  {
   
     
     @PostConstruct
-    public void init(){       
-        icat = createICATLink();
-        sessionID = session.getSessionID();
+    public void init() {  
+        try {
+            icat = createICATLink();
+            sessionID = session.getSessionID();  
+        } catch(MalformedURLException ex) {
+            LOG.error("Issue with initialising the user User Manager with ", ex);
+        }
+        
     }
     
     
     /**
      * Creates an ICATservice object which can be used to communicate with an ICAT.
+     * @throws MalformedURLException
      * @return An ICAT object.
      */
-     public ICAT createICATLink(){
-        ICAT icat = null;
-         try {
-            URL hostUrl;
-            
-            hostUrl = new URL(prop.getICATUrl());
-            URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
-            QName qName = new QName("http://icatproject.org", "ICATService");
-            ICATService service = new ICATService(icatUrl, qName);
-            icat = service.getICATPort();            
-                                        
-                    
-        } catch (MalformedURLException ex) {
-            LOG.error("Issue creating WSDL link with the ICAT "+ex);
-        }
-        
-       
+     public ICAT createICATLink() throws MalformedURLException {
+        URL hostUrl;
+
+        hostUrl = new URL(prop.getICATUrl());
+        URL icatUrl = new URL(hostUrl, "ICATService/ICAT?wsdl");
+        QName qName = new QName("http://icatproject.org", "ICATService");
+        ICATService service = new ICATService(icatUrl, qName);
+        ICAT icat = service.getICATPort();            
+
         return icat;
         
     }
@@ -87,49 +85,41 @@ public class UserManager  {
     /**
      * Overloaded insertUser method to allow MDB to inject into this class and add new users that appear.
      * @param name Unique name of the user in the ICAT.
+     * @throws IcatException_Exception
+     * @throws DashboardException
      * @return the created user.
      */
-    public ICATUser insertUser(String name){
+    public ICATUser insertUser(String name) throws IcatException_Exception, DashboardException {
         String query = "SELECT u from User u WHERE u.name= '"+name+"'";             
         List<Object> icatUser;
         
         ICATUser dashBoardUser = new ICATUser(); 
-        
-        try {
-            icatUser = icat.search(sessionID,query);     
-            //Haven't found the user in the ICAT. Set to what their name is.
-            if(icatUser.isEmpty()){
-                dashBoardUser.setName(name);
-                dashBoardUser.setFullName(name);
 
-            }else{
-                User user = (User)icatUser.get(0);
-                dashBoardUser.setUserICATID(user.getId());
-                dashBoardUser.setFullName(user.getFullName());
-                dashBoardUser.setName(user.getName());
+        icatUser = icat.search(sessionID,query);     
+        //Haven't found the user in the ICAT. Set to what their name is.
+        if(icatUser.isEmpty()){
+            dashBoardUser.setName(name);
+            dashBoardUser.setFullName(name);
 
-            }       
-        
-        
-            insertUser(dashBoardUser);
-        
-        } catch (IcatException_Exception ex) {
-            LOG.error("Issue searching for user "+name+" "+ex);
-        }
+        }else{
+            User user = (User)icatUser.get(0);
+            dashBoardUser.setUserICATID(user.getId());
+            dashBoardUser.setFullName(user.getFullName());
+            dashBoardUser.setName(user.getName());
+
+        }       
+
+        insertUser(dashBoardUser);
         
         return dashBoardUser;
     }
     /**
      * Inserts a user to the Dashboard database.
+     * @throws DashboardException
      * @param user the ICAT user to insert
      */
-    public void insertUser(ICATUser user){
-        try {
-            beanManager.create(user, manager);
-        } catch (DashboardException ex) {
-            LOG.error("Issue inserting user into the Dashboard "+ex);
-        }
-    
+    public void insertUser(ICATUser user) throws DashboardException {
+        beanManager.create(user, manager);
     }
     
     

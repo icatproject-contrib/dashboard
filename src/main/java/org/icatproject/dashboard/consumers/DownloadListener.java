@@ -610,7 +610,7 @@ public class DownloadListener implements MessageListener {
      * @return the dashboard user with the provided name.
      * @throws ParseException issue accessing the string messageBody.
      */
-    public ICATUser getUser(String name) throws ParseException {
+    public ICATUser getUser(String name) throws ParseException, IcatException_Exception {
        
         ICATUser dashBoardUser;
         

@@ -20,7 +20,7 @@ public class DashboardSessionManager {
 	private EntityManager manager;
 
 	// Run every hour
-	@Schedule(hour = "*")
+	@Schedule(hour = "*", persistent = false)
 	public void removeExpiredSessions() {
 		try {
 			int n = manager.createNamedQuery(Session.DELETE_EXPIRED).executeUpdate();
