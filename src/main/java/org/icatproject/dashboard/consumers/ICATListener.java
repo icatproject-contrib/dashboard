@@ -15,6 +15,7 @@ import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import org.icatproject.IcatException_Exception;
 import org.icatproject.dashboard.entity.GeoLocation;
 import org.icatproject.dashboard.manager.UserManager;
 import org.icatproject.dashboard.entity.ICATUser;
@@ -67,7 +68,7 @@ public class ICATListener implements MessageListener {
             addLocation(log);
        
             beanManager.create(log, manager);
-        } catch (DashboardException | ParseException | JMSException ex) {
+        } catch (DashboardException | ParseException | JMSException | IcatException_Exception ex) {
            LOG.error("Issue inserting ICATLog into the dashboard ", ex);
         }
     }
@@ -109,10 +110,6 @@ public class ICATListener implements MessageListener {
             user.setLogged(false);
             beanManager.update(user, manager);
         }      
-        
-        
-        
-        
     }
     
     /**
@@ -120,7 +117,7 @@ public class ICATListener implements MessageListener {
      * @param message the message to have its data extracted.
      * @return a HashMap of data extracted from the message.
      */
-    private ICATLog parseJMSMessage(TextMessage messageBody) throws ParseException, JMSException, InternalException {
+    private ICATLog parseJMSMessage(TextMessage messageBody) throws ParseException, JMSException, IcatException_Exception, InternalException, DashboardException {
         ICATLog icatLog = new ICATLog();
         
         JSONParser parser = new JSONParser();
@@ -169,7 +166,7 @@ public class ICATListener implements MessageListener {
      * @return a dashboard User object.
      * @throws org.icatproject.dashboard.exceptions.InternalException
      */
-    public ICATUser getUser(String name) throws InternalException{
+    public ICATUser getUser(String name) throws InternalException, IcatException_Exception, DashboardException {
         ICATUser dashBoardUser;
         
         List<Object> user = beanManager.search("SELECT u FROM ICATUser u WHERE u.name= '"+name+"'", manager);        
@@ -183,8 +180,4 @@ public class ICATListener implements MessageListener {
         
         return dashBoardUser;        
     }
-    
-   
-   
-    
 }
