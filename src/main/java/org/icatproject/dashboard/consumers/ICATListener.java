@@ -57,9 +57,10 @@ public class ICATListener implements MessageListener {
     public void onMessage(Message message) {
         try {
             LOG.debug("Recieved a JMS message from the ICAT");
-
-
-            TextMessage text = (TextMessage) message;       
+            
+            TextMessage text = (TextMessage) message;
+            
+            LOG.info("JMS Message Recieved: \n" + text.toString());
 
             log = parseJMSMessage(text);
 
