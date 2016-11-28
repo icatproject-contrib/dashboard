@@ -89,6 +89,17 @@ angular
           templateUrl: 'views/downloads.html',
           controller: 'DownloadCtrl as download'
       })
+      
+      .state('contact',{
+          url:'/contact',          
+          resolve :{
+          authenticate :['Authenticate', function(Authenticate){
+            return Authenticate.authenticate();
+          }]
+          },
+          templateUrl: 'views/contact.html',
+          controller: 'DownloadCtrl as download'
+      })
 
       $urlRouterProvider.when('', '/login');
 

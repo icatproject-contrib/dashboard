@@ -114,9 +114,10 @@
               <ul class="nav nav-pills">
                 <a ng-if="ic.isLoggedIn()" ui-sref="logout"><li class="fa fa-unlock" ></li> Logout</a>
                 <a ng-if="!ic.isLoggedIn()" ui-sref="login"><li class="fa fa-lock"></li> Login</a>               
-                <a ng-if="ic.isLoggedIn()" ui-sref="users"><li class="fa fa-user"></li> Users</a>
+                <a ng-if="ic.isLoggedIn()" ui-sref="users"><li class="fa fa-users"></li> Users</a>
                 <a ng-if="ic.isLoggedIn()" ui-sref="downloads"><li class="fa fa-download"></li> Downloads</a>
                 <a ng-if="ic.isLoggedIn()" ui-sref="entities"><li class="fa fa-file-archive-o"></li> Entities</a>
+                <a ng-if="ic.isLoggedIn()" ui-sref="contact"><li class="fa fa-user"></li> Contact</a>
                 
                 
               </ul> 
