@@ -23,4 +23,7 @@ topCatURL= https://topcat.facility.ac.uk
 # Uncomment to permit configuration of logback
 !logback.xml = dashboard.logback.xml
 
+# Contact message which the Dashboard will display on the contact page
+contactMessage = If you have any problems or queries about this service, please contact us at email@address.com
+
 
