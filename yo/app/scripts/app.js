@@ -98,7 +98,7 @@ angular
           }]
           },
           templateUrl: 'views/contact.html',
-          controller: 'DownloadCtrl as download'
+          controller: 'ContactCtrl as contact'
       })
 
       $urlRouterProvider.when('', '/login');

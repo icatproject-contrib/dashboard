@@ -40,7 +40,7 @@ public class PropsManager {
     
     private String topCatURL;    
     
-    
+    private String contactMessage;
     private String idsAddress;
 
    
@@ -80,6 +80,7 @@ public class PropsManager {
            collectionTime = Integer.parseInt(props.getProperty("collectionTime").trim());          
            authorisedAccounts = getHashSetProperties("authorised_accounts",props);
            functionalAccounts = getHashSetProperties("functional_accounts",props);
+           contactMessage = props.getProperty("contactMessage").trim();
                      
            
            LOG.info("Authorised accounts set as: "+authorisedAccounts);
@@ -88,6 +89,7 @@ public class PropsManager {
            LOG.info("TopCat set as: "+topCatURL);
            LOG.info("Reader account set as "+userName);
            LOG.info("Collection time set as (24 Hour Clock) "+collectionTime);
+           LOG.info("Contact message set as: " + contactMessage);
            
            LOG.info("Finished collecting properties.");
           
@@ -129,6 +131,9 @@ public class PropsManager {
     }
     public String getReaderPassword(){
         return password; 
+    }
+    public String getContactMessage(){
+        return contactMessage; 
     }
     
     /**
