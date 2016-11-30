@@ -10,10 +10,10 @@ port           = 4848
 !home           = /home/fisher/pf/wildfly
 !port           = 9990
 
-#ids address without the protocol prefix
+#ids address without the protocol prefix or port number
 ids.address    = 
 
-#icat address without the protocol prefix
+#icat address without the protocol prefix or port number
 icat.address   =
 
 #oracle
