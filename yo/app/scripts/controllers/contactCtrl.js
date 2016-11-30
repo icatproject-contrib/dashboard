@@ -11,7 +11,6 @@
             vm.getContactMessage = function() {
                 return contactService.getContactMessage().then(function(responseData) {                    
                     var contactMessage = _.map(responseData, function(data){
-                        console.log(data.message);
                         return data.message;
                     });
                     
