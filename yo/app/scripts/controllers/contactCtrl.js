@@ -10,13 +10,13 @@
             
             vm.getContactMessage = function() {
                 return contactService.getContactMessage().then(function(responseData) {                    
-                    var contactMessage = _.map(responseData, function(data){
+                    var contactMessage = _.map(responseData, function(data) {
                         return data.message;
                     });
-                    
+            
                     vm.contactMessage = {
-                        message:contactMessage
-                    }
+                        message:contactMessage.toString()
+                    };
 
                 });	
             }
@@ -26,8 +26,15 @@
             
             groupPromise.then(function(){
                 vm.ready = true;
-            });
-
-                      
+            });          
         }
+        
+        angular.module('dashboardApp').filter('jsonFilter', function () {
+            return function(input) {
+                if(!input) return "";
+                var length = input.toString().length;
+                return input.toString().substring(2, (length - 2));
+            };
+        });
+        
 })();

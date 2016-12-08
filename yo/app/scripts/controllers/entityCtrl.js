@@ -166,6 +166,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 					var dataForGraph = formattedData[0];
 
 					var byteFormat = formattedData[1];
+                                        
 
 					dates.unshift("x");		
 							
