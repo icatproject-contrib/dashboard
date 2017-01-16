@@ -34,7 +34,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 	        		vm.entityNames = responseData[1];
 	        	
 
-	        		if(vm.instrumentNames.length == 0){
+	        		if(vm.instrumentNames == null || vm.instrumentNames.length == 0){
 	        			vm.selectedInstrument = "No Data";
 	        		}else{
 	        			vm.selectedInstrument = vm.instrumentNames[0].name;
@@ -55,7 +55,7 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
                 }
                 
                 vm.display = function() {
-                    if (vm.instrumentNames.length == 0) {
+                    if (vm.instrumentNames == null || vm.instrumentNames.length == 0) {
                         return false;
                     } else {
                         return true;
