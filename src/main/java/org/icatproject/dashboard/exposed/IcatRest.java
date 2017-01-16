@@ -100,7 +100,7 @@ public class IcatRest {
      * @param sessionID for authentication
      * @param queryConstraint any JPQL expression that can be appended to "SELECT download from Download download", e.g. "where download.id = 10".
      * @param initialLimit the initial limit value. Similar to LIMIT in SQL with initial Limit being the first value.
-     * @param maxLimit the end limit value.  Similar to LIMIT in SQL with max Limit being the scond value.
+     * @param maxLimit the end limit value.  Similar to LIMIT in SQL with max Limit being the second value.
      * @return a JSON array of ICAT Log JSON Objects in the format of [{"duration":9,"entityType":"Investigation","query":"Investigation AS Investigation$ INCLUDE Investigation$.type AS InvestigationType_$, Investigation$.investigationInstruments AS InvestigationInstrument_$, InvestigationInstrument_$.instrument AS Instrument_$, Investigation$.publications AS Publication_$, Investigation$.investigationUsers AS InvestigationUser_$, InvestigationUser_$.user AS User_$","ipAddress":null,"fullName":"Mr ICAT DOI Reader","entityId":15071364,"id":4093564351,"operation":"get","logTime":"2014-01-29T15:49:30"}]
      * 
      * @throws BadRequestException      
