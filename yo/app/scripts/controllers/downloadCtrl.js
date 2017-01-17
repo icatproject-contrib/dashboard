@@ -314,11 +314,12 @@
 						"data":volume,
 						"title":"Volume per user ("+byteFormat+")",
 						"rawData":responseData[0]
-					},					
+					},
+                                        legend : false,
 					description :  "This donut chart displays the number and volume of downloads per user.",
-				    title :"User Downloads",
-				    selectOp:vm.downloadMethodTypes,
-				    optionTitle:"Method",
+                                        title :"User Downloads",
+                                        selectOp:vm.downloadMethodTypes,
+                                        optionTitle:"Method",
 				};
                                 
 				if(!initialUpload){
@@ -377,7 +378,8 @@
 						"data":volume,
 						"title":"Volume ("+byteFormat+")",
 						"rawData":responseData[1]
-					},					
+					},
+                                        legend: true,
 					description :  "This donut chart displays the number and volume of downloads by download mechanism.",
 				    title :"Download Methods"
 				};
@@ -402,6 +404,7 @@
                             "title": "Number of downloads per file extension",
                             "rawData": responseData
                         },
+                        legend: true,
                         description: "This donut chart displays the number of downloads of different file extensions",
                         title: "File Downloads"
                     }
@@ -426,6 +429,7 @@
                             "title": "Number of downloads in each format",
                             "rawData": responseData
                         },
+                        legend: true,
                         description: "This donut chart displays the number of downloads per format (eg: dataset, datafiles etc...)",
                         title: "Format Downloads"
                     }

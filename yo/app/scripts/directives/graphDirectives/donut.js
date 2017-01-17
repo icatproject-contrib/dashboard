@@ -36,6 +36,7 @@
 						$scope.title = graphObject.number.title;
 						$scope.selectOp = graphObject.selectOp;
 						$scope.selectTitle = graphObject.optionTitle;
+                                                $scope.legend = graphObject.legend;
 
 					
 
@@ -57,8 +58,9 @@
 
 								}
 							},
-							
-
+                                                        legend: {
+                                                            show: $scope.legend
+                                                        },
 						});
 				}
 			});

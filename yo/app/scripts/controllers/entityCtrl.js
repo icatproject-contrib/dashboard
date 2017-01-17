@@ -274,7 +274,8 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 							"rawData":responseData[1]
 						},					
 						description :  "This donut chart displays the number and volume of datafiles for the top 10 investigations.",
-					    title :"Investigation datafile information"
+                                                title :"Investigation datafile information",
+                                                legend: true,
 					};
 
 			
