@@ -269,7 +269,7 @@
 
         vm.updateUserDownload = function(method,initialUpload){
 			method = parseMethod(method)
-        	//Create the promises for the user download data.
+                        //Create the promises for the user download data.
 			var userFrequencyPromise = downloadService.getUsersDownloadFrequency(getStartDate(),getEndDate(), method);
 			var userVolumePromise = downloadService.getUsersDownloadVolume(getStartDate(),getEndDate(), method);
 
@@ -315,8 +315,8 @@
 						"title":"Volume per user ("+byteFormat+")",
 						"rawData":responseData[0]
 					},
-                                        legend : false,
-					description :  "This donut chart displays the number and volume of downloads per user.",
+                                        legend: true,
+					description :  "This donut chart displays the number and volume of downloads per user. Only the top 10 downloaders are shown.",
                                         title :"User Downloads",
                                         selectOp:vm.downloadMethodTypes,
                                         optionTitle:"Method",

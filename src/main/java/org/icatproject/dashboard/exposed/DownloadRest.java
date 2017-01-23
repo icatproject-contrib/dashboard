@@ -57,6 +57,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.persistence.TypedQuery;
+import java.util.Collections;
+import java.util.Comparator;
 
 @Stateless
 @LocalBean
@@ -637,17 +639,27 @@ public class DownloadRest {
         Root<Download> download = query.from(Download.class);
         Join<Download, ICATUser> userJoin = download.join("user");
 
-        //Get methods and count how many their are.
+        //Get methods and count how many there are.
         query.multiselect(cb.count(download), userJoin.get("name"));
 
         Predicate finalPredicate = createDownloadPredicate(cb, start, end, download, userJoin, "", method);
 
         query.where(finalPredicate);
-
         query.groupBy(userJoin.get("name"));
-
         List<Object[]> users = manager.createQuery(query).getResultList();
         
+        // This will sort the list of arrays by the number of downloads per user.
+        Collections.sort(users, new Comparator<Object[]>() {
+            public int compare(Object[] someUser, Object[] otherUser) {
+                return Long.compare((long)otherUser[0], (long)someUser[0]);
+            }
+        });
+        
+        // Only want the top 10.
+        if (users.size() > 10) {
+            users = users.subList(0, 10);
+        }
+
         JSONArray result = new JSONArray();
 
         for (Object[] user : users) {
@@ -659,6 +671,90 @@ public class DownloadRest {
             temp.put("fullName", RestUtility.getFullName(name, manager));
             temp.put("name", name);
             temp.put("count", count);
+
+            result.add(temp);
+
+        }
+
+        return result.toJSONString();
+
+    }
+    
+    /**
+     * Retrieves the volume of downloads per user.
+     *
+     * @param sessionID for authentication
+     * @param startDate start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param endDate end time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
+     * @param method the method of download e.g. https, globus, scarf
+     * @return A JSON array of JSON Objects in the form of [{"volume":344349230,"name":"uows\/10506","fullName":"Mr Bob Doe"}].
+     * 
+     * @throws BadRequestException     
+     * @throws NotImplementedException
+     * @throws AuthenticationException
+     * @throws InternalException
+     * @throws NotFoundException
+    
+     * 
+     * @statuscode 200 To indicate success
+     */
+    @GET
+    @Path("volume/user")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getUserDownloadVolume(@QueryParam("sessionID") String sessionID,
+            @QueryParam("startDate") String startDate,
+            @QueryParam("endDate") String endDate,
+            @QueryParam("method") String method) throws DashboardException {
+        if (sessionID == null) {
+            throw new BadRequestException("A SessionID must be provided");
+        }
+        if (!(beanManager.checkSessionID(sessionID, manager))) {
+            throw new AuthenticationException("An invalid sessionID has been provided");
+        }
+
+        Date start = new Date(Long.valueOf(startDate));
+        Date end = new Date(Long.valueOf(endDate));
+
+        //Criteria objects.
+        CriteriaBuilder cb = manager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<Download> download = query.from(Download.class);
+        Join<Download, ICATUser> userJoin = download.join("user");
+
+        //Get methods and count how many their are.
+        query.multiselect(cb.sum(download.<Long>get("downloadSize")), userJoin.get("name"));
+
+        Predicate finalPredicate = createDownloadPredicate(cb, start, end, download, userJoin, "", method);
+
+        query.where(finalPredicate);
+
+        query.groupBy(userJoin.get("name"));
+
+        List<Object[]> users = manager.createQuery(query).getResultList();
+        
+        // This will sort the list of arrays by the number of downloads per user.
+        Collections.sort(users, new Comparator<Object[]>() {
+            public int compare(Object[] someUser, Object[] otherUser) {
+                return Long.compare((long)otherUser[0], (long)someUser[0]);
+            }
+        });
+        
+        // Only want the top 10.
+        if (users.size() > 10) {
+            users = users.subList(0, 10);
+        }
+
+        JSONArray result = new JSONArray();
+
+        for (Object[] user : users) {
+            JSONObject temp = new JSONObject();
+
+            String name = (String) user[1];
+            Long volume = (Long) user[0];
+            //Need to get the fullName of the user.
+            temp.put("fullName", RestUtility.getFullName(name, manager));
+            temp.put("name", name);
+            temp.put("volume", volume);
 
             result.add(temp);
 
@@ -875,78 +971,6 @@ public class DownloadRest {
         }
 
         return ary.toJSONString();
-
-    }
-
-    /**
-     * Retrieves the volume of downloads per user.
-     *
-     * @param sessionID for authentication
-     * @param startDate start time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
-     * @param endDate end time in the form of a Unix timestamp in milliseconds e.g. 1465254000661.
-     * @param method the method of download e.g. https, globus, scarf
-     * @return A JSON array of JSON Objects in the form of [{"volume":344349230,"name":"uows\/10506","fullName":"Mr Bob Doe"}].
-     * 
-     * @throws BadRequestException     
-     * @throws NotImplementedException
-     * @throws AuthenticationException
-     * @throws InternalException
-     * @throws NotFoundException
-    
-     * 
-     * @statuscode 200 To indicate success
-     */
-    @GET
-    @Path("volume/user")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getUserDownloadVolume(@QueryParam("sessionID") String sessionID,
-            @QueryParam("startDate") String startDate,
-            @QueryParam("endDate") String endDate,
-            @QueryParam("method") String method) throws DashboardException {
-        if (sessionID == null) {
-            throw new BadRequestException("A SessionID must be provided");
-        }
-        if (!(beanManager.checkSessionID(sessionID, manager))) {
-            throw new AuthenticationException("An invalid sessionID has been provided");
-        }
-
-        Date start = new Date(Long.valueOf(startDate));
-        Date end = new Date(Long.valueOf(endDate));
-
-        //Criteria objects.
-        CriteriaBuilder cb = manager.getCriteriaBuilder();
-        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
-        Root<Download> download = query.from(Download.class);
-        Join<Download, ICATUser> userJoin = download.join("user");
-
-        //Get methods and count how many their are.
-        query.multiselect(cb.sum(download.<Long>get("downloadSize")), userJoin.get("name"));
-
-        Predicate finalPredicate = createDownloadPredicate(cb, start, end, download, userJoin, "", method);
-
-        query.where(finalPredicate);
-
-        query.groupBy(userJoin.get("name"));
-
-        List<Object[]> users = manager.createQuery(query).getResultList();
-
-        JSONArray result = new JSONArray();
-
-        for (Object[] user : users) {
-            JSONObject temp = new JSONObject();
-
-            String name = (String) user[1];
-            Long volume = (Long) user[0];
-            //Need to get the fullName of the user.
-            temp.put("fullName", RestUtility.getFullName(name, manager));
-            temp.put("name", name);
-            temp.put("volume", volume);
-
-            result.add(temp);
-
-        }
-
-        return result.toJSONString();
 
     }
 

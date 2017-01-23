@@ -58,7 +58,7 @@ public class PropsManager {
      */
     
     public void collectProperties(String propertyFile){   
-        LOG.info("Reading properties.");
+        System.out.println("Getting the properties");
         File f = new File(propertyFile);
            Properties props = null;
            try {
@@ -83,13 +83,13 @@ public class PropsManager {
            contactMessage = props.getProperty("contactMessage").trim();
                      
            
-           LOG.info("Authorised accounts set as: "+authorisedAccounts);
-           LOG.info("Functional accounts set as: "+functionalAccounts);
-           LOG.info("ICAT set as: "+ICATUrl);
-           LOG.info("TopCat set as: "+topCatURL);
-           LOG.info("Reader account set as "+userName);
-           LOG.info("Collection time set as (24 Hour Clock) "+collectionTime);
-           LOG.info("Contact message set as: " + contactMessage);
+           System.out.println("Authorised accounts set as: "+authorisedAccounts);
+           System.out.println("Functional accounts set as: "+functionalAccounts);
+           System.out.println("ICAT set as: "+ICATUrl);
+           System.out.println("TopCat set as: "+topCatURL);
+           System.out.println("Reader account set as "+userName);
+           System.out.println("Collection time set as (24 Hour Clock) "+collectionTime);
+           System.out.println("Contact message set as: " + contactMessage);
            
            LOG.info("Finished collecting properties.");
           

@@ -104,6 +104,16 @@
 							
 							});
 					},
+                                        
+                                        getUsersDownloadVolume : function(startDate,endDate, method){
+
+						return $http.get(baseURL+"/volume/user?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
+							.then(function(response){
+
+								return response.data;
+							
+							});
+					},
 
                                         getFileExtensionDownloadFrequency : function(startDate,endDate, method){
 
@@ -118,16 +128,6 @@
                                         getFormatDownloadFrequency : function(startDate,endDate, method){
 
 						return $http.get(baseURL+"/files/format?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
-							.then(function(response){
-
-								return response.data;
-							
-							});
-					},
-
-					getUsersDownloadVolume : function(startDate,endDate, method){
-
-						return $http.get(baseURL+"/volume/user?sessionID=" +$sessionStorage.sessionData.sessionID+"&startDate="+startDate+"&endDate="+endDate+"&method="+method)
 							.then(function(response){
 
 								return response.data;
