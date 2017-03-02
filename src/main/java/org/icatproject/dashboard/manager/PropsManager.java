@@ -145,6 +145,10 @@ public class PropsManager {
     public int getDownloadDays() {
         return downloadDays;
     }
+    
+    public int getEntityDays() {
+        return entityDays;
+    }
       
     public String getICATUrl() {
         return ICATUrl;

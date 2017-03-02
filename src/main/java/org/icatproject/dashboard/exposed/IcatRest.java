@@ -626,5 +626,15 @@ public class IcatRest {
         return convertResultsToJson(result,dateMap);
         
     }
+    
+    /*
+    Returns the number of days to default the showing of from the properties file
+    */
+    @GET
+    @Path("period")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getEntityPeriod() {
+        return Integer.toString(properties.getEntityDays());
+    }
 
 }

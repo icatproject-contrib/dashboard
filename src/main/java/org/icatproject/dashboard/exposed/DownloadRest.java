@@ -1354,15 +1354,13 @@ public class DownloadRest {
 
     }
     
+    /*
+    Returns the number of days to default the showing of from the properties file
+    */
     @GET
     @Path("period")
     @Produces(MediaType.APPLICATION_JSON)
     public String getDownloadPeriod() {
-        /*
-        JSONObject object = new JSONObject();
-        object.put("period", properties.getDownloadDays());
-        return object.toString();
-        */
         return Integer.toString(properties.getDownloadDays());
     }
 

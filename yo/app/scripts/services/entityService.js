@@ -66,8 +66,15 @@
 							.then(function(response){
 								return response.data; 
 							});
-					}
-
+					},
+                                        getEntityPeriod : function() {
+                                                return $http.get(baseURL+"/icat/period")
+                                                        .then(function(response) {
+                                                            
+                                                                return response.data;
+                                                        
+                                                        });
+                                        },
 
 
 				}

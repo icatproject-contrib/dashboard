@@ -15,43 +15,45 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 
 
     		//Initialise the page with the values it requires for the menus
-	        vm.initPage = function(){
-	        	//Set default dates
-	        	vm.endDate = new Date();
-    
-        		vm.startDate = new Date(new Date().setDate(new Date().getDate()-90)); 
+	        vm.initPage = function() {
+                    var entityDays = entityService.getEntityPeriod();
 
-	        	var getInstrumetNamesPromise = entityService.getInstrumetNames();
-	        	var getEntityNamesPromise = entityService.getEntityNames();
+                    entityDays.then(function(responseData) {
+                        //Set default dates
+                        vm.endDate = new Date();
+                        vm.startDate = new Date(new Date().setDate(new Date().getDate()-responseData)); 
+                    });
 
-	        	//Joinned promise to make sure all the data has been returned.
+                    var getInstrumetNamesPromise = entityService.getInstrumetNames();
+                    var getEntityNamesPromise = entityService.getEntityNames();
 
-	        	var optionsPromise = $q.all([getInstrumetNamesPromise,getEntityNamesPromise]);
+                    //Joinned promise to make sure all the data has been returned.
 
-	        	optionsPromise.then(function(responseData){	  
-	        		     	
-	        		vm.instrumentNames = responseData[0];
-	        		vm.entityNames = responseData[1];
-	        	
+                    var optionsPromise = $q.all([getInstrumetNamesPromise,getEntityNamesPromise]);
 
-	        		if(vm.instrumentNames == null || vm.instrumentNames.length == 0){
-	        			vm.selectedInstrument = "No Data";
-	        		}else{
-	        			vm.selectedInstrument = vm.instrumentNames[0].name;
-	        		}
+                    optionsPromise.then(function(responseData){	  
 
-	        		if(vm.entityNames.length==0){
-	        			vm.selectedEntity = "No Data";
-	        		}
-	        		else{
-	        			vm.selectedEntity = vm.entityNames[0].name;
-	        		}		
-	        		
+                            vm.instrumentNames = responseData[0];
+                            vm.entityNames = responseData[1];
 
-	        		//Only want to update the page once the instrument has been returned
-	        		vm.updatePage();
-	        	});       	
 
+                            if(vm.instrumentNames == null || vm.instrumentNames.length == 0){
+                                    vm.selectedInstrument = "No Data";
+                            }else{
+                                    vm.selectedInstrument = vm.instrumentNames[0].name;
+                            }
+
+                            if(vm.entityNames.length==0){
+                                    vm.selectedEntity = "No Data";
+                            }
+                            else{
+                                    vm.selectedEntity = vm.entityNames[0].name;
+                            }		
+
+
+                            //Only want to update the page once the instrument has been returned
+                            vm.updatePage();
+                    });
                 }
                 
                 vm.display = function() {
@@ -397,7 +399,6 @@ function EntityCtrl($scope,entityService, $filter,$q,$element){
 					
 
 				    var totalAndAverage = getTotalAndAverage(formattedData);	 
-				    console.log(totalAndAverage)
 
 
 					vm.insDataFileCount = {
