@@ -133,6 +133,10 @@ public class PropsManager {
     public String getDefaultHomePage() {
         return defaultHomePage;
     }
+    
+    public int getNumberOfDownloads() {
+        return numberOfDownloads;
+    }
       
     public String getICATUrl(){
         return ICATUrl;

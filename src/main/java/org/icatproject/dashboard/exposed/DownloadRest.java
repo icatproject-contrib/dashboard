@@ -641,6 +641,9 @@ public class DownloadRest {
 
         //Get methods and count how many there are.
         query.multiselect(cb.count(download), userJoin.get("name"));
+        
+        // Get the number of users that should be shown on the pie chart
+        int numberOfUsers = properties.getNumberOfDownloads();
 
         Predicate finalPredicate = createDownloadPredicate(cb, start, end, download, userJoin, "", method);
 
@@ -657,11 +660,12 @@ public class DownloadRest {
         
         JSONArray result = new JSONArray();
         
-        // Only want the top 10 and sort rest into "others"
-        if (users.size() > 10) {
-            List<Object[]> others = users.subList(10, users.size());
+        // Only want the top X and sort rest into "others"
+        if (users.size() > numberOfUsers) {
+            List<Object[]> others = users.subList(numberOfUsers, users.size());
             // Calculate the total size of the others category
             Long othersCount = (long) 0;
+            
             for (Object[] user : others) {
                 othersCount += (Long) user[0];
             }
@@ -675,7 +679,7 @@ public class DownloadRest {
             // Add the object to the result
             result.add(otherObject);
             
-            users = users.subList(0, 10);
+            users = users.subList(0, numberOfUsers);
         }
 
         for (Object[] user : users) {
