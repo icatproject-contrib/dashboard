@@ -1,23 +1,23 @@
-#ICAT Dashboard Properties
+# ICAT Dashboard Properties
 
-#ICAT you want to connect to. In the form of a URL
+# ICAT you want to connect to. In the form of a URL
 icat.url=
 
-#Reader Account
+# Reader Account
 authenticator= 
 userName=
 password=
 
-#Functional accounts. Set as nmeonic/name e.g. uows/10422 simple/test
+# Functional accounts. Set as nmeonic/name e.g. uows/10422 simple/test
 functional_accounts =
 
-#Accounts allowed to login. Set as uows/1054444 simple/test
+# Accounts allowed to login. Set as uows/1054444 simple/test
 authorised_accounts = 
 
-#The hour (24 hour clock) in which the dashboard will collect its daily warehouse data.
+# The hour (24 hour clock) in which the dashboard will collect its daily warehouse data.
 collectionTime=1
 
-#TopCat Admin login Information
+# TopCat Admin login Information
 topCatURL= https://topcat.facility.ac.uk
 
 # Uncomment to permit configuration of logback
@@ -26,4 +26,18 @@ topCatURL= https://topcat.facility.ac.uk
 # Contact message which the Dashboard will display on the contact page
 contactMessage = If you have any problems or queries about this service, please contact us at email@address.com
 
+# Number of users to show on the users pie chart (Top X downloaders)
+numberOfDownloads = 10
+
+# Number of investigations to show on the investigations pie chart (Top X with most datafiles)
+numberOfInvestigations = 10
+
+# Default home page (i.e. Either Entities, Downloads or Users)
+defaultHomePage = downloads
+
+# The number of days to show entity data from
+entityDays = 90
+
+# The number of days to show download data from
+downloadDays = 90
 

@@ -40,10 +40,15 @@ public class PropsManager {
     
     private String topCatURL;    
     
+    private String defaultHomePage;
     private String contactMessage;
     private String idsAddress;
-
-   
+    
+    private int numberOfDownloads;
+    private int numberOfInvestigations;
+    private int downloadDays;
+    private int entityDays;
+    
     public PropsManager() {
         
     }
@@ -61,6 +66,7 @@ public class PropsManager {
         System.out.println("Getting the properties");
         File f = new File(propertyFile);
            Properties props = null;
+           
            try {
                props = new Properties();
                props.load(new FileInputStream(f));
@@ -69,7 +75,6 @@ public class PropsManager {
                        + e.getMessage();
                LOG.error(msg);
                throw new IllegalStateException(msg);
-
            }
            
            ICATUrl = props.getProperty("icat.url").trim();
@@ -81,8 +86,12 @@ public class PropsManager {
            authorisedAccounts = getHashSetProperties("authorised_accounts",props);
            functionalAccounts = getHashSetProperties("functional_accounts",props);
            contactMessage = props.getProperty("contactMessage").trim();
-                     
-           
+           defaultHomePage = props.getProperty("defaultHomePage").trim();
+           numberOfDownloads = Integer.parseInt(props.getProperty("numberOfDownloads"));
+           numberOfInvestigations = Integer.parseInt(props.getProperty("numberOfInvestigations"));
+           downloadDays = Integer.parseInt(props.getProperty("downloadDays"));
+           entityDays = Integer.parseInt(props.getProperty("entityDays"));
+                   
            System.out.println("Authorised accounts set as: "+authorisedAccounts);
            System.out.println("Functional accounts set as: "+functionalAccounts);
            System.out.println("ICAT set as: "+ICATUrl);
@@ -90,10 +99,13 @@ public class PropsManager {
            System.out.println("Reader account set as "+userName);
            System.out.println("Collection time set as (24 Hour Clock) "+collectionTime);
            System.out.println("Contact message set as: " + contactMessage);
+           System.out.println("Default home page set as: " + defaultHomePage);
+           System.out.println("Number of downloads set as " + numberOfDownloads);
+           System.out.println("Number of investigations set as " + numberOfInvestigations);
+           System.out.println("Download days set as " + downloadDays);
+           System.out.println("Entity days set as " + entityDays);
            
-           LOG.info("Finished collecting properties.");
-          
-           
+           LOG.info("Finished collecting properties.");     
     }
     
     //Getters for the methods.
