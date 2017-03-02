@@ -96,7 +96,7 @@ public class DashboardRest {
             Map<String, String> credentials = new HashMap<>();
 
             HashSet authorisedAccounts = properties.getAuthorisedAccounts();
-            String homePage = properties.getDefaultHomePage();
+            String homePage = properties.getDefaultHomePage().toLowerCase();
 
             String user;
             String sessionID;
