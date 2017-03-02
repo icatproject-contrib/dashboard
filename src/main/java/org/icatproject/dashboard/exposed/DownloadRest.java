@@ -655,25 +655,40 @@ public class DownloadRest {
             }
         });
         
-        // Only want the top 10.
+        JSONArray result = new JSONArray();
+        
+        // Only want the top 10 and sort rest into "others"
         if (users.size() > 10) {
+            List<Object[]> others = users.subList(10, users.size());
+            // Calculate the total size of the others category
+            Long othersCount = (long) 0;
+            for (Object[] user : others) {
+                othersCount += (Long) user[0];
+            }
+            
+            // Create the JSON other object
+            JSONObject otherObject = new JSONObject();
+            otherObject.put("fullName", "Other");
+            otherObject.put("name", "Other");
+            otherObject.put("count", othersCount);
+            
+            // Add the object to the result
+            result.add(otherObject);
+            
             users = users.subList(0, 10);
         }
-
-        JSONArray result = new JSONArray();
 
         for (Object[] user : users) {
             JSONObject temp = new JSONObject();
 
             String name = (String) user[1];
             Long count = (Long) user[0];
-            //Need to get the fullName of the user.
+            // Need to get the fullName of the user.
             temp.put("fullName", RestUtility.getFullName(name, manager));
             temp.put("name", name);
             temp.put("count", count);
 
             result.add(temp);
-
         }
 
         return result.toJSONString();
