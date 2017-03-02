@@ -130,7 +130,9 @@ public class PropsManager {
         return functionalAccounts;
     }
     
-    
+    public String getDefaultHomePage() {
+        return defaultHomePage;
+    }
       
     public String getICATUrl(){
         return ICATUrl;

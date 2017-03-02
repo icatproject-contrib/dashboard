@@ -28,14 +28,14 @@ angular.module('dashboardApp').controller('LoginCtrl', LoginCtrl);
                 if (lc.authenticator) {
                    LoginService.login(lc.authenticator, lc.username, lc.password).
                         then(function(responseData){
-
-                                $sessionStorage.sessionData = {
+                            var homePage = responseData['homePage'];
+                            $sessionStorage.sessionData = {
 
                                 sessionID : responseData['sessionID'],
                                 username : lc.username
-                                        };
+                            };
 
-                                $state.go('downloads');
+                            $state.go(homePage);
                     }); 
                 }
             };

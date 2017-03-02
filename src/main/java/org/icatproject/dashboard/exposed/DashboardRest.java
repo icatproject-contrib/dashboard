@@ -96,6 +96,9 @@ public class DashboardRest {
             Map<String, String> credentials = new HashMap<>();
 
             HashSet authorisedAccounts = properties.getAuthorisedAccounts();
+            
+            // Get the default homepage from the properties file 
+            String homePage = properties.getDefaultHomePage();
 
             String user;
             String sessionID;
@@ -111,10 +114,11 @@ public class DashboardRest {
             user = session.getUserName();
             session.logout();
 
-            
             if (authorisedAccounts.contains(user)) {
                 sessionID = beanManager.login(user, 120, manager);
                 obj.put("sessionID", sessionID);
+                obj.put("homePage", homePage);
+                LOG.info(obj.toString());
                 return obj.toString();
             }
             
