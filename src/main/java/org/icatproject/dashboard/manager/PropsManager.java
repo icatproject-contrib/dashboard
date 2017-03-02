@@ -137,20 +137,28 @@ public class PropsManager {
     public int getNumberOfDownloads() {
         return numberOfDownloads;
     }
+    
+    public int getNumberOfInvestigations() {
+        return numberOfInvestigations;
+    }
+    
+    public int getDownloadDays() {
+        return downloadDays;
+    }
       
-    public String getICATUrl(){
+    public String getICATUrl() {
         return ICATUrl;
     }
-    public String getAuthenticator(){
+    public String getAuthenticator() {
         return loginAuth;
     }
-    public String getReaderUserName(){
+    public String getReaderUserName() {
         return userName;
     }
-    public String getReaderPassword(){
+    public String getReaderPassword() {
         return password; 
     }
-    public String getContactMessage(){
+    public String getContactMessage() {
         return contactMessage; 
     }
     

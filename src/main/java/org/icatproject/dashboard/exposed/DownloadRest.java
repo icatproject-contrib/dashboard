@@ -1353,6 +1353,18 @@ public class DownloadRest {
         return (GeoLocation)geoLocation.get(0);
 
     }
+    
+    @GET
+    @Path("period")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getDownloadPeriod() {
+        /*
+        JSONObject object = new JSONObject();
+        object.put("period", properties.getDownloadDays());
+        return object.toString();
+        */
+        return Integer.toString(properties.getDownloadDays());
+    }
 
     
 }

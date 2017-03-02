@@ -342,6 +342,7 @@ public class IcatRest {
             throw new AuthenticationException("An invalid sessionID has been provided");
         }      
         
+        limit = properties.getNumberOfInvestigations();
                 
         return getInvestigationMetaData("datafileVolume",startDate,endDate,limit); 
     }
@@ -377,9 +378,10 @@ public class IcatRest {
         }
         if (!(beanManager.checkSessionID(sessionID, manager))) {
             throw new AuthenticationException("An invalid sessionID has been provided");
-        }      
+        }
         
-                
+        limit = properties.getNumberOfInvestigations();
+               
         return getInvestigationMetaData("datafileCount",startDate,endDate,limit); 
     }
     
@@ -499,8 +501,6 @@ public class IcatRest {
         if (!(beanManager.checkSessionID(sessionID, manager))) {
             throw new AuthenticationException("An invalid sessionID has been provided");
         }
-        
-      
         
         return getInstrumentMetaData("datafileVolume", startDate, endDate, instrument);
     }

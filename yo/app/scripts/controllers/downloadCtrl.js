@@ -134,22 +134,25 @@
 
 
        	//Initialise the page with the values it requires for the menus
-        vm.initPage = function(){
-        	//Set default dates
-        	vm.endDate = new Date();
+        vm.initPage = function() {
+            var downloadDays = downloadService.getDownloadPeriod();
+            
+            downloadDays.then(function(responseData) {
+                //Set default dates
+                vm.endDate = new Date();
+                vm.startDate = new Date(new Date().setDate(new Date().getDate()-responseData)); 
+            });
+           
+            var downloadMethodTypes = downloadService.getDownloadMethodTypes();
 
-    		vm.startDate = new Date(new Date().setDate(new Date().getDate()-90)); 
+            downloadMethodTypes.then(function(responseData){
 
-        	var downloadMethodTypes = downloadService.getDownloadMethodTypes();
+                    responseData.push({name:"All"});
+                    vm.downloadMethodTypes = responseData;
 
-        	downloadMethodTypes.then(function(responseData){
-        		
-        		responseData.push({name:"All"});
-        		vm.downloadMethodTypes = responseData;
-        		
-        		vm.updatePage()
+                    vm.updatePage()
 
-        	});  	
+            });  	
 
         }  
 

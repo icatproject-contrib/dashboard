@@ -193,6 +193,14 @@
 							});
 
 					},
+                                        getDownloadPeriod : function() {
+                                                return $http.get(baseURL+"/period")
+                                                        .then(function(response) {
+                                                            
+                                                                return response.data;
+                                                        
+                                                        });
+                                        },
 				    
 			}
 
