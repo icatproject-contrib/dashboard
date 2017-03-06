@@ -24,13 +24,7 @@ angular
     'ui.grid.selection',   
     'ui.grid.resizeColumns',   
     'ui.grid.autoResize', 
-    'bytes',
-
-
-    
-
-    
-
+    'bytes'
   ])
   .config(['$httpProvider', function($httpProvider){
     $httpProvider.interceptors.push('HttpInterceptor');

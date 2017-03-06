@@ -1109,8 +1109,8 @@ public class DownloadRest {
 
             JSONObject downloadData = new JSONObject();
             downloadData.put("average", df.format(Double.parseDouble(singleDownload[0].toString())));
-            downloadData.put("min", df.format(Double.parseDouble(singleDownload[1].toString())));
-            downloadData.put("max", df.format(Double.parseDouble(singleDownload[2].toString())));
+            //downloadData.put("min", df.format(Double.parseDouble(singleDownload[1].toString())));
+            //downloadData.put("max", df.format(Double.parseDouble(singleDownload[2].toString())));
             downloadData.put("isp", singleDownload[3]);
 
             container.add(downloadData);

@@ -734,84 +734,66 @@
 		    });	
          }
 
-         vm.updateISPBandwidth = function(method,initialUpload){
-         	method = parseMethod(method)
+         vm.updateISPBandwidth = function(method,initialUpload) {
+            method = parseMethod(method)
 
-         	return downloadService.getDownloadISPBandwidth(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData){		     		
-		     		
-		     		var average = _.map(responseData, function(data){
-		     			
-						return data.average;
-					});
+            return downloadService.getDownloadISPBandwidth(getStartDate(),getEndDate(), vm.userName, method).then(function(responseData) {		     			
+                var average = _.map(responseData, function(data) {
+                    return data.average;
+                });
 
-					var min = _.map(responseData, function(data){
-		     			
-						return data.min;
-					});
-			
+                var ispArray = _.map(responseData, function(data) {
+                    return data.isp;
+                });
 
-					var max = _.map(responseData, function(data){
-		     			
-						return data.max;
-					});
+                var byteFormat="";
 
 
-					var ispArray = _.map(responseData, function(data){
-		     			
-						return data.isp;
-					});
-					
+                if (typeof average !== "undefined") {
+                    //Get the largest value in the result to set the correct bytes format.
+                    var largestValue = Math.max.apply(Math, average);
 
-					var formattedData = [average,min,max];
-					var byteFormat="";
-					
+                    byteFormat = $filter('bytes')(average, largestValue)[1]
 
-					if (typeof formattedData !== "undefined") {
-						//Get the largest value in the result to set the correct bytes format.
-						var largestValue = Math.max.apply(Math,formattedData[2]);
+                    average = $filter('bytes')(average, largestValue)[0];
 
-						byteFormat = $filter('bytes')(formattedData[0],largestValue)[1]
+                    average.unshift('average');
 
-						for(var i =0;i<formattedData.length;i++){
-							formattedData[i] = $filter('bytes')(formattedData[i],largestValue)[0];
-							
+                } else {
+                    average=[['average', 0]];
+                }
+                
+                ispArray.unshift('x');
+                    
+                vm.ispBandwidth = {
+                    data: {
+                        x : 'x',
+                        columns : [
+                            ispArray,
+                            average,
+                        ],
+                        type:'bar',
+                        labels:true
+                    },
+                    axis: {
+                        x: {
+                            type: 'category',
+                        }
+                    },
+                    zoom :false,
+                    description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
+                    title : "ISP Download Bandwidth " + byteFormat + "/S",
+                    xLabel:"ISP",
+                    yLabel: "Bandwidth " + byteFormat + "/S",
+                    selectOp:vm.downloadMethodTypes,
+                    optionTitle:"Method",
+                    rawData:responseData
+                };	
 
-						}
-
-						formattedData[0].unshift('average');
-						formattedData[1].unshift('min');
-						formattedData[2].unshift('max');
-
-					}else{
-						formattedData=[['average',0],['min',0],['max',0]];
-					}		
-
-
-					
-					vm.ispBandwidth = {
-						data: {							 	 				 	 
-				       			 columns : formattedData,
-				       			 type:'bar',
-				       			 labels:true,
-				       			 groups:[['average','min','max']]
-						    },
-						categories:ispArray,
-						zoom :false,
-				    	description : "This bar graph displays the bandwidth of downloads per ISP during the requested period.",
-				    	title : "ISP Download Bandwidth " +byteFormat+"/S",
-				    	xLabel:"ISP",
-				    	yLabel: "Bandwidth "+byteFormat+ "/S",
-				    	selectOp:vm.downloadMethodTypes,
-				    	optionTitle:"Method",
-				    	rawData:responseData
-					};	
-					
-					if(!initialUpload){
-					    updateCSV();
-					}	
-						
-		    });
-
+                if(!initialUpload) {
+                    updateCSV();
+                }					
+            });
          }
 
          vm.updateDownloadVolume = function(method,initialUpload){
