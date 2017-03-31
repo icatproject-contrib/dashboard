@@ -257,7 +257,12 @@
 	 				type:"ispBandwidth",
 	 				title:"ISP Average, Min and Max",
 	 				data:vm.ispBandwidth.rawData
-	 			},  
+	 			},
+                                {   
+                                        type:"downloadAge",
+                                        title:"Download Age",
+                                        data:vm.entityAge.rawData
+                                },
 	 			{
 	 				type:"downloadVolume",
 	 				title:"Download Volume",
