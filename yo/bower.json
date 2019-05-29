@@ -42,7 +42,7 @@
   "resolutions": {
     "d3": "~3.5.10",
     "bootstrap": "^3.2.0",
-    "angular": "^1.4.0",
+    "angular": "~1.4.0",
     "moment": "~2.11.0"
   }
 }
