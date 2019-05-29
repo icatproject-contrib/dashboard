@@ -13,7 +13,7 @@
 
 			function downloadService ($http, $sessionStorage, $q,$rootScope){
 
-				var baseURL = $rootScope.baseURL+'/download';
+				var baseURL = $rootScope.baseURL+'download';
 
 					
 
