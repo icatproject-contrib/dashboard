@@ -7,7 +7,7 @@
 
         function contactService ($http, $sessionStorage, $rootScope){
 
-                var baseURL = $rootScope.baseURL+'/contact';
+                var baseURL = $rootScope.baseURL+'contact';
 
 
 
