@@ -37,6 +37,7 @@ import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.GetLocationException;
 import org.icatproject.dashboard.exceptions.InternalException;
+import org.icatproject.dashboard.exceptions.NotFoundException;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getDatePredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getEntityCountPredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getInstrumentPredicate;
@@ -48,8 +49,10 @@ import org.icatproject.dashboard.manager.PropsManager;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDate;
 import static org.icatproject.dashboard.utility.DateUtility.convertToLocalDateTime;
 import static org.icatproject.dashboard.utility.RestUtility.createPrePopulatedLongMap;
+import org.icatproject.icat.client.IcatException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
 
 @Stateless
@@ -578,10 +581,20 @@ public class IcatRest {
         
         for(Object[] investigation: result){
             JSONObject obj = new JSONObject();
-            obj.put("investigationId",investigation[0]);
             obj.put("value",investigation[1]);
-            resultArray.add(obj);
             
+            try {
+                // Attempt to retrieve the investigation name from ICAT
+                String name = icatData.getInvestigationNameById((long)investigation[0]);
+                obj.put("investigationId", name);
+            } catch (IcatException | ParseException | NotFoundException ex) {
+                // If the name can't be retrieved then use the ID instead
+                obj.put("investigationId", investigation[0]);
+                LOG.warn("Unable to retrieve investigation name from ICAT, using ID instead : " 
+                        + ex.getMessage());
+            }
+            
+            resultArray.add(obj);
         }
         
         return resultArray.toJSONString();

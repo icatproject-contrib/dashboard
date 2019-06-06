@@ -47,6 +47,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.icatproject.dashboard.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -271,6 +272,23 @@ public class IcatDataManager {
         LOG.info("Successfully collected the instruments from the ICAT.");
         
         return instrumentIds;
+    }
+    
+    /**
+     * Retrieves the name of an investigation from ICAT.
+     * @param id Investigation ID
+     * @return Investigation name
+     */
+    public String getInvestigationNameById(long id) throws IcatException, ParseException, NotFoundException {
+        String queryResult = restSession.search("SELECT i.name FROM Investigation i WHERE i.id=" + id);
+        
+        JSONParser parser = new JSONParser();
+        JSONArray resultArray = (JSONArray) parser.parse(queryResult);
+        if (resultArray.isEmpty()) {
+            throw new NotFoundException("Couldn't find investigation in ICAT by ID : " + id);
+        }
+        
+        return (String) resultArray.get(0);
     }
     
     /**

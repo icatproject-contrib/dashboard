@@ -5,3 +5,5 @@
 /.project
 /.settings/
 /.pydevproject
+package-lock.json
+/src/site/xhtml/installation.html
