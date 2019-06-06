@@ -274,6 +274,20 @@ public class IcatDataManager {
     }
     
     /**
+     * Retrieves the name of an investigation from ICAT.
+     * @param id Investigation ID
+     * @return Investigation name
+     */
+    public String getInvestigationNameById(long id) throws IcatException, ParseException {
+        String queryResult = restSession.search("SELECT i.name FROM Investigation i WHERE i.id=" + id);
+        
+        JSONParser parser = new JSONParser();
+        JSONArray resultArray = (JSONArray) parser.parse(queryResult);
+        
+        return (String) resultArray.get(0);
+    }
+    
+    /**
      * Creates an ICAT RestFul client.
      * @param properties that contain the login details.
      * @return a ICAT RestFul client.
