@@ -37,6 +37,7 @@ import org.icatproject.dashboard.exceptions.BadRequestException;
 import org.icatproject.dashboard.exceptions.DashboardException;
 import org.icatproject.dashboard.exceptions.GetLocationException;
 import org.icatproject.dashboard.exceptions.InternalException;
+import org.icatproject.dashboard.exceptions.NotFoundException;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getDatePredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getEntityCountPredicate;
 import static org.icatproject.dashboard.exposed.PredicateCreater.getInstrumentPredicate;
@@ -586,7 +587,7 @@ public class IcatRest {
                 // Attempt to retrieve the investigation name from ICAT
                 String name = icatData.getInvestigationNameById((long)investigation[0]);
                 obj.put("investigationId", name);
-            } catch (IcatException | ParseException ex) {
+            } catch (IcatException | ParseException | NotFoundException ex) {
                 // If the name can't be retrieved then use the ID instead
                 obj.put("investigationId", investigation[0]);
                 LOG.warn("Unable to retrieve investigation name from ICAT, using ID instead : " 
